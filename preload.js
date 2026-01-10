@@ -133,5 +133,36 @@ contextBridge.exposeInMainWorld('deskmate', {
      */
     clearAIHistory: () => {
         return ipcRenderer.invoke('ai:clearHistory');
+    },
+
+    // ============================================
+    // i18n
+    // ============================================
+
+    /**
+     * Get current language
+     */
+    getLanguage: () => ipcRenderer.invoke('i18n:getLanguage'),
+
+    /**
+     * Set language
+     */
+    setLanguage: (lang) => ipcRenderer.invoke('i18n:setLanguage', lang),
+
+    /**
+     * Get supported languages
+     */
+    getSupportedLanguages: () => ipcRenderer.invoke('i18n:getSupported'),
+
+    /**
+     * Get translation for a key
+     */
+    t: (key) => ipcRenderer.invoke('i18n:translate', key),
+
+    /**
+     * Listen for language change event
+     */
+    onLanguageChanged: (callback) => {
+        ipcRenderer.on('language-changed', (_, lang) => callback(lang));
     }
 });

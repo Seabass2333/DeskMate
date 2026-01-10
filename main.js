@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeIma
 const path = require('path');
 const LLMHandler = require('./src/services/llmHandler');
 const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS } = require('./config');
+const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
 
 // Hot reload in development mode only
 if (!app.isPackaged) {
@@ -84,24 +85,24 @@ function startPomodoro(minutes) {
 function showContextMenu() {
   const template = [
     {
-      label: '💬 Talk to Me',
+      label: t('talkToMe'),
       click: () => {
         mainWindow.webContents.send('talk-to-pet');
       }
     },
     { type: 'separator' },
     {
-      label: isPomodoroActive ? '🍅 专注中...' : '🍅 开始专注',
+      label: isPomodoroActive ? t('focusing') : t('startFocus'),
       submenu: [
-        { label: '15 分钟', click: () => startPomodoro(15) },
-        { label: '20 分钟', click: () => startPomodoro(20) },
-        { label: '25 分钟 ⭐', click: () => startPomodoro(25) },
-        { label: '30 分钟', click: () => startPomodoro(30) },
-        { label: '45 分钟', click: () => startPomodoro(45) },
-        { label: '60 分钟', click: () => startPomodoro(60) },
+        { label: `15 ${t('minutes')}`, click: () => startPomodoro(15) },
+        { label: `20 ${t('minutes')}`, click: () => startPomodoro(20) },
+        { label: `25 ${t('minutes')} ⭐`, click: () => startPomodoro(25) },
+        { label: `30 ${t('minutes')}`, click: () => startPomodoro(30) },
+        { label: `45 ${t('minutes')}`, click: () => startPomodoro(45) },
+        { label: `60 ${t('minutes')}`, click: () => startPomodoro(60) },
         { type: 'separator' },
         {
-          label: '⏹ 停止专注',
+          label: t('stopFocus'),
           enabled: isPomodoroActive,
           click: () => {
             isPomodoroActive = false;
@@ -112,10 +113,10 @@ function showContextMenu() {
     },
     { type: 'separator' },
     {
-      label: '⏰ 定时提醒',
+      label: t('reminders'),
       submenu: [
         {
-          label: '💧 喝水 (30分钟)',
+          label: `${t('drinkWater')} (30${t('minutes')})`,
           type: 'checkbox',
           checked: activeReminders.has('water'),
           click: () => {
@@ -128,7 +129,7 @@ function showContextMenu() {
           }
         },
         {
-          label: '👀 休息眼睛 (20分钟)',
+          label: `${t('restEyes')} (20${t('minutes')})`,
           type: 'checkbox',
           checked: activeReminders.has('rest'),
           click: () => {
@@ -141,7 +142,7 @@ function showContextMenu() {
           }
         },
         {
-          label: '🧘 伸展 (45分钟)',
+          label: `${t('stretch')} (45${t('minutes')})`,
           type: 'checkbox',
           checked: activeReminders.has('stretch'),
           click: () => {
@@ -157,14 +158,14 @@ function showContextMenu() {
     },
     { type: 'separator' },
     {
-      label: '⚙️ 设置',
+      label: t('settings'),
       click: () => {
         openSettingsWindow();
       }
     },
     { type: 'separator' },
     {
-      label: 'Exit DeskMate',
+      label: t('exit'),
       click: () => app.quit()
     }
   ];
@@ -188,6 +189,12 @@ function createFallbackTrayIcon() {
  * Creates and configures the system tray icon
  */
 function createTray() {
+  // Destroy existing tray to prevent duplicates
+  if (tray) {
+    tray.destroy();
+    tray = null;
+  }
+
   // Create tray with a fallback icon first
   let trayIcon = createFallbackTrayIcon();
 
@@ -217,7 +224,7 @@ function createTray() {
   // Build tray context menu
   const trayMenu = Menu.buildFromTemplate([
     {
-      label: '🐱 显示/隐藏',
+      label: t('showHide'),
       click: () => {
         if (mainWindow) {
           if (mainWindow.isVisible()) {
@@ -230,7 +237,7 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: '💬 对话',
+      label: t('talkToMe'),
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -239,7 +246,7 @@ function createTray() {
       }
     },
     {
-      label: '🍅 番茄钟 (25分钟)',
+      label: `${t('startFocus')} (25${t('minutes')})`,
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -250,11 +257,11 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: '⚙️ 设置',
+      label: t('settings'),
       click: () => openSettingsWindow()
     },
     {
-      label: '🚀 开机自启',
+      label: t('autoStart'),
       type: 'checkbox',
       checked: app.getLoginItemSettings().openAtLogin,
       click: (menuItem) => {
@@ -267,7 +274,7 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: '❌ 退出',
+      label: t('exit'),
       click: () => app.quit()
     }
   ]);
@@ -306,8 +313,8 @@ function openSettingsWindow() {
 
   settingsWindow = new BrowserWindow({
     width: 450,
-    height: 520,
-    parent: mainWindow,
+    height: 580,
+    // Removed parent to make window independent
     modal: false,
     frame: true,
     resizable: false,
@@ -515,10 +522,39 @@ ipcMain.handle('ai:clearHistory', () => {
 });
 
 // ============================================
+// i18n IPC Handlers
+// ============================================
+
+ipcMain.handle('i18n:getLanguage', () => getLanguage());
+
+ipcMain.handle('i18n:setLanguage', (_, lang) => {
+  const success = setLanguage(lang);
+
+  // Rebuild tray menu with new language
+  if (success && tray) {
+    createTray(); // Recreate tray menu with updated translations
+  }
+
+  // Notify renderer to refresh UI
+  if (success && mainWindow) {
+    mainWindow.webContents.send('language-changed', getLanguage());
+  }
+
+  return { success, language: getLanguage() };
+});
+
+ipcMain.handle('i18n:getSupported', () => SUPPORTED_LANGUAGES);
+
+ipcMain.handle('i18n:translate', (_, key) => t(key));
+
+// ============================================
 // App Lifecycle
 // ============================================
 
 app.whenReady().then(() => {
+  // Initialize i18n with system language detection
+  initI18n();
+
   // Initialize LLM Handler with active config
   try {
     const llmConfig = getActiveConfig();

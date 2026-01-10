@@ -24,5 +24,15 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     /**
      * Close settings window
      */
-    close: () => ipcRenderer.send('settings:close')
+    close: () => ipcRenderer.send('settings:close'),
+
+    /**
+     * Get current language
+     */
+    getLanguage: () => ipcRenderer.invoke('i18n:getLanguage'),
+
+    /**
+     * Set language
+     */
+    setLanguage: (lang) => ipcRenderer.invoke('i18n:setLanguage', lang)
 });

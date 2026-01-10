@@ -14,9 +14,101 @@ const PROVIDERS = {
         openai: { name: 'OpenAI', model: 'gpt-4o-mini' }
     },
     local: {
-        ollama: { name: 'Ollama (本地)', model: 'llama3.2' }
+        ollama: { name: 'Ollama', model: 'llama3.2' }
     }
 };
+
+// Settings page translations
+const SETTINGS_I18N = {
+    'zh-CN': {
+        settingsTitle: '设置',
+        providerSection: 'API 供应商',
+        region: '区域',
+        regionChina: '🇨🇳 中国大陆',
+        regionGlobal: '🌍 国际',
+        regionLocal: '💻 本地',
+        provider: '供应商',
+        apiKeySection: 'API 密钥',
+        apiKey: 'API Key',
+        model: '模型',
+        testConnection: '测试连接',
+        language: '语言',
+        interfaceLanguage: '界面语言',
+        cancel: '取消',
+        save: '保存设置',
+        testing: '测试中...',
+        connectionSuccess: '✓ 连接成功',
+        saving: '保存中...'
+    },
+    'en': {
+        settingsTitle: 'Settings',
+        providerSection: 'API Provider',
+        region: 'Region',
+        regionChina: '🇨🇳 China',
+        regionGlobal: '🌍 Global',
+        regionLocal: '💻 Local',
+        provider: 'Provider',
+        apiKeySection: 'API Key',
+        apiKey: 'API Key',
+        model: 'Model',
+        testConnection: 'Test Connection',
+        language: 'Language',
+        interfaceLanguage: 'Interface Language',
+        cancel: 'Cancel',
+        save: 'Save Settings',
+        testing: 'Testing...',
+        connectionSuccess: '✓ Connected',
+        saving: 'Saving...'
+    },
+    'ja': {
+        settingsTitle: '設定',
+        providerSection: 'APIプロバイダー',
+        region: '地域',
+        regionChina: '🇨🇳 中国',
+        regionGlobal: '🌍 グローバル',
+        regionLocal: '💻 ローカル',
+        provider: 'プロバイダー',
+        apiKeySection: 'APIキー',
+        apiKey: 'APIキー',
+        model: 'モデル',
+        testConnection: '接続テスト',
+        language: '言語',
+        interfaceLanguage: 'インターフェース言語',
+        cancel: 'キャンセル',
+        save: '保存',
+        testing: 'テスト中...',
+        connectionSuccess: '✓ 接続成功',
+        saving: '保存中...'
+    }
+};
+
+let currentLang = 'zh-CN';
+
+/**
+ * Apply translations to all elements with data-i18n attribute
+ */
+function applyI18n(lang) {
+    currentLang = lang;
+    const translations = SETTINGS_I18N[lang] || SETTINGS_I18N['en'];
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[key]) {
+            el.textContent = translations[key];
+        }
+    });
+
+    // Update document title
+    document.title = `DeskMate ${translations.settingsTitle}`;
+}
+
+/**
+ * Get translation for current language
+ */
+function t(key) {
+    const translations = SETTINGS_I18N[currentLang] || SETTINGS_I18N['en'];
+    return translations[key] || key;
+}
 
 // DOM Elements
 const regionSelect = document.getElementById('region');
@@ -28,6 +120,7 @@ const testBtn = document.getElementById('testConnection');
 const testResult = document.getElementById('testResult');
 const saveBtn = document.getElementById('saveBtn');
 const cancelBtn = document.getElementById('cancelBtn');
+const languageSelect = document.getElementById('language');
 
 // State
 let currentSettings = null;
@@ -48,6 +141,18 @@ async function init() {
     providerSelect.value = currentSettings.provider || 'deepseek';
     apiKeyInput.value = currentSettings.apiKey || '';
     modelInput.value = currentSettings.model || '';
+
+    // Load current language and apply translations
+    if (languageSelect && window.settingsAPI.getLanguage) {
+        const lang = await window.settingsAPI.getLanguage();
+        languageSelect.value = lang || 'zh-CN';
+        applyI18n(lang || 'zh-CN');
+    }
+
+    // Re-apply translations when language selection changes
+    languageSelect?.addEventListener('change', () => {
+        applyI18n(languageSelect.value);
+    });
 
     // Event listeners
     regionSelect.addEventListener('change', onRegionChange);
@@ -159,6 +264,11 @@ async function saveSettings() {
             apiKey: apiKeyInput.value,
             model: modelInput.value
         };
+
+        // Save language if changed
+        if (languageSelect && window.settingsAPI.setLanguage) {
+            await window.settingsAPI.setLanguage(languageSelect.value);
+        }
 
         const result = await window.settingsAPI.saveSettings(settings);
 

@@ -6,28 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
-    <title>DeskMate 设置</title>
+    <title data-i18n="settingsTitle">DeskMate Settings</title>
     <link rel="stylesheet" href="src/settings.css">
 </head>
 
 <body>
     <div class="settings-container">
-        <h1>⚙️ 设置</h1>
+        <h1>⚙️ <span data-i18n="settingsTitle">Settings</span></h1>
 
         <!-- Provider Selection -->
         <section class="settings-section">
-            <h2>API 供应商</h2>
+            <h2 data-i18n="providerSection">API Provider</h2>
             <div class="form-group">
-                <label for="region">区域</label>
+                <label for="region" data-i18n="region">Region</label>
                 <select id="region">
-                    <option value="china">🇨🇳 中国大陆</option>
-                    <option value="global">🌍 国际</option>
-                    <option value="local">💻 本地</option>
+                    <option value="china" data-i18n="regionChina">🇨🇳 China</option>
+                    <option value="global" data-i18n="regionGlobal">🌍 Global</option>
+                    <option value="local" data-i18n="regionLocal">💻 Local</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="provider">供应商</label>
+                <label for="provider" data-i18n="provider">Provider</label>
                 <select id="provider">
                     <!-- Options populated by JS -->
                 </select>
@@ -36,30 +36,47 @@
 
         <!-- API Key -->
         <section class="settings-section">
-            <h2>API 密钥</h2>
+            <h2 data-i18n="apiKeySection">API Key</h2>
             <div class="form-group">
-                <label for="apiKey">API Key</label>
+                <label for="apiKey" data-i18n="apiKey">API Key</label>
                 <div class="input-with-button">
                     <input type="password" id="apiKey" placeholder="sk-xxx...">
-                    <button id="toggleKey" class="btn-icon" title="显示/隐藏">👁️</button>
+                    <button id="toggleKey" class="btn-icon" title="Show/Hide">👁️</button>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="model">模型</label>
+                <label for="model" data-i18n="model">Model</label>
                 <input type="text" id="model" placeholder="deepseek-chat">
             </div>
 
             <button id="testConnection" class="btn-secondary">
-                🔗 测试连接
+                🔗 <span data-i18n="testConnection">Test Connection</span>
             </button>
             <span id="testResult" class="test-result"></span>
         </section>
 
+        <!-- Language Selection -->
+        <section class="settings-section">
+            <h2>🌐 <span data-i18n="language">Language</span></h2>
+            <div class="form-group">
+                <label for="language" data-i18n="interfaceLanguage">Interface Language</label>
+                <select id="language">
+                    <option value="zh-CN">🇨🇳 简体中文</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="ja">🇯🇵 日本語</option>
+                    <option value="ko">🇰🇷 한국어</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="de">🇩🇪 Deutsch</option>
+                </select>
+            </div>
+        </section>
+
         <!-- Actions -->
         <div class="actions">
-            <button id="cancelBtn" class="btn-secondary">取消</button>
-            <button id="saveBtn" class="btn-primary">保存设置</button>
+            <button id="cancelBtn" class="btn-secondary" data-i18n="cancel">Cancel</button>
+            <button id="saveBtn" class="btn-primary" data-i18n="save">Save</button>
         </div>
     </div>
 

@@ -636,9 +636,9 @@ class RandomInteractionManager {
 // ============================================
 
 const REMINDER_PRESETS = {
-    water: { label: '💧 喝水', interval: 10000, message: '该喝水啦！💧 保持水分哦~' },
-    rest: { label: '👀 休息眼睛', interval: 20 * 60 * 1000, message: '看看远处，让眼睛休息一下~ 👀' },
-    stretch: { label: '🧘 伸展', interval: 45 * 60 * 1000, message: '起来活动活动筋骨吧！🧘' }
+    water: { labelKey: 'drinkWater', interval: 30 * 60 * 1000, messageKey: 'reminderWater' },
+    rest: { labelKey: 'restEyes', interval: 20 * 60 * 1000, messageKey: 'reminderRest' },
+    stretch: { labelKey: 'stretch', interval: 45 * 60 * 1000, messageKey: 'reminderStretch' }
 };
 
 class ReminderManager {
@@ -684,17 +684,19 @@ class ReminderManager {
     /**
      * Trigger a reminder notification
      */
-    trigger(type) {
+    async trigger(type) {
         const preset = REMINDER_PRESETS[type];
         const reminder = this.activeReminders.get(type);
 
         if (!preset || !reminder) return;
 
+        // Get translated message
+        const message = await window.deskmate.t(preset.messageKey);
+
         // Show notification with confirm hint
         playNotificationSound();
-        const messageWithButton = `${preset.message}`;
-        showBubble(messageWithButton, 0); // Stay until dismissed
-        window.deskmate.showNotification('DeskMate 提醒', preset.message);
+        showBubble(message, 0); // Stay until dismissed
+        window.deskmate.showNotification('DeskMate', message);
 
         // Store pending confirmation
         this.pendingConfirm = type;
@@ -715,7 +717,7 @@ class ReminderManager {
     /**
      * User confirmed the reminder
      */
-    confirm() {
+    async confirm() {
         if (this.pendingConfirm) {
             const type = this.pendingConfirm;
             this.pendingConfirm = null;
@@ -727,7 +729,8 @@ class ReminderManager {
             // Then restart the full cycle from beginning
             this.start(type);
 
-            showBubble('收到！✅', 1500);
+            const msg = await window.deskmate.t('reminderConfirmed');
+            showBubble(msg, 1500);
             console.log(`[Reminder] Confirmed: ${type}`);
         }
     }
@@ -826,22 +829,29 @@ function init() {
     reminderManager = new ReminderManager();
 
     // Listen for reminder events from main process
-    window.deskmate.onReminderToggle?.((type) => {
+    window.deskmate.onReminderToggle?.(async (type) => {
         if (reminderManager) {
             const active = reminderManager.toggle(type);
             const preset = REMINDER_PRESETS[type];
+            const label = await window.deskmate.t(preset.labelKey);
             if (active) {
-                showBubble(`${preset.label} 提醒已开启 ✅`, 2000);
+                const enabledMsg = await window.deskmate.t('reminderEnabled');
+                showBubble(`${label} ${enabledMsg}`, 2000);
             } else {
-                showBubble(`${preset.label} 提醒已关闭`, 2000);
+                const disabledMsg = await window.deskmate.t('reminderDisabled');
+                showBubble(`${label} ${disabledMsg}`, 2000);
             }
         }
     });
 
-    // Click on character confirms pending reminder
+    // Click on character: dismiss bubble or confirm pending reminder
     character?.addEventListener('click', () => {
+        // First check if there's a pending reminder to confirm
         if (reminderManager?.pendingConfirm) {
             reminderManager.confirm();
+        } else {
+            // Otherwise just hide any visible bubble (like onboarding message)
+            hideBubble();
         }
     });
 
@@ -856,17 +866,21 @@ function init() {
 
             if (result.success) {
                 // AI works! Show personality welcome
-                showBubble('哼，你终于来了喵~ 😼', 3000);
+                const msg = await window.deskmate.t('welcomeBack');
+                showBubble(msg, 3000);
             } else if (result.errorType === 'auth' || result.errorType === 'quota') {
                 // API key issue
-                showBubble('右键点我，去设置里填好 API Key 喵！🔑', 0);
+                const msg = await window.deskmate.t('apiKeyError');
+                showBubble(msg, 0);
             } else {
-                // Other error
-                showBubble('喵？好像哪里不对... 右键看看设置？', 4000);
+                // Other error  
+                const msg = await window.deskmate.t('somethingWrong');
+                showBubble(msg, 4000);
             }
         } catch (e) {
             // First time or no config - show onboarding
-            showBubble('右键点我，配置你的大脑(API Key)喵！🧠', 0);
+            const msg = await window.deskmate.t('setupApiKey');
+            showBubble(msg, 0);
         }
     }, 800);
 
