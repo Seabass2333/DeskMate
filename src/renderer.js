@@ -312,10 +312,14 @@ const jumpSound = document.getElementById('jump-sound');
  * @param {HTMLAudioElement} audioElement
  * @param {number} volume - 0 to 1
  */
-function playSound(audioElement, volume = 0.5) {
+async function playSound(audioElement, volume = 0.5) {
     if (!audioElement) return;
 
     try {
+        // Check if sound is enabled via IPC
+        const enabled = await window.deskmate.isSoundEnabled();
+        if (!enabled) return;
+
         audioElement.currentTime = 0;
         audioElement.volume = volume;
 
@@ -547,28 +551,8 @@ function setupClickThrough() {
 // Random Interactions
 // ============================================
 
-const RANDOM_MESSAGES = [
-    "...喵zzZ 💤",
-    "*打哈欠* 好无聊喵~ 🥱",
-    "哼，又在偷懒？😏",
-    "*伸懒腰* 本喵需要休息 😸",
-    "喵~（才不是想你摸我）🐱",
-    "好无聊...陪我玩嘛！",
-    "*呼噜呼噜* 😻",
-    "你在干嘛？...随便问问 👀",
-    "*盯着虚空发呆*",
-    "有小鱼干吗？🐟",
-    "切，又不理人家... 😾",
-    "*舔爪子* 🐾",
-    "该休息了吧？本喵说的 ☕",
-    "*甩尾巴表示不满*",
-    "想吃罐头了喵~ 🥫",
-    "哼，本喵才不需要你陪！",
-    "...其实有点想你摸摸 👉👈",
-    "工作狂人类，注意身体喵 💪",
-    "本喵今天心情不错（才不是因为你在）",
-    "*假装睡着偷看你*"
-];
+// Random messages are now handled via i18n
+// See i18n.js for message definitions
 
 class RandomInteractionManager {
     constructor(stateMachine) {
@@ -607,14 +591,25 @@ class RandomInteractionManager {
         }
     }
 
-    interact() {
+    async interact() {
         // Only interact when idle
         if (this.stateMachine.state !== STATES.IDLE) {
             return;
         }
 
+        // Get translated messages from main process
+        let messages = await window.deskmate.t('randomMessages');
+
+        // Fallback if translation missing or not an array
+        if (!Array.isArray(messages)) {
+            messages = [
+                "...zzZ 💤",
+                "Meow~ 🐱"
+            ];
+        }
+
         // Pick random message
-        const message = RANDOM_MESSAGES[Math.floor(Math.random() * RANDOM_MESSAGES.length)];
+        const message = messages[Math.floor(Math.random() * messages.length)];
 
         // Show bubble
         showBubble(message, 3000);

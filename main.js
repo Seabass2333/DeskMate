@@ -360,7 +360,8 @@ ipcMain.handle('settings:get', () => {
       region: userSettings.llm.region || 'china',
       provider: userSettings.llm.provider || 'deepseek',
       apiKey: userSettings.llm.apiKey || '',
-      model: userSettings.llm.model || ''
+      model: userSettings.llm.model || '',
+      soundEnabled: userSettings.sound ? userSettings.sound.enabled : true
     };
   }
   // Return defaults
@@ -368,7 +369,8 @@ ipcMain.handle('settings:get', () => {
     region: 'china',
     provider: 'deepseek',
     apiKey: PROVIDERS.china.deepseek.apiKey || '',
-    model: PROVIDERS.china.deepseek.model
+    model: PROVIDERS.china.deepseek.model,
+    soundEnabled: true
   };
 });
 
@@ -390,7 +392,10 @@ ipcMain.handle('settings:save', (_, settings) => {
     };
 
     // Save to user settings file
-    const result = saveUserSettings({ llm: llmConfig });
+    const result = saveUserSettings({
+      llm: llmConfig,
+      sound: { enabled: settings.soundEnabled }
+    });
 
     if (result) {
       // Hot-reload the LLM handler
@@ -444,6 +449,12 @@ ipcMain.on('set-ignore-mouse', (_, ignore) => {
 // Show the context menu
 ipcMain.on('request-context-menu', () => {
   showContextMenu();
+});
+
+// Check if sound is enabled
+ipcMain.handle('get-sound-enabled', () => {
+  const userSettings = loadUserSettings();
+  return userSettings?.sound?.enabled !== false;
 });
 
 // Get current window position for dragging
@@ -546,6 +557,11 @@ ipcMain.handle('i18n:translate', (_, key) => t(key));
 // ============================================
 
 app.whenReady().then(() => {
+  // Hide dock icon on macOS (tray-only app)
+  if (process.platform === 'darwin') {
+    app.dock.hide();
+  }
+
   // Initialize i18n with system language detection
   initI18n();
 

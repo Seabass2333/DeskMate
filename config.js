@@ -117,7 +117,8 @@ function loadUserSettings() {
                     baseURL: preset?.baseURL || llm.baseURL,
                     apiKey: llm.apiKey,
                     model: llm.model || preset?.model
-                }
+                },
+                sound: store.get('sound') || { enabled: true }
             };
         }
     } catch (error) {
@@ -141,6 +142,10 @@ function saveUserSettings(settings) {
                 model: settings.llm.model || '',
                 baseURL: settings.llm.baseURL || ''
             });
+        }
+
+        if (settings.sound) {
+            store.set('sound', settings.sound);
         }
 
         console.log('[Config] Settings saved to store');

@@ -160,6 +160,11 @@ contextBridge.exposeInMainWorld('deskmate', {
     t: (key) => ipcRenderer.invoke('i18n:translate', key),
 
     /**
+     * Check if sound is enabled
+     */
+    isSoundEnabled: () => ipcRenderer.invoke('get-sound-enabled'),
+
+    /**
      * Listen for language change event
      */
     onLanguageChanged: (callback) => {

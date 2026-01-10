@@ -56,9 +56,9 @@
             <span id="testResult" class="test-result"></span>
         </section>
 
-        <!-- Language Selection -->
+        <!-- Preferences -->
         <section class="settings-section">
-            <h2>🌐 <span data-i18n="language">Language</span></h2>
+            <h2 data-i18n="preferences">Preferences</h2>
             <div class="form-group">
                 <label for="language" data-i18n="interfaceLanguage">Interface Language</label>
                 <select id="language">
@@ -70,6 +70,13 @@
                     <option value="fr">🇫🇷 Français</option>
                     <option value="de">🇩🇪 Deutsch</option>
                 </select>
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="soundEnabled">
+                    <span data-i18n="soundEffects">Sound Effects</span>
+                </label>
             </div>
         </section>
 

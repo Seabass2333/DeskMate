@@ -142,6 +142,12 @@ async function init() {
     apiKeyInput.value = currentSettings.apiKey || '';
     modelInput.value = currentSettings.model || '';
 
+    // Set sound toggle
+    const soundToggle = document.getElementById('soundEnabled');
+    if (soundToggle) {
+        soundToggle.checked = currentSettings.soundEnabled !== false; // Default to true
+    }
+
     // Load current language and apply translations
     if (languageSelect && window.settingsAPI.getLanguage) {
         const lang = await window.settingsAPI.getLanguage();
@@ -258,11 +264,14 @@ async function saveSettings() {
     saveBtn.textContent = '保存中...';
 
     try {
+        const soundToggle = document.getElementById('soundEnabled');
+
         const settings = {
             region: regionSelect.value,
             provider: providerSelect.value,
             apiKey: apiKeyInput.value,
-            model: modelInput.value
+            model: modelInput.value,
+            soundEnabled: soundToggle ? soundToggle.checked : true
         };
 
         // Save language if changed

@@ -58,7 +58,23 @@ const translations = {
         language: '语言',
         testConnection: '测试连接',
         save: '保存',
-        cancel: '取消'
+        cancel: '取消',
+        preferences: '偏好设置',
+        soundEffects: '音效',
+
+        // Random idle messages
+        randomMessages: [
+            "...喵zzZ 💤",
+            "*打哈欠* 好无聊喵~ 🥱",
+            "哼，又在偷懒？😏",
+            "*伸懒腰* 本喵需要休息 😸",
+            "喵~（才不是想你摸我）🐱",
+            "好无聊...陪我玩嘛！",
+            "*呼噜呼噜* 😻",
+            "你在干嘛？...随便问问 👀",
+            "有小鱼干吗？🐟",
+            "该休息了吧？本喵说的 ☕"
+        ]
     },
 
     'en': {
@@ -109,7 +125,23 @@ const translations = {
         language: 'Language',
         testConnection: 'Test Connection',
         save: 'Save',
-        cancel: 'Cancel'
+        cancel: 'Cancel',
+        preferences: 'Preferences',
+        soundEffects: 'Sound Effects',
+
+        // Random idle messages
+        randomMessages: [
+            "...zzZ 💤",
+            "*yawn* So bored~ 🥱",
+            "Hmph, slacking off again? 😏",
+            "*stretching* I need a break 😸",
+            "Meow~ (not that I want pets) 🐱",
+            "So bored... play with me!",
+            "*purring* 😻",
+            "What are you doing? ...just asking 👀",
+            "Got any treats? 🐟",
+            "Time for a break, I said so ☕"
+        ]
     },
 
     'ja': {
