@@ -203,10 +203,8 @@ function createTray() {
   try {
     const customIcon = nativeImage.createFromPath(iconPath);
     if (!customIcon.isEmpty()) {
-      trayIcon = customIcon.resize({ width: 16, height: 16 });
-      if (process.platform === 'darwin') {
-        trayIcon.setTemplateImage(true);
-      }
+      trayIcon = customIcon.resize({ width: 18, height: 18 });
+      // Don't set as template image to preserve colors
     }
   } catch (e) {
     console.log('[Tray] Using fallback icon');
@@ -214,11 +212,7 @@ function createTray() {
 
   tray = new Tray(trayIcon);
 
-  // On macOS, use emoji title if icon is not visible
-  if (process.platform === 'darwin') {
-    tray.setTitle('🐱');
-  }
-
+  // Remove emoji title - it causes duplicate icons
   tray.setToolTip('DeskMate');
 
   // Build tray context menu
