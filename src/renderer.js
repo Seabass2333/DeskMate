@@ -548,21 +548,26 @@ function setupClickThrough() {
 // ============================================
 
 const RANDOM_MESSAGES = [
-    "...zzZ 💤",
-    "*yawn* 🥱",
-    "Nice weather today! ☀️",
-    "*stretches* 😸",
-    "Meow~ 🐱",
-    "I'm bored... play with me!",
-    "*purrs* 😻",
-    "Working hard or hardly working? 😏",
-    "*stares at something invisible*",
-    "Got any snacks? 🍪",
-    "What are you up to?",
-    "*cleaning paws* 🐾",
-    "Time for a break? ☕",
-    "*tail swish*",
-    "Thinking of fish... 🐟"
+    "...喵zzZ 💤",
+    "*打哈欠* 好无聊喵~ 🥱",
+    "哼，又在偷懒？😏",
+    "*伸懒腰* 本喵需要休息 😸",
+    "喵~（才不是想你摸我）🐱",
+    "好无聊...陪我玩嘛！",
+    "*呼噜呼噜* 😻",
+    "你在干嘛？...随便问问 👀",
+    "*盯着虚空发呆*",
+    "有小鱼干吗？🐟",
+    "切，又不理人家... 😾",
+    "*舔爪子* 🐾",
+    "该休息了吧？本喵说的 ☕",
+    "*甩尾巴表示不满*",
+    "想吃罐头了喵~ 🥫",
+    "哼，本喵才不需要你陪！",
+    "...其实有点想你摸摸 👉👈",
+    "工作狂人类，注意身体喵 💪",
+    "本喵今天心情不错（才不是因为你在）",
+    "*假装睡着偷看你*"
 ];
 
 class RandomInteractionManager {
@@ -843,10 +848,27 @@ function init() {
     // Initial state
     updateCharacter(STATES.IDLE);
 
-    // Welcome message
-    setTimeout(() => {
-        showBubble('Hey there! 👋', 3000);
-    }, 500);
+    // Onboarding: Check if this is first time (no API key configured)
+    setTimeout(async () => {
+        try {
+            // Test if AI is configured by making a simple check
+            const result = await window.deskmate.askAI('喵');
+
+            if (result.success) {
+                // AI works! Show personality welcome
+                showBubble('哼，你终于来了喵~ 😼', 3000);
+            } else if (result.errorType === 'auth' || result.errorType === 'quota') {
+                // API key issue
+                showBubble('右键点我，去设置里填好 API Key 喵！🔑', 0);
+            } else {
+                // Other error
+                showBubble('喵？好像哪里不对... 右键看看设置？', 4000);
+            }
+        } catch (e) {
+            // First time or no config - show onboarding
+            showBubble('右键点我，配置你的大脑(API Key)喵！🧠', 0);
+        }
+    }, 800);
 
     console.log('[DeskMate] Phase 2 Ready!');
 }

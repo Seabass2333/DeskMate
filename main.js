@@ -60,8 +60,11 @@ function createWindow() {
   // forward: true allows mouse events to still be detected for hover
   mainWindow.setIgnoreMouseEvents(true, { forward: true });
 
-  // Center window on screen initially
-  mainWindow.center();
+  // Position at bottom-right corner (less intrusive)
+  const { screen } = require('electron');
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+  mainWindow.setPosition(width - 280, height - 280);
 
   // Uncomment for debugging
   // mainWindow.webContents.openDevTools({ mode: 'detached' });
