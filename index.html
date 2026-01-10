@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.deepseek.com https://api.openai.com https://*; img-src 'self' data:; media-src 'self'">
+  <title>DeskMate</title>
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+
+<body>
+  <div id="app">
+    <!-- Speech Bubble -->
+    <div id="speech-bubble" class="speech-bubble">
+      <div class="bubble-content"></div>
+      <div class="bubble-tail"></div>
+    </div>
+
+    <!-- Chat Input (Hidden by default) -->
+    <div id="chat-input-container" class="chat-input-container">
+      <input type="text" id="chat-input" class="chat-input" placeholder="Say something..." maxlength="200"
+        autocomplete="off">
+      <button id="chat-send" class="chat-send">→</button>
+    </div>
+
+    <!-- Character Container - Now using sprite -->
+    <div id="character" class="character pet-sprite" data-state="idle"></div>
+
+    <!-- Notification Sound -->
+    <audio id="notification-sound" preload="auto">
+      <source src="assets/sounds/pickupCoin.wav" type="audio/wav">
+    </audio>
+
+    <!-- Click Sound -->
+    <audio id="click-sound" preload="auto">
+      <source src="assets/sounds/click.wav" type="audio/wav">
+    </audio>
+
+    <!-- Jump Sound (for drag/drop) -->
+    <audio id="jump-sound" preload="auto">
+      <source src="assets/sounds/jump.wav" type="audio/wav">
+    </audio>
+  </div>
+
+  <!-- Renderer handles UI logic, AI calls go through IPC to main process -->
+  <script src="src/renderer.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+    <title>DeskMate 设置</title>
+    <link rel="stylesheet" href="src/settings.css">
+</head>
+
+<body>
+    <div class="settings-container">
+        <h1>⚙️ 设置</h1>
+
+        <!-- Provider Selection -->
+        <section class="settings-section">
+            <h2>API 供应商</h2>
+            <div class="form-group">
+                <label for="region">区域</label>
+                <select id="region">
+                    <option value="china">🇨🇳 中国大陆</option>
+                    <option value="global">🌍 国际</option>
+                    <option value="local">💻 本地</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="provider">供应商</label>
+                <select id="provider">
+                    <!-- Options populated by JS -->
+                </select>
+            </div>
+        </section>
+
+        <!-- API Key -->
+        <section class="settings-section">
+            <h2>API 密钥</h2>
+            <div class="form-group">
+                <label for="apiKey">API Key</label>
+                <div class="input-with-button">
+                    <input type="password" id="apiKey" placeholder="sk-xxx...">
+                    <button id="toggleKey" class="btn-icon" title="显示/隐藏">👁️</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="model">模型</label>
+                <input type="text" id="model" placeholder="deepseek-chat">
+            </div>
+
+            <button id="testConnection" class="btn-secondary">
+                🔗 测试连接
+            </button>
+            <span id="testResult" class="test-result"></span>
+        </section>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button id="cancelBtn" class="btn-secondary">取消</button>
+            <button id="saveBtn" class="btn-primary">保存设置</button>
+        </div>
+    </div>
+
+    <script src="src/settings.js"></script>
+</body>
+
+</html>

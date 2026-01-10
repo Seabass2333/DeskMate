@@ -1,0 +1,390 @@
+/* ============================================
+   DeskMate Styles - Phase 2
+   ============================================ */
+
+/* Reset & Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-app-region: no-drag;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding-bottom: 10px;
+  position: relative;
+}
+
+/* ============================================
+   Pet Sprite Styles
+   ============================================ */
+
+/*
+ * SPRITE SHEET SETUP:
+ * - Place your sprite sheet at: assets/images/idle.png
+ * - Expected: 10 frames horizontally, each 32x32px
+ * - Total sprite sheet size: 320x32px
+ * - Displayed at: 128x128px (4x scale)
+ *
+ * STEPPED ANIMATION EXPLAINED:
+ * - We have 10 frames (0-9)
+ * - Each frame is 128px wide after scaling
+ * - steps(10, end) = show frame 0, then jump to 1, 2, ... 9, then loop back to 0
+ * - Animation moves from 0 to -1152px (9 * 128 = 1152, showing frames 0-9)
+ */
+
+.pet-sprite {
+  width: 128px;
+  height: 128px;
+
+  /* Point to your sprite sheet */
+  background-image: url('../assets/images/idle.png');
+  background-repeat: no-repeat;
+
+  /* Scale from 32px to 128px (4x) - 10 frames * 128px = 1280px wide */
+  background-size: 1280px 128px;
+  background-position: 0 0;
+
+  /* Crisp pixel art rendering - CRITICAL for pixel art */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
+
+  /* Interaction */
+  cursor: grab;
+
+  /* 
+   * STEPPED ANIMATION:
+   * steps(10, end) means:
+   * - Divide animation into 10 equal intervals
+   * - At each interval boundary, JUMP to next position (no tweening)
+   * - 'end' means: stay at current value, then jump at the end of each interval
+   */
+  animation: sprite-idle 1s steps(10, end) infinite;
+
+  /* Only transition transform, not background-position */
+  transition: transform 0.2s ease;
+}
+
+/* 
+ * Sprite Animation Keyframes
+ * Move background-position from frame 0 to frame 10 (which wraps to frame 0)
+ * Total distance: 10 frames * 128px = 1280px
+ */
+@keyframes sprite-idle {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: -1280px 0;
+  }
+}
+
+/* ============================================
+   State-Based Sprite Modifiers
+   ============================================ */
+
+/* IDLE State */
+.pet-sprite[data-state="idle"] {
+  background-image: url('../assets/images/idle.png');
+  animation: sprite-idle 1s steps(10, end) infinite;
+}
+
+/* DRAGGING State */
+.pet-sprite[data-state="dragging"] {
+  cursor: grabbing;
+  transform: scale(1.15);
+  animation-play-state: paused;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+}
+
+/* 
+ * WORK State - Cat with cape (专注模式)
+ * Uses drculacat.png - 6 frames
+ */
+.pet-sprite[data-state="work"] {
+  background-image: url('../assets/images/drculacat.png');
+  /* drculacat.png: 6 frames * 128px = 768px wide */
+  background-size: 768px 128px;
+  animation: sprite-work 0.8s steps(6, end) infinite;
+  filter: none;
+}
+
+@keyframes sprite-work {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: -768px 0;
+  }
+}
+
+/* 
+ * BREAK State - Cat hiding in box (休息时间)
+ * Uses Box3.png - 4 frames, will auto-fallback to idle.png via CSS
+ */
+.pet-sprite[data-state="break"] {
+  background-image: url('../assets/images/Box3.png');
+  /* Box3.png: 4 frames * 128px = 512px wide */
+  background-size: 512px 128px;
+  animation: sprite-break 2s steps(4, end) infinite;
+  filter: none;
+  opacity: 1;
+}
+
+@keyframes sprite-break {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: -512px 0;
+  }
+}
+
+/* TALKING State (when AI is responding) */
+.pet-sprite[data-state="talking"] {
+  animation: sprite-idle 0.5s steps(10, end) infinite;
+  filter: hue-rotate(45deg) brightness(1.1);
+}
+
+/* THINKING State (waiting for AI response) */
+.pet-sprite[data-state="thinking"] {
+  animation: sprite-idle 2s steps(10) infinite, thinking-pulse 0.8s ease-in-out infinite;
+  /* Slow animation + pulse = thinking */
+  filter: grayscale(0.3) brightness(1.1);
+  /* Slightly desaturated */
+}
+
+@keyframes thinking-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+/* ============================================
+   Hover & Active Effects
+   ============================================ */
+
+.pet-sprite:hover {
+  filter: brightness(1.1);
+}
+
+.pet-sprite:active {
+  cursor: grabbing;
+}
+
+/* ============================================
+   Speech Bubble
+   ============================================ */
+
+.speech-bubble {
+  position: absolute;
+  /* Position above the character */
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 100;
+
+  /* Wide bubble - no scroll */
+  min-width: 150px;
+  max-width: 320px;
+
+  white-space: normal;
+  word-wrap: break-word;
+  overflow: visible;
+}
+
+.speech-bubble.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.bubble-content {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.bubble-tail {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid rgba(255, 255, 255, 0.95);
+}
+
+/* Loading indicator in bubble */
+.bubble-content.loading::after {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 6px;
+  border: 2px solid #ccc;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   Chat Input Box
+   ============================================ */
+
+.chat-input-container {
+  position: absolute;
+  /* Position just above the character, same as speech bubble */
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 150;
+}
+
+.chat-input-container.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.chat-input {
+  width: 160px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.15),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+  font-size: 13px;
+  color: #333;
+  outline: none;
+  transition: box-shadow 0.2s ease, width 0.2s ease;
+}
+
+.chat-input:focus {
+  box-shadow:
+    0 4px 20px rgba(102, 126, 234, 0.3),
+    inset 0 0 0 2px rgba(102, 126, 234, 0.5);
+  width: 180px;
+}
+
+.chat-input::placeholder {
+  color: #999;
+}
+
+.chat-send {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.chat-send:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.chat-send:active {
+  transform: scale(0.95);
+}
+
+.chat-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================
+   Fallback Placeholder (when no sprite loaded)
+   ============================================ */
+
+.pet-sprite.no-sprite {
+  background-image: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  animation: breathe 3s ease-in-out infinite;
+  box-shadow:
+    0 10px 30px rgba(102, 126, 234, 0.4),
+    inset 0 -5px 20px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
