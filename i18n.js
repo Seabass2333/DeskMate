@@ -192,10 +192,27 @@ const translations = {
         language: '言語',
         testConnection: '接続テスト',
         save: '保存',
-        cancel: 'キャンセル'
+        cancel: 'キャンセル',
+        preferences: '環境設定',
+        soundEffects: '効果音',
+
+        // Random idle messages
+        randomMessages: [
+            "...むにゃむにゃ 💤",
+            "*あくび* 退屈だにゃ~ 🥱",
+            "ふん、またサボってる？😏",
+            "*伸び* 休憩が必要だにゃ 😸",
+            "にゃ~（撫でてほしいわけじゃないにゃ）🐱",
+            "退屈...遊んでよ！",
+            "*ゴロゴロ* 😻",
+            "何してるの？...聞いてみただけ 👀",
+            "おやつある？🐟",
+            "もう休憩したら？私がそう言うんだから ☕"
+        ]
     },
 
     'ko': {
+        // Menu
         talkToMe: '💬 대화하기',
         startFocus: '🍅 집중 시작',
         focusing: '🍅 집중 중...',
@@ -209,49 +226,257 @@ const translations = {
         autoStart: '🚀 자동 시작',
         showHide: '🐱 보이기/숨기기',
         exit: '❌ 종료',
+
+        // Onboarding
         welcomeBack: '흥, 드디어 왔냥~ 😼',
         setupApiKey: '우클릭해서 API Key 설정하라냥! 🧠',
+        apiKeyError: 'API Key가 잘못됐다냥! 설정 확인해 🔑',
+        somethingWrong: '냥? 뭔가 이상해... 설정 확인해봐?',
+
+        // Reminders
         reminderWater: '물 마실 시간이다냥! 💧',
-        reminderConfirmed: '알겠다냥! ✅'
+        reminderRest: '먼 곳을 보고 눈 좀 쉬라냥~ 👀',
+        reminderStretch: '일어나서 스트레칭 좀 해라냥! 🧘',
+        reminderEnabled: '알림 켜짐 ✅',
+        reminderDisabled: '알림 꺼짐',
+        reminderConfirmed: '알겠다냥! ✅',
+
+        // Errors
+        errorNetwork: '네트워크 오류... 연결 확인해 🌐',
+        errorTimeout: '서버가 너무 느려... 나중에 다시 해봐 ⏰',
+        errorAuth: 'API Key가 이상해, 설정 확인해봐? 🔑',
+        errorRateLimit: '질문 너무 많아! 좀 쉬게 해줘 😮‍💨',
+        errorQuota: 'API 잔액 부족, 충전하고 와 💰',
+        errorServer: 'AI 서버 문제, 나중에 다시 해봐 🔧',
+        errorUnknown: '뭔가 오류가... 이유는 모르겠어 🤔',
+
+        // Settings
+        settingsTitle: '설정',
+        region: '지역',
+        provider: '공급자',
+        apiKey: 'API 키',
+        model: '모델',
+        language: '언어',
+        testConnection: '연결 테스트',
+        save: '저장',
+        cancel: '취소',
+        preferences: '환경 설정',
+        soundEffects: '효과음',
+
+        // Random idle messages
+        randomMessages: [
+            "...졸려 💤",
+            "*하품* 심심해냥~ 🥱",
+            "흥, 또 농땡이? 😏",
+            "*기지개* 나 좀 쉴게 😸",
+            "냥~ (쓰다듬어 달라는 건 아냐) 🐱",
+            "심심해... 나랑 놀아줘!",
+            "*골골송* 😻",
+            "뭐해? ...그냥 물어봤어 👀",
+            "간식 있어? 🐟",
+            "이제 쉴 때 됐잖아? 내가 그렇다면 그런거야 ☕"
+        ]
     },
 
     'es': {
+        // Menu
         talkToMe: '💬 Hablar',
         startFocus: '🍅 Iniciar Enfoque',
         focusing: '🍅 Enfocando...',
         stopFocus: '⏹ Detener',
         minutes: 'min',
         reminders: '⏰ Recordatorios',
+        drinkWater: '💧 Beber Agua',
+        restEyes: '👀 Descansar Ojos',
+        stretch: '🧘 Estirarse',
         settings: '⚙️ Configuración',
+        autoStart: '🚀 Inicio Automático',
+        showHide: '🐱 Mostrar/Ocultar',
         exit: '❌ Salir',
+
+        // Onboarding
         welcomeBack: 'Hmph, finalmente llegaste~ 😼',
-        setupApiKey: '¡Clic derecho para configurar API Key! 🧠'
+        setupApiKey: '¡Clic derecho para configurar API Key! 🧠',
+        apiKeyError: '¡La API Key parece incorrecta! Revisa la configuración 🔑',
+        somethingWrong: '¿Miau? Algo anda mal... ¿revisa los ajustes?',
+
+        // Reminders
+        reminderWater: '¡Hora de beber agua! 💧',
+        reminderRest: '¡Mira lejos y descansa tus ojos! 👀',
+        reminderStretch: '¡Levántate y estírate! 🧘',
+        reminderEnabled: 'Recordatorio activado ✅',
+        reminderDisabled: 'Recordatorio desactivado',
+        reminderConfirmed: '¡Entendido! ✅',
+
+        // Errors
+        errorNetwork: 'Sin red... revisa tu conexión 🌐',
+        errorTimeout: 'Servidor muy lento... intenta luego ⏰',
+        errorAuth: 'Clave API incorrecta, ¿revisar? 🔑',
+        errorRateLimit: '¡Demasiadas preguntas! Déjame respirar 😮‍💨',
+        errorQuota: 'Créditos agotados, hora de recargar 💰',
+        errorServer: 'Problemas del servidor AI, intenta luego 🔧',
+        errorUnknown: 'Algo salió mal... no sé qué 🤔',
+
+        // Settings
+        settingsTitle: 'Configuración',
+        region: 'Región',
+        provider: 'Proveedor',
+        apiKey: 'Clave API',
+        model: 'Modelo',
+        language: 'Idioma',
+        testConnection: 'Probar Conexión',
+        save: 'Guardar',
+        cancel: 'Cancelar',
+        preferences: 'Preferencias',
+        soundEffects: 'Efectos de sonido',
+
+        // Random idle messages
+        randomMessages: [
+            "...zzZ 💤",
+            "*bostezo* Qué aburrido~ 🥱",
+            "Hmph, ¿holgazaneando de nuevo? 😏",
+            "*estirándose* Necesito un descanso 😸",
+            "Miau~ (no es que quiera mimos) 🐱",
+            "Qué aburrido... ¡juega conmigo!",
+            "*ronroneo* 😻",
+            "¿Qué haces? ...solo pregunto 👀",
+            "¿Tienes premios? 🐟",
+            "Hora de un descanso, yo lo digo ☕"
+        ]
     },
 
     'fr': {
+        // Menu
         talkToMe: '💬 Parler',
         startFocus: '🍅 Commencer Focus',
         focusing: '🍅 Focus en cours...',
         stopFocus: '⏹ Arrêter',
         minutes: 'min',
         reminders: '⏰ Rappels',
+        drinkWater: '💧 Boire de l\'o',
+        restEyes: '👀 Reposer les yeux',
+        stretch: '🧘 S\'étirer',
         settings: '⚙️ Paramètres',
+        autoStart: '🚀 Démarrage Auto',
+        showHide: '🐱 Afficher/Masquer',
         exit: '❌ Quitter',
+
+        // Onboarding
         welcomeBack: 'Hmph, tu es enfin là~ 😼',
-        setupApiKey: 'Clic droit pour configurer API Key! 🧠'
+        setupApiKey: 'Clic droit pour configurer API Key! 🧠',
+        apiKeyError: 'La clé API semble incorrecte! Vérifie les paramètres 🔑',
+        somethingWrong: 'Miaou? Quelque chose ne va pas... vérifie les réglages?',
+
+        // Reminders
+        reminderWater: 'Il est temps de boire de l\'eau! 💧',
+        reminderRest: 'Regarde au loin et repose tes yeux! 👀',
+        reminderStretch: 'Lève-toi et étire-toi! 🧘',
+        reminderEnabled: 'Rappel activé ✅',
+        reminderDisabled: 'Rappel désactivé',
+        reminderConfirmed: 'Compris! ✅',
+
+        // Errors
+        errorNetwork: 'Pas de réseau... vérifie ta connexion 🌐',
+        errorTimeout: 'Serveur trop lent... réessaye plus tard ⏰',
+        errorAuth: 'Clé API incorrecte, vérifier? 🔑',
+        errorRateLimit: 'Trop de questions! Laisse-moi respirer 😮‍💨',
+        errorQuota: 'Crédits épuisés, il faut recharger 💰',
+        errorServer: 'Problèmes serveur AI, réessaye plus tard 🔧',
+        errorUnknown: 'Une erreur est survenue... je ne sais pas pourquoi 🤔',
+
+        // Settings
+        settingsTitle: 'Paramètres',
+        region: 'Région',
+        provider: 'Fournisseur',
+        apiKey: 'Clé API',
+        model: 'Modèle',
+        language: 'Langue',
+        testConnection: 'Tester Connexion',
+        save: 'Enregistrer',
+        cancel: 'Annuler',
+        preferences: 'Préférences',
+        soundEffects: 'Effets sonores',
+
+        // Random idle messages
+        randomMessages: [
+            "...zzZ 💤",
+            "*bâillement* C'est ennuyeux~ 🥱",
+            "Hmph, tu traînes encore? 😏",
+            "*s'étire* J'ai besoin d'une pause 😸",
+            "Miaou~ (ce n'est pas que je veux des caresses) 🐱",
+            "C'est ennuyeux... joue avec moi!",
+            "*ronronne* 😻",
+            "Tu fais quoi? ...je demande juste 👀",
+            "Tu as des friandises? 🐟",
+            "L'heure de la pause, c'est moi qui le dis ☕"
+        ]
     },
 
     'de': {
+        // Menu
         talkToMe: '💬 Sprechen',
         startFocus: '🍅 Fokus starten',
         focusing: '🍅 Fokussiert...',
         stopFocus: '⏹ Stoppen',
         minutes: 'Min',
         reminders: '⏰ Erinnerungen',
+        drinkWater: '💧 Wasser trinken',
+        restEyes: '👀 Augen ausruhen',
+        stretch: '🧘 Dehnen',
         settings: '⚙️ Einstellungen',
+        autoStart: '🚀 Autostart',
+        showHide: '🐱 Zeigen/Verbergen',
         exit: '❌ Beenden',
+
+        // Onboarding
         welcomeBack: 'Hmph, endlich bist du da~ 😼',
-        setupApiKey: 'Rechtsklick für API Key Einrichtung! 🧠'
+        setupApiKey: 'Rechtsklick für API Key Einrichtung! 🧠',
+        apiKeyError: 'API Key scheint falsch zu sein! Überprüfe die Einstellungen 🔑',
+        somethingWrong: 'Miau? Irgendwas stimmt nicht... Einstellungen prüfen?',
+
+        // Reminders
+        reminderWater: 'Zeit, Wasser zu trinken! 💧',
+        reminderRest: 'Schau in die Ferne und ruh‘ deine Augen aus! 👀',
+        reminderStretch: 'Steh auf und dehne dich! 🧘',
+        reminderEnabled: 'Erinnerung aktiviert ✅',
+        reminderDisabled: 'Erinnerung deaktiviert',
+        reminderConfirmed: 'Verstanden! ✅',
+
+        // Errors
+        errorNetwork: 'Kein Netz... überprüfe deine Verbindung 🌐',
+        errorTimeout: 'Server zu langsam... versuch es später ⏰',
+        errorAuth: 'API Key falsch, prüfen? 🔑',
+        errorRateLimit: 'Zu viele Fragen! Lass mich atmen 😮‍💨',
+        errorQuota: 'Guthaben aufgebraucht, Zeit aufzuladen 💰',
+        errorServer: 'AI Server Probleme, später versuchen 🔧',
+        errorUnknown: 'Etwas ist schief gelaufen... weiß nicht was 🤔',
+
+        // Settings
+        settingsTitle: 'Einstellungen',
+        region: 'Region',
+        provider: 'Anbieter',
+        apiKey: 'API Key',
+        model: 'Modell',
+        language: 'Sprache',
+        testConnection: 'Verbindung testen',
+        save: 'Speichern',
+        cancel: 'Abbrechen',
+        preferences: 'Einstellungen',
+        soundEffects: 'Soundeffekte',
+
+        // Random idle messages
+        randomMessages: [
+            "...zzZ 💤",
+            "*gähn* So langweilig~ 🥱",
+            "Hmph, faulenzt du schon wieder? 😏",
+            "*strecken* Ich brauche eine Pause 😸",
+            "Miau~ (nicht dass ich gestreichelt werden will) 🐱",
+            "So langweilig... spiel mit mir!",
+            "*schnurren* 😻",
+            "Was machst du? ...frage nur so 👀",
+            "Hast du Leckerlis? 🐟",
+            "Zeit für eine Pause, sag ich ☕"
+        ]
     }
 };
 

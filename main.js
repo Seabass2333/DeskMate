@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeImage } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
 const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS } = require('./config');
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
@@ -67,8 +68,13 @@ function createWindow() {
   const { width, height } = primaryDisplay.workAreaSize;
   mainWindow.setPosition(width - 280, height - 280);
 
+  // Mac-specific: Show on all workspaces
+  if (process.platform === 'darwin') {
+    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  }
+
   // Uncomment for debugging
-  // mainWindow.webContents.openDevTools({ mode: 'detached' });
+  mainWindow.webContents.openDevTools({ mode: 'detach' });
 }
 
 /**
@@ -455,6 +461,21 @@ ipcMain.on('request-context-menu', () => {
 ipcMain.handle('get-sound-enabled', () => {
   const userSettings = loadUserSettings();
   return userSettings?.sound?.enabled !== false;
+});
+
+// Load skin configuration
+ipcMain.handle('skin:load', async (_, skinId) => {
+  try {
+    const skinPath = path.join(__dirname, 'assets', 'skins', skinId, 'config.json');
+    if (!fs.existsSync(skinPath)) {
+      throw new Error(`Skin config not found: ${skinPath}`);
+    }
+    const config = JSON.parse(fs.readFileSync(skinPath, 'utf8'));
+    return config;
+  } catch (error) {
+    console.error('[Main] Failed to load skin:', error);
+    return null;
+  }
 });
 
 // Get current window position for dragging

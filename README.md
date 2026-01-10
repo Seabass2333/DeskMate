@@ -11,6 +11,8 @@ A cute desktop pet with AI chat, Pomodoro timer, and smart reminders.
 - 🍅 **Pomodoro Timer** - 15-60 minute focus sessions
 - ⏰ **Smart Reminders** - Drink water, rest eyes, stretch
 - 🌐 **7 Languages** - 中文, English, 日本語, 한국어, Español, Français, Deutsch
+- 🔊 **Sound Effects** - Interactive sounds with toggle
+- 🙈 **Stealth Mode** - Hides from Dock, lives in Tray
 - 🚀 **Auto-start** - Launch on system boot
 
 ## 🚀 Quick Start

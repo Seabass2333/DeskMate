@@ -1,75 +1,167 @@
 /**
  * DeskMate Renderer Process - Phase 2
- * Handles state machine, Pomodoro timer, dragging, AI chat, and UI interactions
+ * Handles state machine, Skin System, Pomodoro timer, AI chat, and UI interactions
  */
+
+// ============================================
+// Constants & State Definitions
+// ============================================
+
+const STATES = Object.freeze({
+    IDLE: 'idle',
+    SLEEP: 'sleep',
+    DRAG: 'drag',
+    WORK: 'working',
+    THINKING: 'thinking',
+    INTERACT: 'interact',
+    DANCE: 'dance'
+});
+
+// ============================================
+// Animation Manager (Web Animations API)
+// ============================================
+
+class AnimationManager {
+    constructor(element) {
+        this.element = element;
+        this.currentAnimation = null;
+        this.skinManager = new window.SkinManager();
+    }
+
+    async init() {
+        // Load default skin
+        await this.skinManager.loadSkin('mochi-v1');
+    }
+
+    /**
+     * Play an animation based on state
+     * @param {string} state - State key mapping to animation
+     */
+    play(state) {
+        if (!this.skinManager.currentSkin) return;
+
+        const animConfig = this.skinManager.getAnimation(state) || this.skinManager.getAnimation('idle');
+        if (!animConfig) {
+            console.warn(`[Animation] No animation found for state: ${state}`);
+            return;
+        }
+
+        const { src, frames, speed } = animConfig;
+        const baseSize = this.skinManager.currentSkin.baseSize[0];
+        const scale = this.skinManager.currentSkin.scale;
+
+        // Final dimensions
+        const spriteWidth = baseSize * scale * frames;
+        const spriteHeight = baseSize * scale;
+
+        const assetPath = this.skinManager.getAssetPath(src);
+        console.log(`[Animation] Loading: ${assetPath} (Size: ${spriteWidth}x${spriteHeight})`);
+
+        // Apply styles
+        this.element.style.backgroundImage = `url('${assetPath}')`;
+        this.element.style.backgroundSize = `${spriteWidth}px ${spriteHeight}px`;
+        this.element.style.width = `${baseSize * scale}px`;
+        this.element.style.height = `${baseSize * scale}px`;
+
+        // Cancel previous Web Animation
+        if (this.currentAnimation) {
+            this.currentAnimation.cancel();
+        }
+
+        // Create new animation
+        this.currentAnimation = this.element.animate(
+            [
+                { backgroundPosition: '0 0' },
+                { backgroundPosition: `-${spriteWidth}px 0` }
+            ],
+            {
+                duration: speed,
+                easing: `steps(${frames}, end)`,
+                iterations: Infinity
+            }
+        );
+
+        console.log(`[Animation] Playing: ${state} (${frames} frames, ${speed}ms)`);
+    }
+}
 
 // ============================================
 // State Machine
 // ============================================
 
-const STATES = Object.freeze({
-    IDLE: 'idle',
-    DRAGGING: 'dragging',
-    WORK: 'work',
-    BREAK: 'break',
-    TALKING: 'talking',
-    THINKING: 'thinking'  // Visual feedback while waiting for AI response
-});
-
 class StateMachine {
-    constructor(initialState = STATES.IDLE) {
-        this.state = initialState;
+    constructor(animationManager) {
+        this.anim = animationManager;
+        this.state = null; // Start with null to allow initial transition to IDLE
         this.previousState = null;
-        this.listeners = new Map();
+        this.idleTimer = null;
     }
 
-    /**
-     * Transition to a new state
-     * @param {string} newState - Target state from STATES
-     */
     transition(newState) {
         if (this.state === newState) return;
 
         this.previousState = this.state;
         this.state = newState;
 
-        console.log(`[StateMachine] ${this.previousState} → ${this.state}`);
-        this.emit('stateChange', { current: this.state, previous: this.previousState });
+        // Play animation
+        this.anim.play(newState);
+
+        // Manage Random Idle Actions
+        this.manageIdleTimer();
+
+        console.log(`[State] ${this.previousState} -> ${this.state}`);
     }
 
     /**
-     * Return to previous state
+     * Revert to previous state (useful after drag/interact)
      */
     revert() {
         if (this.previousState) {
-            const target = this.previousState;
-            this.previousState = this.state;
-            this.state = target;
-            this.emit('stateChange', { current: this.state, previous: this.previousState });
+            this.transition(this.previousState);
+        } else {
+            this.transition(STATES.IDLE);
         }
     }
 
     /**
-     * Add event listener
+     * Randomly trigger interactions when IDLE
      */
-    on(event, callback) {
-        if (!this.listeners.has(event)) {
-            this.listeners.set(event, []);
+    manageIdleTimer() {
+        // Clear existing timer
+        if (this.idleTimer) {
+            clearTimeout(this.idleTimer);
+            this.idleTimer = null;
         }
-        this.listeners.get(event).push(callback);
+
+        // Only schedule random actions if IDLE
+        if (this.state === STATES.IDLE) {
+            const nextActionDelay = Math.random() * 20000 + 10000; // 10-30s
+            this.idleTimer = setTimeout(() => {
+                this.triggerRandomAction();
+            }, nextActionDelay);
+        }
     }
 
-    /**
-     * Emit event to all listeners
-     */
-    emit(event, data) {
-        const callbacks = this.listeners.get(event) || [];
-        callbacks.forEach(cb => cb(data));
+    triggerRandomAction() {
+        if (this.state !== STATES.IDLE) return;
+
+        // Pick a random action: Sleep, Dance, or stay Idle
+        const actions = [STATES.SLEEP, STATES.DANCE, STATES.INTERACT];
+        const randomAction = actions[Math.floor(Math.random() * actions.length)];
+
+        // Perform action for a short duration then return to IDLE
+        this.transition(randomAction);
+
+        setTimeout(() => {
+            if (this.state === randomAction) {
+                this.transition(STATES.IDLE);
+            }
+        }, 4000); // Action duration
     }
 }
 
 // ============================================
-// Pomodoro Manager
+// Pomodoro Logic
 // ============================================
 
 class PomodoroManager {
@@ -78,813 +170,283 @@ class PomodoroManager {
         this.timerId = null;
         this.remainingSeconds = 0;
         this.isActive = false;
+
+        // Listen for start event from main process context menu
+        window.deskmate.onPomodoroStart((minutes) => {
+            this.start(minutes);
+        });
     }
 
-    /**
-     * Start a focus session
-     * @param {number} minutes - Duration in minutes
-     */
     start(minutes) {
-        if (this.isActive) this.stop(true); // Silent stop if already running
+        if (this.isActive) this.stop(false);
 
         this.remainingSeconds = minutes * 60;
         this.isActive = true;
 
-        // Notify main process
-        window.deskmate.setPomodoroState(true);
+        // Notify main process (optional, if needed for tray status)
+        // window.deskmate.setPomodoroState(true);
 
         // Transition to work state
         this.stateMachine.transition(STATES.WORK);
+        showBubble(`Focus: ${minutes}m 💪`, 3000);
 
-        // Show bubble
-        showBubble(`Focus: ${minutes}m 💪`, 2000);
-
-        console.log(`[Pomodoro] Started ${minutes} minute session`);
-
-        this.timerId = setInterval(() => {
-            this.remainingSeconds--;
-
-            if (this.remainingSeconds <= 0) {
-                this.complete();
-            }
-        }, 1000);
+        this.tick();
     }
 
-    /**
-     * Stop the current session
-     * @param {boolean} silent - If true, don't show bubble or revert state
-     */
-    stop(silent = false) {
+    tick() {
         if (!this.isActive) return;
 
-        clearInterval(this.timerId);
-        this.timerId = null;
-        this.isActive = false;
-
-        // Notify main process
-        window.deskmate.setPomodoroState(false);
-
-        if (!silent) {
-            this.stateMachine.transition(STATES.IDLE);
-            showBubble('Focus stopped', 2000);
+        if (this.remainingSeconds <= 0) {
+            this.complete();
+            return;
         }
 
-        console.log('[Pomodoro] Stopped');
+        this.remainingSeconds--;
+
+        // Update bubble periodically? Or just let it be silent work
+        // Maybe every minute update? Nah, distracting.
+
+        this.timerId = setTimeout(() => this.tick(), 1000);
     }
 
-    /**
-     * Called when timer completes naturally
-     */
-    complete() {
-        clearInterval(this.timerId);
-        this.timerId = null;
+    stop(completed = false) {
         this.isActive = false;
+        if (this.timerId) {
+            clearTimeout(this.timerId);
+            this.timerId = null;
+        }
 
-        // Notify main process
-        window.deskmate.setPomodoroState(false);
+        // window.deskmate.setPomodoroState(false);
 
-        // Transition to break state
-        this.stateMachine.transition(STATES.BREAK);
+        if (!completed) {
+            this.stateMachine.transition(STATES.IDLE);
+            showBubble("Stopped focus.", 2000);
+        }
+    }
 
-        // Play notification sound
+    complete() {
+        this.stop(true);
         playNotificationSound();
 
-        // Show notification
-        window.deskmate.showNotification('DeskMate', 'Time to rest! Great work! 🎉');
+        // Transition to Sleep/Break
+        this.stateMachine.transition(STATES.SLEEP);
+        showBubble("Time's up! Take a break~ ☕", 0); // Persist until clicked
 
-        // Show bubble
-        showBubble('Great work! 🎉', 5000);
-
-        console.log('[Pomodoro] Completed!');
-
-        // Return to idle after a while
-        setTimeout(() => {
-            if (this.stateMachine.state === STATES.BREAK) {
-                this.stateMachine.transition(STATES.IDLE);
-            }
-        }, 10000);
+        // Auto wake up after a visually distinct break time? 
+        // Or just let user click to wake up.
     }
 }
 
-// ============================================
-// Drag Manager
-// ============================================
 
-class DragManager {
-    constructor(element, stateMachine) {
-        this.element = element;
+class DragController {
+    constructor(stateMachine) {
         this.stateMachine = stateMachine;
+        this.character = document.getElementById('character');
         this.isDragging = false;
-        this.startMouseX = 0;
-        this.startMouseY = 0;
-        this.startWindowX = 0;
-        this.startWindowY = 0;
-        this.previousState = STATES.IDLE;
 
         this.init();
     }
 
     init() {
-        this.element.addEventListener('mousedown', this.onMouseDown.bind(this));
-        document.addEventListener('mousemove', this.onMouseMove.bind(this));
-        document.addEventListener('mouseup', this.onMouseUp.bind(this));
+        // Toggle click-through when hovering the character
+        this.character.addEventListener('mouseenter', () => {
+            window.deskmate.setIgnoreMouseEvents(false);
+        });
+
+        this.character.addEventListener('mouseleave', () => {
+            if (!this.isDragging) {
+                window.deskmate.setIgnoreMouseEvents(true);
+            }
+        });
+
+        this.character.addEventListener('mousedown', (e) => this.onMouseDown(e));
+        window.addEventListener('mousemove', (e) => this.onMouseMove(e));
+        window.addEventListener('mouseup', () => this.onMouseUp());
     }
 
     async onMouseDown(e) {
-        if (e.button !== 0) return; // Only left click
+        // Prevent drag if context menu (right click)
+        if (e.button === 2) return;
 
         this.isDragging = true;
         this.startMouseX = e.screenX;
         this.startMouseY = e.screenY;
 
-        const [winX, winY] = await window.deskmate.getWindowPosition();
-        this.startWindowX = winX;
-        this.startWindowY = winY;
+        // Get window position from main process
+        const [x, y] = await window.deskmate.getWindowPosition();
+        this.startWinX = x;
+        this.startWinY = y;
 
-        this.previousState = this.stateMachine.state;
-        this.stateMachine.transition(STATES.DRAGGING);
+        this.stateMachine.transition(STATES.DRAG);
     }
 
     onMouseMove(e) {
         if (!this.isDragging) return;
-
-        const deltaX = e.screenX - this.startMouseX;
-        const deltaY = e.screenY - this.startMouseY;
-
-        const newX = this.startWindowX + deltaX;
-        const newY = this.startWindowY + deltaY;
-
-        window.deskmate.setWindowPosition(newX, newY);
+        const dx = e.screenX - this.startMouseX;
+        const dy = e.screenY - this.startMouseY;
+        window.deskmate.setWindowPosition(this.startWinX + dx, this.startWinY + dy);
     }
 
     onMouseUp() {
         if (!this.isDragging) return;
-
         this.isDragging = false;
 
-        // Play jump sound when dropped
+        // Play jump/land sound (reuse playSound helper check)
         playJumpSound();
 
-        // Return to previous state
-        if (this.previousState && this.previousState !== STATES.DRAGGING) {
+        if (this.previousState && this.previousState !== STATES.DRAG) {
             this.stateMachine.transition(this.previousState);
         } else {
+            this.stateMachine.transition(STATES.IDLE);
+        }
+
+        // Restore transparency check (if mouse left during drag)
+        // We generally can't check 'hover' easily here, but usually it's fine 
+        // to leave it 'false' until mouse leaves again. 
+        // Or strictly set to false (clickable) since we just released it.
+    }
+}
+
+// ============================================
+// Chat & AI Logic
+// ============================================
+
+class ChatManager {
+    constructor(stateMachine) {
+        this.stateMachine = stateMachine;
+        this.inputContainer = document.getElementById('chat-input-container');
+        this.input = document.getElementById('chat-input');
+        this.sendBtn = document.getElementById('chat-send');
+
+        this.init();
+    }
+
+    init() {
+        this.sendBtn.addEventListener('click', () => this.sendMessage());
+        this.input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.sendMessage();
+        });
+
+        // Toggle chat on IPC event
+        window.deskmate.onTalkToPet(() => {
+            this.inputContainer.classList.toggle('visible');
+            if (this.inputContainer.classList.contains('visible')) {
+                setTimeout(() => this.input.focus(), 100);
+            }
+        });
+    }
+
+    async sendMessage() {
+        const text = this.input.value.trim();
+        if (!text) return;
+
+        // UI Updates
+        this.input.value = '';
+        this.inputContainer.classList.remove('visible');
+        showBubble("Thinking...", 0, true); // Loading state
+
+        // State Transition
+        this.stateMachine.transition(STATES.THINKING);
+
+        try {
+            const result = await window.deskmate.askAI(text);
+            showBubble(result.message || "Meow?", 5000);
+
+            // Interaction visual
+            this.stateMachine.transition(STATES.INTERACT);
+            setTimeout(() => this.stateMachine.transition(STATES.IDLE), 3000);
+
+        } catch (e) {
+            showBubble("Connection failed... 😿");
             this.stateMachine.transition(STATES.IDLE);
         }
     }
 }
 
 // ============================================
-// Speech Bubble
+// Helper Functions
 // ============================================
 
-let bubbleTimeout = null;
-const bubbleElement = document.getElementById('speech-bubble');
-const bubbleContent = bubbleElement?.querySelector('.bubble-content');
+const bubbleEl = document.getElementById('speech-bubble');
+const bubbleContent = bubbleEl.querySelector('.bubble-content');
+let bubbleTimer = null;
 
-/**
- * Show speech bubble with text
- * @param {string} text - Text to display
- * @param {number} duration - Duration in milliseconds (0 = stay until manually hidden)
- */
-function showBubble(text, duration = 3000) {
-    if (!bubbleElement || !bubbleContent) return;
+function showBubble(text, duration = 3000, isLoading = false) {
+    if (bubbleTimer) clearTimeout(bubbleTimer);
 
-    // Clear any existing timeout
-    if (bubbleTimeout) {
-        clearTimeout(bubbleTimeout);
-        bubbleTimeout = null;
-    }
-
-    bubbleContent.classList.remove('loading');
     bubbleContent.textContent = text;
-    bubbleElement.classList.add('visible');
+    bubbleContent.classList.toggle('loading', isLoading);
+    bubbleEl.classList.add('visible');
 
     if (duration > 0) {
-        bubbleTimeout = setTimeout(() => {
-            bubbleElement.classList.remove('visible');
-            bubbleTimeout = null;
+        bubbleTimer = setTimeout(() => {
+            bubbleEl.classList.remove('visible');
         }, duration);
     }
 }
 
-/**
- * Show loading state in bubble
- */
-function showBubbleLoading() {
-    if (!bubbleElement || !bubbleContent) return;
-
-    if (bubbleTimeout) {
-        clearTimeout(bubbleTimeout);
-        bubbleTimeout = null;
+// Sound Helpers
+async function playJumpSound() {
+    // Check if sound enabled first
+    const enabled = await window.deskmate.isSoundEnabled();
+    if (!enabled) return;
+    const audio = document.getElementById('jump-sound');
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(e => console.warn(e));
     }
-
-    bubbleContent.textContent = 'Thinking';
-    bubbleContent.classList.add('loading');
-    bubbleElement.classList.add('visible');
 }
 
-/**
- * Hide the speech bubble
- */
-function hideBubble() {
-    if (!bubbleElement) return;
-
-    if (bubbleTimeout) {
-        clearTimeout(bubbleTimeout);
-        bubbleTimeout = null;
+async function playNotificationSound() {
+    const enabled = await window.deskmate.isSoundEnabled();
+    if (!enabled) return;
+    const audio = document.getElementById('notification-sound');
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(e => console.warn(e));
     }
-
-    bubbleContent?.classList.remove('loading');
-    bubbleElement.classList.remove('visible');
 }
 
 // ============================================
-// Sound
+// Main Initialization
 // ============================================
 
-const notificationSound = document.getElementById('notification-sound');
-const clickSound = document.getElementById('click-sound');
-const jumpSound = document.getElementById('jump-sound');
+async function init() {
+    const charEl = document.getElementById('character');
 
-/**
- * Play sound with error handling
- * @param {HTMLAudioElement} audioElement
- * @param {number} volume - 0 to 1
- */
-async function playSound(audioElement, volume = 0.5) {
-    if (!audioElement) return;
+    // 1. Init Animation Manager & Load Skin
+    const animManager = new AnimationManager(charEl);
+    await animManager.init();
 
-    try {
-        // Check if sound is enabled via IPC
-        const enabled = await window.deskmate.isSoundEnabled();
-        if (!enabled) return;
+    // 2. Init State Machine
+    const stateMachine = new StateMachine(animManager);
 
-        audioElement.currentTime = 0;
-        audioElement.volume = volume;
+    // 3. Init Controllers
+    new DragController(stateMachine);
+    new ChatManager(stateMachine);
+    new PomodoroManager(stateMachine);
 
-        const playPromise = audioElement.play();
-        if (playPromise) {
-            playPromise.catch(error => {
-                console.warn('[Sound] Failed to play:', error.message);
-            });
+    // 4. Initial State
+    stateMachine.transition(STATES.IDLE);
+
+    // 5. Pomodoro Listener (Handled by PomodoroManager)
+
+    // 6. Click Interaction
+    charEl.addEventListener('click', () => {
+        if (stateMachine.state === STATES.IDLE) {
+            stateMachine.transition(STATES.INTERACT);
+            playJumpSound();
+            setTimeout(() => stateMachine.transition(STATES.IDLE), 2000);
         }
-    } catch (error) {
-        console.warn('[Sound] Error:', error.message);
-    }
-}
-
-/**
- * Play notification sound (when Pomodoro completes)
- */
-function playNotificationSound() {
-    playSound(notificationSound, 0.6);
-}
-
-/**
- * Play click sound (for UI interactions)
- */
-function playClickSound() {
-    playSound(clickSound, 0.3);
-}
-
-/**
- * Play jump sound (when drag ends)
- */
-function playJumpSound() {
-    playSound(jumpSound, 0.4);
-}
-
-// ============================================
-// Chat Input Manager
-// ============================================
-
-class ChatManager {
-    constructor(stateMachine) {
-        this.stateMachine = stateMachine;
-        this.container = document.getElementById('chat-input-container');
-        this.input = document.getElementById('chat-input');
-        this.sendBtn = document.getElementById('chat-send');
-        this.isVisible = false;
-        this.isProcessing = false;
-
-        this.init();
-    }
-
-    init() {
-        if (!this.container || !this.input || !this.sendBtn) {
-            console.warn('[Chat] Chat elements not found');
-            return;
-        }
-
-        // Send on button click
-        this.sendBtn.addEventListener('click', () => this.sendMessage());
-
-        // Send on Enter key
-        this.input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.sendMessage();
-            } else if (e.key === 'Escape') {
-                this.hide();
-            }
-        });
-
-        // Prevent drag when typing
-        this.input.addEventListener('mousedown', (e) => e.stopPropagation());
-        this.container.addEventListener('mousedown', (e) => e.stopPropagation());
-    }
-
-    show() {
-        if (this.isVisible) return;
-
-        this.isVisible = true;
-        this.container.classList.add('visible');
-        hideBubble();
-
-        // Focus input after animation
-        setTimeout(() => {
-            this.input.focus();
-        }, 100);
-
-        console.log('[Chat] Input shown');
-    }
-
-    hide() {
-        if (!this.isVisible) return;
-
-        this.isVisible = false;
-        this.container.classList.remove('visible');
-        this.input.value = '';
-
-        console.log('[Chat] Input hidden');
-    }
-
-    toggle() {
-        if (this.isVisible) {
-            this.hide();
-        } else {
-            this.show();
-        }
-    }
-
-    async sendMessage() {
-        const text = this.input.value.trim();
-        if (!text || this.isProcessing) return;
-
-        this.isProcessing = true;
-        this.sendBtn.disabled = true;
-        this.input.value = '';
-
-        // Hide input, show loading
-        this.hide();
-
-        // Change state to thinking (visual feedback)
-        const previousState = this.stateMachine.state;
-        this.stateMachine.transition(STATES.THINKING);
-
-        // Show loading bubble
-        showBubbleLoading();
-
-        try {
-            // Call AI service via IPC (uses LLMHandler in main process)
-            const response = await window.deskmate.askAI(text);
-
-            // Switch to talking state for response
-            this.stateMachine.transition(STATES.TALKING);
-
-            // Show response
-            const message = response.success ? response.message : response.message;
-            showBubble(message, 6000);
-
-            console.log('[Chat] AI Response:', response);
-        } catch (error) {
-            console.error('[Chat] Error:', error);
-            showBubble("I can't reach the server right now. 🌐", 3000);
-        } finally {
-            this.isProcessing = false;
-            this.sendBtn.disabled = false;
-
-            // Return to previous state after a delay
-            setTimeout(() => {
-                const currentState = this.stateMachine.state;
-                if (currentState === STATES.TALKING || currentState === STATES.THINKING) {
-                    this.stateMachine.transition(
-                        previousState !== STATES.TALKING && previousState !== STATES.THINKING
-                            ? previousState
-                            : STATES.IDLE
-                    );
-                }
-            }, 1000);
-        }
-    }
-}
-
-// ============================================
-// Character & Click-Through Logic
-// ============================================
-
-const character = document.getElementById('character');
-
-/**
- * Update character appearance based on state
- */
-function updateCharacter(state) {
-    if (!character) return;
-    character.dataset.state = state;
-}
-
-/**
- * Check if sprite image loaded successfully
- */
-function checkSpriteLoaded() {
-    if (!character) return;
-
-    // Get computed background image
-    const bgImage = getComputedStyle(character).backgroundImage;
-
-    // If no background image or it's "none", add fallback class
-    if (!bgImage || bgImage === 'none') {
-        console.log('[Sprite] No sprite found, using fallback');
-        character.classList.add('no-sprite');
-    } else {
-        // Test if image actually loaded by creating a test image
-        const url = bgImage.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
-        const testImg = new Image();
-        testImg.onload = () => {
-            console.log('[Sprite] Sprite loaded successfully');
-            character.classList.remove('no-sprite');
-        };
-        testImg.onerror = () => {
-            console.log('[Sprite] Sprite failed to load, using fallback');
-            character.classList.add('no-sprite');
-        };
-        testImg.src = url;
-    }
-}
-
-/**
- * Handle mouse enter/leave for click-through toggle
- */
-function setupClickThrough() {
-    // When mouse enters the character, disable click-through
-    character?.addEventListener('mouseenter', () => {
-        window.deskmate.setIgnoreMouseEvents(false);
     });
 
-    // When mouse leaves the character, enable click-through
-    character?.addEventListener('mouseleave', () => {
-        window.deskmate.setIgnoreMouseEvents(true);
-    });
-
-    // Also handle chat input
-    const chatContainer = document.getElementById('chat-input-container');
-    chatContainer?.addEventListener('mouseenter', () => {
-        window.deskmate.setIgnoreMouseEvents(false);
-    });
-    chatContainer?.addEventListener('mouseleave', () => {
-        window.deskmate.setIgnoreMouseEvents(true);
-    });
-}
-
-// ============================================
-// Random Interactions
-// ============================================
-
-// Random messages are now handled via i18n
-// See i18n.js for message definitions
-
-class RandomInteractionManager {
-    constructor(stateMachine) {
-        this.stateMachine = stateMachine;
-        this.minInterval = 30000;  // 30 seconds minimum
-        this.maxInterval = 120000; // 2 minutes maximum
-        this.timerId = null;
-
-        this.scheduleNext();
-
-        // Stop random interactions when not idle
-        stateMachine.on('stateChange', ({ current }) => {
-            if (current !== STATES.IDLE) {
-                this.stop();
-            } else {
-                this.scheduleNext();
-            }
-        });
-    }
-
-    scheduleNext() {
-        if (this.timerId) return; // Already scheduled
-
-        const delay = this.minInterval + Math.random() * (this.maxInterval - this.minInterval);
-
-        this.timerId = setTimeout(() => {
-            this.timerId = null;
-            this.interact();
-        }, delay);
-    }
-
-    stop() {
-        if (this.timerId) {
-            clearTimeout(this.timerId);
-            this.timerId = null;
-        }
-    }
-
-    async interact() {
-        // Only interact when idle
-        if (this.stateMachine.state !== STATES.IDLE) {
-            return;
-        }
-
-        // Get translated messages from main process
-        let messages = await window.deskmate.t('randomMessages');
-
-        // Fallback if translation missing or not an array
-        if (!Array.isArray(messages)) {
-            messages = [
-                "...zzZ 💤",
-                "Meow~ 🐱"
-            ];
-        }
-
-        // Pick random message
-        const message = messages[Math.floor(Math.random() * messages.length)];
-
-        // Show bubble
-        showBubble(message, 3000);
-
-        // Maybe play a sound (30% chance)
-        if (Math.random() < 0.3) {
-            playClickSound();
-        }
-
-        console.log('[Random] Interaction:', message);
-
-        // Schedule next
-        this.scheduleNext();
-    }
-}
-
-// ============================================
-// Reminder Manager
-// ============================================
-
-const REMINDER_PRESETS = {
-    water: { labelKey: 'drinkWater', interval: 30 * 60 * 1000, messageKey: 'reminderWater' },
-    rest: { labelKey: 'restEyes', interval: 20 * 60 * 1000, messageKey: 'reminderRest' },
-    stretch: { labelKey: 'stretch', interval: 45 * 60 * 1000, messageKey: 'reminderStretch' }
-};
-
-class ReminderManager {
-    constructor() {
-        this.activeReminders = new Map(); // type -> { timerId, repeatCount }
-        this.maxRepeats = 3;
-        this.repeatInterval = 60 * 1000; // 1 minute between repeats
-        this.pendingConfirm = null;
-    }
-
-    /**
-     * Start a reminder
-     * @param {string} type - Reminder type (water, rest, stretch)
-     */
-    start(type) {
-        if (!REMINDER_PRESETS[type]) {
-            console.warn('[Reminder] Unknown type:', type);
-            return;
-        }
-
-        // Stop existing reminder of this type
-        this.stop(type);
-
-        const preset = REMINDER_PRESETS[type];
-        const timerId = setTimeout(() => this.trigger(type), preset.interval);
-
-        this.activeReminders.set(type, { timerId, repeatCount: 0 });
-        console.log(`[Reminder] Started: ${type} (${preset.interval / 60000} min)`);
-    }
-
-    /**
-     * Stop a reminder
-     */
-    stop(type) {
-        const reminder = this.activeReminders.get(type);
-        if (reminder) {
-            clearTimeout(reminder.timerId);
-            this.activeReminders.delete(type);
-            console.log(`[Reminder] Stopped: ${type}`);
-        }
-    }
-
-    /**
-     * Trigger a reminder notification
-     */
-    async trigger(type) {
-        const preset = REMINDER_PRESETS[type];
-        const reminder = this.activeReminders.get(type);
-
-        if (!preset || !reminder) return;
-
-        // Get translated message
-        const message = await window.deskmate.t(preset.messageKey);
-
-        // Show notification with confirm hint
-        playNotificationSound();
-        showBubble(message, 0); // Stay until dismissed
-        window.deskmate.showNotification('DeskMate', message);
-
-        // Store pending confirmation
-        this.pendingConfirm = type;
-
-        reminder.repeatCount++;
-        console.log(`[Reminder] Triggered: ${type} (${reminder.repeatCount}/${this.maxRepeats})`);
-
-        // Schedule repeat if not confirmed
-        if (reminder.repeatCount < this.maxRepeats) {
-            reminder.timerId = setTimeout(() => this.trigger(type), this.repeatInterval);
-        } else {
-            // Max repeats reached, restart the cycle
-            console.log(`[Reminder] Max repeats reached for ${type}, restarting cycle`);
-            this.start(type);
-        }
-    }
-
-    /**
-     * User confirmed the reminder
-     */
-    async confirm() {
-        if (this.pendingConfirm) {
-            const type = this.pendingConfirm;
-            this.pendingConfirm = null;
-            hideBubble();
-
-            // IMPORTANT: Stop current timer first to prevent continued repeats
-            this.stop(type);
-
-            // Then restart the full cycle from beginning
-            this.start(type);
-
-            const msg = await window.deskmate.t('reminderConfirmed');
-            showBubble(msg, 1500);
-            console.log(`[Reminder] Confirmed: ${type}`);
-        }
-    }
-
-    /**
-     * Get active reminder types
-     */
-    getActive() {
-        return Array.from(this.activeReminders.keys());
-    }
-
-    /**
-     * Toggle a reminder on/off
-     */
-    toggle(type) {
-        if (this.activeReminders.has(type)) {
-            this.stop(type);
-            return false;
-        } else {
-            this.start(type);
-            return true;
-        }
-    }
-}
-
-// Global reminder manager
-let reminderManager = null;
-
-// ============================================
-// Context Menu
-// ============================================
-
-function setupContextMenu() {
-    character?.addEventListener('contextmenu', (e) => {
+    // 7. Context Menu
+    window.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         window.deskmate.showContextMenu();
     });
+
+    console.log('[Renderer] Phase 2 Ready!');
 }
 
-// ============================================
-// Initialization
-// ============================================
-
-/** @type {ChatManager} */
-let chatManager = null;
-
-function init() {
-    console.log('[DeskMate] Initializing Phase 2...');
-
-    // Check sprite loading
-    checkSpriteLoaded();
-
-    // Create state machine
-    const stateMachine = new StateMachine(STATES.IDLE);
-
-    // Create pomodoro manager
-    const pomodoro = new PomodoroManager(stateMachine);
-
-    // Create drag manager
-    if (character) {
-        new DragManager(character, stateMachine);
-    }
-
-    // Create chat manager
-    chatManager = new ChatManager(stateMachine);
-
-    // Setup click-through
-    setupClickThrough();
-
-    // Setup context menu
-    setupContextMenu();
-
-    // Listen for state changes to update character
-    stateMachine.on('stateChange', ({ current }) => {
-        updateCharacter(current);
-    });
-
-    // Listen for pomodoro events from main process
-    window.deskmate.onPomodoroStart((minutes) => {
-        pomodoro.start(minutes);
-    });
-
-    window.deskmate.onPomodoroStop(() => {
-        pomodoro.stop();
-    });
-
-    // Listen for "Talk to Pet" event
-    window.deskmate.onTalkToPet(() => {
-        chatManager?.show();
-    });
-
-    // Setup random interactions
-    new RandomInteractionManager(stateMachine);
-
-    // Initialize reminder manager
-    reminderManager = new ReminderManager();
-
-    // Listen for reminder events from main process
-    window.deskmate.onReminderToggle?.(async (type) => {
-        if (reminderManager) {
-            const active = reminderManager.toggle(type);
-            const preset = REMINDER_PRESETS[type];
-            const label = await window.deskmate.t(preset.labelKey);
-            if (active) {
-                const enabledMsg = await window.deskmate.t('reminderEnabled');
-                showBubble(`${label} ${enabledMsg}`, 2000);
-            } else {
-                const disabledMsg = await window.deskmate.t('reminderDisabled');
-                showBubble(`${label} ${disabledMsg}`, 2000);
-            }
-        }
-    });
-
-    // Click on character: dismiss bubble or confirm pending reminder
-    character?.addEventListener('click', () => {
-        // First check if there's a pending reminder to confirm
-        if (reminderManager?.pendingConfirm) {
-            reminderManager.confirm();
-        } else {
-            // Otherwise just hide any visible bubble (like onboarding message)
-            hideBubble();
-        }
-    });
-
-    // Initial state
-    updateCharacter(STATES.IDLE);
-
-    // Onboarding: Check if this is first time (no API key configured)
-    setTimeout(async () => {
-        try {
-            // Test if AI is configured by making a simple check
-            const result = await window.deskmate.askAI('喵');
-
-            if (result.success) {
-                // AI works! Show personality welcome
-                const msg = await window.deskmate.t('welcomeBack');
-                showBubble(msg, 3000);
-            } else if (result.errorType === 'auth' || result.errorType === 'quota') {
-                // API key issue
-                const msg = await window.deskmate.t('apiKeyError');
-                showBubble(msg, 0);
-            } else {
-                // Other error  
-                const msg = await window.deskmate.t('somethingWrong');
-                showBubble(msg, 4000);
-            }
-        } catch (e) {
-            // First time or no config - show onboarding
-            const msg = await window.deskmate.t('setupApiKey');
-            showBubble(msg, 0);
-        }
-    }, 800);
-
-    console.log('[DeskMate] Phase 2 Ready!');
-}
-
-// Run on DOM ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
+init();

@@ -165,6 +165,15 @@ contextBridge.exposeInMainWorld('deskmate', {
     isSoundEnabled: () => ipcRenderer.invoke('get-sound-enabled'),
 
     /**
+     * Load skin configuration
+     */
+    loadSkin: (skinId) => ipcRenderer.invoke('skin:load', skinId),
+
+    /**
+     * Listen for language change event
+     */
+
+    /**
      * Listen for language change event
      */
     onLanguageChanged: (callback) => {
