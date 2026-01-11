@@ -232,6 +232,9 @@ class PomodoroManager {
     complete() {
         this.stop(true);
 
+        // Notify main process that pomodoro completed (for menu state sync)
+        window.deskmate.pomodoroComplete();
+
         // Transition to Dance (celebratory)
         this.stateMachine.transition(STATES.DANCE);
 
@@ -247,6 +250,105 @@ class PomodoroManager {
     }
 }
 
+// ============================================
+// Reminder Logic
+// ============================================
+
+class ReminderManager {
+    constructor(stateMachine) {
+        this.stateMachine = stateMachine;
+        this.activeTimers = new Map(); // type -> timerId
+        this.isLoopMode = true; // Default ON, synced with main process
+
+        // Reminder durations in seconds
+        this.durations = {
+            test: 10,      // 10 seconds for testing
+            water: 30 * 60, // 30 minutes
+            rest: 20 * 60,  // 20 minutes
+            stretch: 45 * 60 // 45 minutes
+        };
+
+        // Reminder messages
+        this.messages = {
+            test: '⚡ 测试提醒！',
+            water: '该喝水啦！💧 保持水分哦~',
+            rest: '看看远处，让眼睛休息一下~ 👀',
+            stretch: '起来活动活动筋骨吧！🧘'
+        };
+
+        // Listen for toggle events from main process
+        window.deskmate.onReminderToggle((type) => {
+            this.toggle(type);
+        });
+
+        // Listen for loop mode change
+        window.deskmate.onReminderLoopModeChange((isLoop) => {
+            this.isLoopMode = isLoop;
+            showBubble(`循环模式: ${isLoop ? '开启 🔁' : '关闭'}`, 2000);
+            console.log(`[ReminderManager] Loop mode: ${isLoop ? 'ON' : 'OFF'}`);
+        });
+
+        console.log('[ReminderManager] Initialized');
+    }
+
+    toggle(type) {
+        if (this.activeTimers.has(type)) {
+            // Cancel existing timer
+            clearTimeout(this.activeTimers.get(type));
+            this.activeTimers.delete(type);
+            showBubble(`${type} 提醒已关闭`, 2000);
+            console.log(`[ReminderManager] Cancelled: ${type}`);
+        } else {
+            // Start new timer
+            this.start(type);
+        }
+    }
+
+    start(type) {
+        const duration = this.durations[type];
+        if (!duration) {
+            console.warn(`[ReminderManager] Unknown type: ${type}`);
+            return;
+        }
+
+        showBubble(`${type} 提醒已开启 (${duration}s)`, 2000);
+
+        const timerId = setTimeout(() => {
+            this.trigger(type);
+        }, duration * 1000);
+
+        this.activeTimers.set(type, timerId);
+        console.log(`[ReminderManager] Started: ${type} (${duration}s)`);
+    }
+
+    trigger(type) {
+        this.activeTimers.delete(type);
+
+        const message = this.messages[type] || `${type} 时间到！`;
+
+        // Use NotificationManager for consistent notification behavior
+        notificationManager.notify(message, 'reminder');
+
+        // Show interact animation
+        this.stateMachine.transition(STATES.INTERACT);
+        setTimeout(() => {
+            if (this.stateMachine.state === STATES.INTERACT) {
+                this.stateMachine.transition(STATES.IDLE);
+            }
+        }, 3000);
+
+        console.log(`[ReminderManager] Triggered: ${type}`);
+
+        // If loop mode is ON, restart the timer
+        if (this.isLoopMode) {
+            console.log(`[ReminderManager] Loop mode ON, restarting: ${type}`);
+            this.start(type);
+        } else {
+            // Notify main process that reminder completed (for menu state sync)
+            window.deskmate.reminderComplete(type);
+        }
+    }
+}
 
 class DragController {
     constructor(stateMachine) {
@@ -559,6 +661,7 @@ async function init() {
     new DragController(stateMachine);
     const chatManager = new ChatManager(stateMachine);
     new PomodoroManager(stateMachine);
+    new ReminderManager(stateMachine);
 
     // 4. Initial State
     stateMachine.transition(STATES.IDLE);

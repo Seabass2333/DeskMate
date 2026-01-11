@@ -36,6 +36,9 @@ let isPomodoroActive = false;
 /** @type {Set<string>} */
 const activeReminders = new Set();
 
+/** @type {boolean} */
+let isReminderLoopMode = true; // Default to loop mode ON
+
 /**
  * Creates the main application window with transparent, frameless configuration
  */
@@ -93,7 +96,8 @@ function startPomodoro(minutes) {
  * Builds and shows the context menu with Pomodoro controls
  */
 function showContextMenu() {
-  const durations = [15, 20, 25, 30, 45, 60];
+  // Add 0.25 (15 seconds) for testing
+  const durations = [0.25, 15, 20, 25, 30, 45, 60];
 
   const template = [
     {
@@ -107,14 +111,14 @@ function showContextMenu() {
       label: isPomodoroActive ? `${t('focusing')} (${currentPomodoroDuration}m)` : t('startFocus'),
       submenu: [
         ...durations.map(min => ({
-          label: `${min} ${t('minutes')}${min === 25 ? ' ⭐' : ''}`,
-          type: 'checkbox', // Use checkbox to show selection state
+          label: min < 1 ? `⚡ ${Math.round(min * 60)}s (Test)` : `${min} ${t('minutes')}${min === 25 ? ' ⭐' : ''}`,
+          type: 'checkbox',
           checked: isPomodoroActive && currentPomodoroDuration === min,
           click: () => startPomodoro(min)
         })),
         { type: 'separator' },
         {
-          label: `${t('stopFocus')}`, // Added Red Stop Sign
+          label: `${t('stopFocus')}`,
           enabled: isPomodoroActive,
           click: () => {
             isPomodoroActive = false;
@@ -128,6 +132,31 @@ function showContextMenu() {
     {
       label: t('reminders'),
       submenu: [
+        {
+          label: `🔁 循环模式`,
+          type: 'checkbox',
+          checked: isReminderLoopMode,
+          click: () => {
+            isReminderLoopMode = !isReminderLoopMode;
+            mainWindow.webContents.send('reminder-loop-mode-change', isReminderLoopMode);
+            console.log('[Main] Loop mode:', isReminderLoopMode ? 'ON' : 'OFF');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: `⚡ 测试提醒 (10s)`,
+          type: 'checkbox',
+          checked: activeReminders.has('test'),
+          click: () => {
+            if (activeReminders.has('test')) {
+              activeReminders.delete('test');
+            } else {
+              activeReminders.add('test');
+            }
+            mainWindow.webContents.send('reminder-toggle', 'test');
+          }
+        },
+        { type: 'separator' },
         {
           label: `${t('drinkWater')} (30${t('minutes')})`,
           type: 'checkbox',
@@ -507,8 +536,18 @@ ipcMain.on('show-notification', (_, { title, body }) => {
   }
 });
 
-// Pomodoro state is now managed entirely in main.js via startPomodoro/stopPomodoro
-// No need for renderer to notify us
+// Pomodoro completed - reset state
+ipcMain.on('pomodoro-complete', () => {
+  isPomodoroActive = false;
+  currentPomodoroDuration = 0;
+  console.log('[Main] Pomodoro completed, state reset');
+});
+
+// Reminder triggered - remove from active set
+ipcMain.on('reminder-complete', (_, type) => {
+  activeReminders.delete(type);
+  console.log(`[Main] Reminder completed: ${type}`);
+});
 
 // ============================================
 // AI/LLM IPC Handlers

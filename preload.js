@@ -106,6 +106,29 @@ contextBridge.exposeInMainWorld('deskmate', {
         ipcRenderer.on('reminder-toggle', (_, type) => callback(type));
     },
 
+    /**
+     * Listen for reminder loop mode change event
+     * @param {function} callback - Called with boolean (isLoopMode)
+     */
+    onReminderLoopModeChange: (callback) => {
+        ipcRenderer.on('reminder-loop-mode-change', (_, isLoop) => callback(isLoop));
+    },
+
+    /**
+     * Notify main process that pomodoro has completed
+     */
+    pomodoroComplete: () => {
+        ipcRenderer.send('pomodoro-complete');
+    },
+
+    /**
+     * Notify main process that a reminder has triggered
+     * @param {string} type - Reminder type (water, rest, stretch, test)
+     */
+    reminderComplete: (type) => {
+        ipcRenderer.send('reminder-complete', type);
+    },
+
     // ============================================
     // AI/LLM
     // ============================================
