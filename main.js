@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeIma
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
-const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getDefaultPetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled } = require('./config');
+const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getDefaultPetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus } = require('./config');
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
 
 // Hot reload in development mode only
@@ -410,10 +410,24 @@ function reinitializeLLM() {
 // ============================================
 
 // Get current settings
+// Get current settings
 ipcMain.handle('settings:get', () => {
   const userSettings = loadUserSettings();
+  const vipStatus = getVipStatus();
+  const currentSkin = getSkin();
+  const availableSkins = getAvailableSkins();
+  const presets = require('./config').getAvailablePresets();
+
+  const baseSettings = {
+    vipStatus,
+    currentSkin,
+    availableSkins,
+    presets
+  };
+
   if (userSettings && userSettings.llm) {
     return {
+      ...baseSettings,
       region: userSettings.llm.region || 'china',
       provider: userSettings.llm.provider || 'deepseek',
       apiKey: userSettings.llm.apiKey || '',
@@ -423,6 +437,7 @@ ipcMain.handle('settings:get', () => {
   }
   // Return defaults
   return {
+    ...baseSettings,
     region: 'china',
     provider: 'deepseek',
     apiKey: PROVIDERS.china.deepseek.apiKey || '',
@@ -581,6 +596,18 @@ ipcMain.handle('pet:getState', () => {
 // Save pet state
 ipcMain.handle('pet:saveState', (_, petState) => {
   return savePetState(petState);
+});
+
+// ============================================
+// VIP IPC Handlers
+// ============================================
+
+ipcMain.handle('vip:redeem', (_, code) => {
+  return redeemInviteCode(code);
+});
+
+ipcMain.handle('vip:getStatus', () => {
+  return getVipStatus();
 });
 
 // Modify pet energy

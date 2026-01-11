@@ -222,7 +222,13 @@ contextBridge.exposeInMainWorld('deskmate', {
      * @param {number} delta - Amount to change energy (+/-)
      * @returns {Promise<object>} Updated pet state
      */
-    modifyPetEnergy: (delta) => ipcRenderer.invoke('pet:modifyEnergy', delta),
+    modifyPetEnergy: (amount, source) => ipcRenderer.send('pet:modifyEnergy', { amount, source }),
+
+    // ============================================
+    // VIP API
+    // ============================================
+    redeemInviteCode: (code) => ipcRenderer.invoke('vip:redeem', code),
+    getVipStatus: () => ipcRenderer.invoke('vip:getStatus'),
 
     // ============================================
     // Skin

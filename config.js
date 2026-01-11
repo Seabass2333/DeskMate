@@ -63,19 +63,93 @@ const DEFAULT_PROVIDER = 'openrouter';
 const DEFAULT_SKIN = 'mochi-v1';
 
 // ============================================
-// VIP Feature Flags (set to false before production release)
+// VIP Feature Flags
 // ============================================
 const VIP_FEATURES = {
-    skinSwitching: true,  // TODO: Set to false for production
-    advancedMoods: true,  // TODO: Set to false for production
-    customReminders: true // TODO: Set to false for production
+    // Phase 1 Features
+    inviteCode: true,         // Invitation code system
+    skinSwitching: true,      // Switch skins (Pochi)
+    energyMoods: true,        // Energy-based animations
+    customPomodoro: true,     // Custom timer duration
+    customReminders: true,    // Custom reminder intervals
+
+    // Future Features (Disabled)
+    skinStore: false,
+    focusStats: false,
+    customReminderItems: false,
+    personalities: false,
+    achievements: false,
+    longBreaks: false,
+    smartReminders: false,
+    chatHistory: false
 };
 
+// Simple invite codes for Phase 1 (In real app, use database)
+const VALID_INVITE_CODES = [
+    'VIP-2024-CAT',
+    'MOCHI-LOVE',
+    'DESKMATE-PRO',
+    'POCHI-POWER'
+];
+
 /**
- * Check if a VIP feature is enabled
+ * Check if a feature is locally enabled (feature flag)
+ * Note: This only checks if the feature is available in the system.
+ * To check if user has access, use checkUserVipAccess()
  */
 function isVipFeatureEnabled(feature) {
     return VIP_FEATURES[feature] === true;
+}
+
+/**
+ * Check if user is VIP
+ */
+function isUserVip() {
+    try {
+        const store = require('./store');
+        const vip = store.get('vip');
+        return vip && vip.enabled === true;
+    } catch (error) {
+        return false;
+    }
+}
+
+/**
+ * Validate and redeem invite code
+ */
+function redeemInviteCode(code) {
+    if (!code) return { success: false, message: 'Code is empty' };
+
+    // Check if valid hardcoded code or starts with VIP-DEV (for testing)
+    const isValid = VALID_INVITE_CODES.includes(code) || code.startsWith('DEV-VIP-');
+
+    if (isValid) {
+        try {
+            const store = require('./store');
+            store.set('vip', {
+                enabled: true,
+                code: code,
+                activatedAt: new Date().toISOString()
+            });
+            return { success: true, message: 'VIP Activated!' };
+        } catch (error) {
+            return { success: false, message: 'Storage error' };
+        }
+    }
+
+    return { success: false, message: 'Invalid code' };
+}
+
+/**
+ * Get VIP status details
+ */
+function getVipStatus() {
+    try {
+        const store = require('./store');
+        return store.get('vip') || { enabled: false };
+    } catch (error) {
+        return { enabled: false };
+    }
 }
 
 /**
@@ -394,5 +468,8 @@ module.exports = {
     getSkin,
     setSkin,
     getAvailableSkins,
-    isVipFeatureEnabled
+    isVipFeatureEnabled,
+    isUserVip,
+    redeemInviteCode,
+    getVipStatus
 };

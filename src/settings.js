@@ -139,7 +139,7 @@ function t(key) {
     return translations[key] || key;
 }
 
-// DOM Elements
+// DOM Elements (Existing)
 const regionSelect = document.getElementById('region');
 const providerSelect = document.getElementById('provider');
 const apiKeyInput = document.getElementById('apiKey');
@@ -151,9 +151,21 @@ const saveBtn = document.getElementById('saveBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const languageSelect = document.getElementById('language');
 
+// Wrapper for new elements (handle if they are missing during transition)
+const skinSelect = document.getElementById('skin-select');
+const skinPreviewContainer = document.getElementById('skin-preview-container');
+const vipStatusBadge = document.getElementById('vip-status-badge');
+const vipStatusText = document.getElementById('vip-status-text');
+const vipCodeInput = document.getElementById('vip-code-input');
+const vipRedeemBtn = document.getElementById('vip-redeem-btn');
+const vipMessage = document.getElementById('vip-message');
+const vipLockMsg = document.getElementById('vip-lock-msg');
+
 // State
 let currentSettings = null;
 let keyVisible = false;
+let availableSkins = [];
+let isVip = false;
 
 /**
  * Initialize the settings page
@@ -161,17 +173,23 @@ let keyVisible = false;
 async function init() {
     // Load current settings
     currentSettings = await window.settingsAPI.getSettings();
+    availableSkins = currentSettings.availableSkins || [];
+    isVip = currentSettings.vipStatus?.enabled || false;
 
     // Populate provider dropdown based on region
     populateProviders(currentSettings.region || 'china');
 
-    // Set initial values
+    // Populate skins
+    populateSkins(availableSkins, currentSettings.currentSkin);
+    updateVipStatusUI(currentSettings.vipStatus);
+
+    // Set initial values (API)
     regionSelect.value = currentSettings.region || 'china';
     providerSelect.value = currentSettings.provider || 'deepseek';
     apiKeyInput.value = currentSettings.apiKey || '';
     modelInput.value = currentSettings.model || '';
 
-    // Update API key help link for initial provider
+    // Update API key help link
     const initialConfig = PROVIDERS[currentSettings.region || 'china']?.[currentSettings.provider || 'deepseek'];
     if (initialConfig) {
         updateApiKeyHelpLink(initialConfig);
@@ -180,29 +198,199 @@ async function init() {
     // Set sound toggle
     const soundToggle = document.getElementById('soundEnabled');
     if (soundToggle) {
-        soundToggle.checked = currentSettings.soundEnabled !== false; // Default to true
+        soundToggle.checked = currentSettings.soundEnabled !== false;
     }
 
-    // Load current language and apply translations
+    // Load language
     if (languageSelect && window.settingsAPI.getLanguage) {
         const lang = await window.settingsAPI.getLanguage();
         languageSelect.value = lang || 'zh-CN';
         applyI18n(lang || 'zh-CN');
     }
 
-    // Re-apply translations when language selection changes
-    languageSelect?.addEventListener('change', () => {
-        applyI18n(languageSelect.value);
-    });
-
     // Event listeners
     regionSelect.addEventListener('change', onRegionChange);
     providerSelect.addEventListener('change', onProviderChange);
     toggleKeyBtn.addEventListener('click', toggleKeyVisibility);
     testBtn.addEventListener('click', testConnection);
-    saveBtn.addEventListener('click', saveSettings);
+    saveBtn?.addEventListener('click', saveSettings);
+    // Bind new save button if my previous edit added a duplicate ID
+    const newSaveBtn = document.getElementById('save-settings');
+    if (newSaveBtn) newSaveBtn.addEventListener('click', saveSettings);
+
     cancelBtn.addEventListener('click', closeWindow);
+    languageSelect?.addEventListener('change', () => applyI18n(languageSelect.value));
+
+    // New Event Listeners
+    skinSelect?.addEventListener('change', onSkinChange);
+    vipRedeemBtn?.addEventListener('click', redeemInviteCode);
 }
+
+/**
+ * Populate skin dropdown
+ */
+function populateSkins(skins, currentSkinId) {
+    if (!skinSelect) return;
+
+    skinSelect.innerHTML = '';
+
+    skins.forEach(skin => {
+        const option = document.createElement('option');
+        option.value = skin.id;
+        // Add lock emoji if locked
+        const isLocked = !isVip && skin.id !== 'mochi-v1';
+        option.textContent = (isLocked ? '🔒 ' : '') + skin.name;
+        if (isLocked) {
+            // option.disabled = true; // Use softer lock logic for better UX
+            option.setAttribute('data-locked', 'true');
+        }
+        skinSelect.appendChild(option);
+    });
+
+    skinSelect.value = currentSkinId || 'mochi-v1';
+    updateSkinPreview(currentSkinId || 'mochi-v1');
+}
+
+/**
+ * Handle skin change
+ */
+function onSkinChange() {
+    const skinId = skinSelect.value;
+    updateSkinPreview(skinId);
+}
+
+/**
+ * Update skin preview image and lock status
+ */
+function updateSkinPreview(skinId) {
+    const skin = availableSkins.find(s => s.id === skinId);
+    if (!skin) return;
+
+    // Update preview image
+    if (skinPreviewContainer) {
+        if (skin.preview) {
+            skinPreviewContainer.innerHTML = `<img src="${skin.preview}" alt="${skin.name} preview">`;
+        } else {
+            skinPreviewContainer.innerHTML = '<div class="no-preview">No Preview</div>';
+        }
+    }
+
+    // Check lock status
+    const isLocked = !isVip && skinId !== 'mochi-v1';
+    if (vipLockMsg) {
+        vipLockMsg.classList.toggle('hidden', !isLocked);
+    }
+}
+
+/**
+ * Update VIP Status UI
+ */
+function updateVipStatusUI(status) {
+    if (!vipStatusBadge) return;
+
+    if (status && status.enabled) {
+        vipStatusBadge.textContent = 'PRO MEMBER';
+        vipStatusBadge.classList.add('premium');
+        vipStatusText.textContent = `Unlocked via code: ${status.code}`;
+        vipInputContainer.classList.add('hidden'); // Hide input if already VIP
+        isVip = true;
+    } else {
+        vipStatusBadge.textContent = 'FREE';
+        vipStatusBadge.classList.remove('premium');
+        vipStatusText.textContent = 'Enter invite code for premium features (Pochi skin, unlimited Pomodoro, etc.)';
+        isVip = false;
+    }
+
+    // Refresh skin list to update locks
+    populateSkins(availableSkins, skinSelect ? skinSelect.value : null);
+}
+
+/**
+ * Redeem invite code
+ */
+async function redeemInviteCode() {
+    const code = vipCodeInput.value.trim();
+    if (!code) return;
+
+    vipRedeemBtn.disabled = true;
+    vipRedeemBtn.textContent = 'Checking...';
+    vipMessage.textContent = '';
+    vipMessage.className = 'vip-message';
+
+    try {
+        const result = await window.settingsAPI.redeemInviteCode(code);
+
+        if (result.success) {
+            vipMessage.textContent = 'Success! Features unlocked.';
+            vipMessage.className = 'vip-message success';
+            // Reload status
+            const newStatus = await window.settingsAPI.getVipStatus();
+            updateVipStatusUI(newStatus);
+        } else {
+            vipMessage.textContent = result.message || 'Invalid code';
+            vipMessage.className = 'vip-message error';
+        }
+    } catch (e) {
+        vipMessage.textContent = 'Error redeeming code';
+        vipMessage.className = 'vip-message error';
+    } finally {
+        vipRedeemBtn.disabled = false;
+        vipRedeemBtn.textContent = 'Redeem';
+    }
+}
+
+/**
+ * Save settings logic
+ */
+async function saveSettings() {
+    const saveBtnTarget = document.getElementById('save-settings') || saveBtn;
+    if (saveBtnTarget) {
+        saveBtnTarget.disabled = true;
+        saveBtnTarget.textContent = 'Saving...';
+    }
+
+    try {
+        const soundToggle = document.getElementById('soundEnabled');
+
+        // Check if selected skin is locked
+        let selectedSkin = skinSelect ? skinSelect.value : 'mochi-v1';
+        if (!isVip && selectedSkin !== 'mochi-v1') {
+            alert('This skin requires VIP membership. Reverting to Mochi.');
+            selectedSkin = 'mochi-v1';
+        }
+
+        const settings = {
+            region: regionSelect.value,
+            provider: providerSelect.value,
+            apiKey: apiKeyInput.value,
+            model: modelInput.value,
+            soundEnabled: soundToggle ? soundToggle.checked : true,
+            skin: selectedSkin
+        };
+
+        // Save language if changed
+        if (languageSelect && window.settingsAPI.setLanguage) {
+            await window.settingsAPI.setLanguage(languageSelect.value);
+        }
+
+        const result = await window.settingsAPI.saveSettings(settings);
+
+        if (result.success) {
+            closeWindow();
+        } else {
+            alert('Save failed: ' + result.message);
+        }
+    } catch (error) {
+        alert('Save failed: ' + error.message);
+    } finally {
+        if (saveBtnTarget) {
+            saveBtnTarget.disabled = false;
+            saveBtnTarget.textContent = 'Save Settings';
+        }
+    }
+}
+
+// ... rest of helper functions ...
 
 /**
  * Populate provider dropdown based on selected region

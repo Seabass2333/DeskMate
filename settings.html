@@ -91,6 +91,34 @@
             </div>
         </section>
 
+        <div class="settings-group">
+            <h3>🎨 Skin</h3>
+            <select id="skin-select" class="settings-input">
+                <!-- Populated dynamically -->
+            </select>
+            <div id="skin-preview-container" class="skin-preview-container">
+                <!-- Preview image -->
+            </div>
+            <div id="vip-lock-msg" class="vip-lock-msg hidden">🔒 VIP Only</div>
+        </div>
+
+        <div class="settings-group">
+            <h3>👑 VIP Membership</h3>
+            <div id="vip-status-container" class="vip-status-container">
+                <span id="vip-status-badge" class="badge">FREE</span>
+                <p id="vip-status-text">Enter invite code to unlock premium features.</p>
+            </div>
+            <div id="vip-input-container" class="vip-input-container">
+                <input type="text" id="vip-code-input" class="settings-input" placeholder="Enter Invite Code">
+                <button id="vip-redeem-btn" class="settings-save-btn">Redeem</button>
+            </div>
+            <div id="vip-message" class="vip-message"></div>
+        </div>
+
+        <div class="settings-actions">
+            <button id="save-settings" class="settings-save-btn">Save Changes</button>
+        </div>
+
         <!-- Actions -->
         <div class="actions">
             <button id="cancelBtn" class="btn-secondary" data-i18n="cancel">Cancel</button>
