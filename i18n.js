@@ -39,6 +39,20 @@ const translations = {
         reminderEnabled: '提醒已开启 ✅',
         reminderDisabled: '提醒已关闭',
         reminderConfirmed: '收到！✅',
+        loopMode: '🔁 循环模式',
+        loopModeOn: '循环模式: 开启 🔁',
+        loopModeOff: '循环模式: 关闭',
+        testReminder: '⚡ 测试提醒',
+        testReminderMsg: '⚡ 测试提醒！',
+
+        // Pomodoro
+        focusStart: '专注: ${min}m 💪',
+        focusStopped: '专注已停止',
+        focusComplete: '专注完成！休息一下吧~ ☕',
+
+        // Chat
+        thinking: '思考中...',
+        connectionFailed: '连接失败... 😿',
 
         // Errors
         errorNetwork: '断网了... 检查一下网络吧 🌐',
@@ -107,6 +121,20 @@ const translations = {
         reminderEnabled: 'Reminder enabled ✅',
         reminderDisabled: 'Reminder disabled',
         reminderConfirmed: 'Got it! ✅',
+        loopMode: '🔁 Loop Mode',
+        loopModeOn: 'Loop Mode: ON 🔁',
+        loopModeOff: 'Loop Mode: OFF',
+        testReminder: '⚡ Test Reminder',
+        testReminderMsg: '⚡ Test Reminder!',
+
+        // Pomodoro
+        focusStart: 'Focus: ${min}m 💪',
+        focusStopped: 'Focus stopped',
+        focusComplete: 'Focus complete! Take a break~ ☕',
+
+        // Chat
+        thinking: 'Thinking...',
+        connectionFailed: 'Connection failed... 😿',
 
         // Errors
         errorNetwork: 'No network... check your connection 🌐',
@@ -175,6 +203,16 @@ const translations = {
         reminderEnabled: 'リマインダーON ✅',
         reminderDisabled: 'リマインダーOFF',
         reminderConfirmed: '了解にゃ！✅',
+        loopMode: '🔁 ループモード',
+        loopModeOn: 'ループモード: ON 🔁',
+        loopModeOff: 'ループモード: OFF',
+        testReminder: '⚡ テストリマインダー',
+        testReminderMsg: '⚡ テストリマインダー！',
+        focusStart: '集中: ${min}m 💪',
+        focusStopped: '集中終了',
+        focusComplete: '集中完了！休憩しよう~ ☕',
+        thinking: '考え中...',
+        connectionFailed: '接続失敗... 😿',
 
         // Errors
         errorNetwork: 'ネットワークエラー... 接続を確認して 🌐',
@@ -242,6 +280,16 @@ const translations = {
         reminderEnabled: '알림 켜짐 ✅',
         reminderDisabled: '알림 꺼짐',
         reminderConfirmed: '알겠다냥! ✅',
+        loopMode: '🔁 반복 모드',
+        loopModeOn: '반복 모드: ON 🔁',
+        loopModeOff: '반복 모드: OFF',
+        testReminder: '⚡ 테스트 알림',
+        testReminderMsg: '⚡ 테스트 알림!',
+        focusStart: '집중: ${min}m 💪',
+        focusStopped: '집중 중지됨',
+        focusComplete: '집중 완료! 쉬어가자~ ☕',
+        thinking: '생각 중...',
+        connectionFailed: '연결 실패... 😿',
 
         // Errors
         errorNetwork: '네트워크 오류... 연결 확인해 🌐',
@@ -309,6 +357,16 @@ const translations = {
         reminderEnabled: 'Recordatorio activado ✅',
         reminderDisabled: 'Recordatorio desactivado',
         reminderConfirmed: '¡Entendido! ✅',
+        loopMode: '🔁 Modo Bucle',
+        loopModeOn: 'Modo Bucle: ON 🔁',
+        loopModeOff: 'Modo Bucle: OFF',
+        testReminder: '⚡ Recordatorio de Prueba',
+        testReminderMsg: '⚡ ¡Recordatorio de prueba!',
+        focusStart: 'Enfoque: ${min}m 💪',
+        focusStopped: 'Enfoque detenido',
+        focusComplete: '¡Enfoque completado! Toma un descanso~ ☕',
+        thinking: 'Pensando...',
+        connectionFailed: 'Conexión fallida... 😿',
 
         // Errors
         errorNetwork: 'Sin red... revisa tu conexión 🌐',
@@ -376,6 +434,16 @@ const translations = {
         reminderEnabled: 'Rappel activé ✅',
         reminderDisabled: 'Rappel désactivé',
         reminderConfirmed: 'Compris! ✅',
+        loopMode: '🔁 Mode Boucle',
+        loopModeOn: 'Mode Boucle: ON 🔁',
+        loopModeOff: 'Mode Boucle: OFF',
+        testReminder: '⚡ Rappel Test',
+        testReminderMsg: '⚡ Rappel de test!',
+        focusStart: 'Focus: ${min}m 💪',
+        focusStopped: 'Focus arrêté',
+        focusComplete: 'Focus terminé! Prends une pause~ ☕',
+        thinking: 'Réflexion...',
+        connectionFailed: 'Connexion échouée... 😿',
 
         // Errors
         errorNetwork: 'Pas de réseau... vérifie ta connexion 🌐',
@@ -443,6 +511,16 @@ const translations = {
         reminderEnabled: 'Erinnerung aktiviert ✅',
         reminderDisabled: 'Erinnerung deaktiviert',
         reminderConfirmed: 'Verstanden! ✅',
+        loopMode: '🔁 Schleifenmodus',
+        loopModeOn: 'Schleifenmodus: AN 🔁',
+        loopModeOff: 'Schleifenmodus: AUS',
+        testReminder: '⚡ Test Erinnerung',
+        testReminderMsg: '⚡ Test Erinnerung!',
+        focusStart: 'Fokus: ${min}m 💪',
+        focusStopped: 'Fokus gestoppt',
+        focusComplete: 'Fokus abgeschlossen! Mach eine Pause~ ☕',
+        thinking: 'Denke nach...',
+        connectionFailed: 'Verbindung fehlgeschlagen... 😿',
 
         // Errors
         errorNetwork: 'Kein Netz... überprüfe deine Verbindung 🌐',

@@ -45,9 +45,8 @@
                 </div>
                 <div class="help-text">
                     <small>
-                        <a href="#"
-                            onclick="require('electron').shell.openExternal('https://platform.deepseek.com/api_keys'); return false;">
-                            👉 <span data-i18n="getKeyHelp">Get DeepSeek API Key</span>
+                        <a href="#" id="apiKeyHelpLink" class="api-key-link">
+                            👉 <span id="apiKeyHelpText" data-i18n="getKeyHelp">Get API Key</span>
                         </a>
                     </small>
                 </div>
@@ -64,11 +63,11 @@
             <span id="testResult" class="test-result"></span>
         </section>
 
-        <!-- Preferences -->
+        <!-- Language -->
         <section class="settings-section">
-            <h2 data-i18n="preferences">Preferences</h2>
+            <h2 data-i18n="interfaceLanguage">Interface Language</h2>
             <div class="form-group">
-                <label for="language" data-i18n="interfaceLanguage">Interface Language</label>
+                <label for="language" data-i18n="language">Language</label>
                 <select id="language">
                     <option value="zh-CN">🇨🇳 简体中文</option>
                     <option value="en">🇺🇸 English</option>
@@ -79,7 +78,11 @@
                     <option value="de">🇩🇪 Deutsch</option>
                 </select>
             </div>
+        </section>
 
+        <!-- Sound -->
+        <section class="settings-section">
+            <h2 data-i18n="soundSection">Sound</h2>
             <div class="form-group checkbox-group">
                 <label class="checkbox-label">
                     <input type="checkbox" id="soundEnabled">

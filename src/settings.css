@@ -17,22 +17,33 @@ body {
     overflow-y: auto;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Hidden */
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 0;
+    display: none;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+body {
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
 }
 
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
+/* API Key Help Link */
+.api-key-link {
+    color: #a78bfa;
+    text-decoration: none;
+    transition: color 0.2s;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.25);
+.api-key-link:hover {
+    color: #c4b5fd;
+    text-decoration: underline;
+}
+
+.help-text {
+    margin-top: 8px;
 }
 
 .settings-container {

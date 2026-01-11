@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeImage, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
@@ -133,7 +133,7 @@ function showContextMenu() {
       label: t('reminders'),
       submenu: [
         {
-          label: `🔁 循环模式`,
+          label: t('loopMode'),
           type: 'checkbox',
           checked: isReminderLoopMode,
           click: () => {
@@ -144,7 +144,7 @@ function showContextMenu() {
         },
         { type: 'separator' },
         {
-          label: `⚡ 测试提醒 (10s)`,
+          label: `${t('testReminder')} (10s)`,
           type: 'checkbox',
           checked: activeReminders.has('test'),
           click: () => {
@@ -547,6 +547,11 @@ ipcMain.on('pomodoro-complete', () => {
 ipcMain.on('reminder-complete', (_, type) => {
   activeReminders.delete(type);
   console.log(`[Main] Reminder completed: ${type}`);
+});
+
+// Open external URL in default browser
+ipcMain.on('open-external', (_, url) => {
+  shell.openExternal(url);
 });
 
 // ============================================

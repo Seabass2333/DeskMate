@@ -34,5 +34,10 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     /**
      * Set language
      */
-    setLanguage: (lang) => ipcRenderer.invoke('i18n:setLanguage', lang)
+    setLanguage: (lang) => ipcRenderer.invoke('i18n:setLanguage', lang),
+
+    /**
+     * Open URL in default browser
+     */
+    openExternal: (url) => ipcRenderer.send('open-external', url)
 });

@@ -6,15 +6,40 @@
 // Provider definitions matching config.js structure
 const PROVIDERS = {
     china: {
-        deepseek: { name: 'DeepSeek', model: 'deepseek-chat' },
-        moonshot: { name: 'Moonshot (Kimi)', model: 'moonshot-v1-8k' }
+        deepseek: {
+            name: 'DeepSeek',
+            model: 'deepseek-chat',
+            apiKeyUrl: 'https://platform.deepseek.com/api_keys',
+            getKeyText: { 'zh-CN': '获取 DeepSeek API Key', 'en': 'Get DeepSeek API Key' }
+        },
+        moonshot: {
+            name: 'Moonshot (Kimi)',
+            model: 'moonshot-v1-8k',
+            apiKeyUrl: 'https://platform.moonshot.cn/console/api-keys',
+            getKeyText: { 'zh-CN': '获取 Moonshot API Key', 'en': 'Get Moonshot API Key' }
+        }
     },
     global: {
-        openrouter: { name: 'OpenRouter', model: 'deepseek/deepseek-chat' },
-        openai: { name: 'OpenAI', model: 'gpt-4o-mini' }
+        openrouter: {
+            name: 'OpenRouter',
+            model: 'deepseek/deepseek-chat',
+            apiKeyUrl: 'https://openrouter.ai/keys',
+            getKeyText: { 'zh-CN': '获取 OpenRouter API Key', 'en': 'Get OpenRouter API Key' }
+        },
+        openai: {
+            name: 'OpenAI',
+            model: 'gpt-4o-mini',
+            apiKeyUrl: 'https://platform.openai.com/api-keys',
+            getKeyText: { 'zh-CN': '获取 OpenAI API Key', 'en': 'Get OpenAI API Key' }
+        }
     },
     local: {
-        ollama: { name: 'Ollama', model: 'llama3.2' }
+        ollama: {
+            name: 'Ollama',
+            model: 'llama3.2',
+            apiKeyUrl: 'https://ollama.ai/download',
+            getKeyText: { 'zh-CN': '下载 Ollama', 'en': 'Download Ollama' }
+        }
     }
 };
 
@@ -34,6 +59,8 @@ const SETTINGS_I18N = {
         testConnection: '测试连接',
         language: '语言',
         interfaceLanguage: '界面语言',
+        soundSection: '音效',
+        soundEffects: '启用音效',
         cancel: '取消',
         save: '保存设置',
         testing: '测试中...',
@@ -54,6 +81,8 @@ const SETTINGS_I18N = {
         testConnection: 'Test Connection',
         language: 'Language',
         interfaceLanguage: 'Interface Language',
+        soundSection: 'Sound',
+        soundEffects: 'Enable Sound Effects',
         cancel: 'Cancel',
         save: 'Save Settings',
         testing: 'Testing...',
@@ -142,6 +171,12 @@ async function init() {
     apiKeyInput.value = currentSettings.apiKey || '';
     modelInput.value = currentSettings.model || '';
 
+    // Update API key help link for initial provider
+    const initialConfig = PROVIDERS[currentSettings.region || 'china']?.[currentSettings.provider || 'deepseek'];
+    if (initialConfig) {
+        updateApiKeyHelpLink(initialConfig);
+    }
+
     // Set sound toggle
     const soundToggle = document.getElementById('soundEnabled');
     if (soundToggle) {
@@ -207,11 +242,34 @@ function onProviderChange() {
 
     if (config) {
         modelInput.value = config.model;
+
+        // Update API key help link
+        updateApiKeyHelpLink(config);
     }
 
     // Clear test result
     testResult.textContent = '';
     testResult.className = 'test-result';
+}
+
+/**
+ * Update API key help link based on provider
+ */
+function updateApiKeyHelpLink(config) {
+    const helpLink = document.getElementById('apiKeyHelpLink');
+    const helpText = document.getElementById('apiKeyHelpText');
+
+    if (helpLink && config.apiKeyUrl) {
+        helpLink.onclick = (e) => {
+            e.preventDefault();
+            window.settingsAPI.openExternal(config.apiKeyUrl);
+        };
+    }
+
+    if (helpText && config.getKeyText) {
+        const lang = currentLang.startsWith('zh') ? 'zh-CN' : 'en';
+        helpText.textContent = config.getKeyText[lang] || config.getKeyText['en'];
+    }
 }
 
 /**
