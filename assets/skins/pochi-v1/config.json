@@ -1,8 +1,13 @@
 {
     "id": "pochi-v1",
     "name": "Pochi",
-    "author": "System",
+    "author": "DeskMate",
+    "version": "1.0.0",
     "description": "A cat with energy-based moods",
+    "preview": "preview.png",
+    "features": [
+        "energy-moods"
+    ],
     "baseSize": [
         32,
         32

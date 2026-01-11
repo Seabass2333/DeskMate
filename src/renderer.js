@@ -130,6 +130,16 @@ class StateMachine {
     }
 
     /**
+     * Force refresh current animation (used after skin change)
+     */
+    forceRefresh() {
+        if (this.state) {
+            this.anim.play(this.state);
+            console.log(`[State] Force refreshed: ${this.state}`);
+        }
+    }
+
+    /**
      * Revert to previous state (useful after drag/interact)
      */
     revert() {
@@ -852,7 +862,20 @@ async function init() {
     window.deskmate.onSkinChange(async (skinId) => {
         console.log(`[Renderer] Skin change requested: ${skinId}`);
         await animManager.loadSkin(skinId);
-        stateMachine.transition(STATES.IDLE); // Refresh animation
+
+        // Reset to idle state, or first available animation if idle doesn't exist
+        const hasIdle = animManager.skinManager.getAnimation('idle');
+        if (hasIdle) {
+            stateMachine.state = null; // Force state change
+            stateMachine.transition(STATES.IDLE);
+        } else {
+            // Get first available animation key from new skin
+            const animations = animManager.skinManager.currentSkin?.animations;
+            const firstState = animations ? Object.keys(animations)[0] : 'idle';
+            stateMachine.state = null;
+            stateMachine.transition(firstState);
+        }
+        console.log(`[Renderer] Skin changed to: ${skinId}, state: ${stateMachine.state}`);
     });
 
     console.log('[Renderer] Phase 2 Ready!');

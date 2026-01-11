@@ -268,7 +268,11 @@ function getAvailableSkins() {
                     return {
                         id: config.id || d.name,
                         name: config.name || d.name,
-                        description: config.description || ''
+                        description: config.description || '',
+                        version: config.version || '1.0.0',
+                        author: config.author || 'Unknown',
+                        preview: config.preview ? path.join(skinsDir, d.name, config.preview) : null,
+                        features: config.features || []
                     };
                 }
                 return null;

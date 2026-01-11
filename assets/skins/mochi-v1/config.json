@@ -1,8 +1,11 @@
 {
     "id": "mochi-v1",
     "name": "Mochi",
-    "author": "System",
+    "author": "DeskMate",
+    "version": "1.0.0",
     "description": "The default cute cat",
+    "preview": "preview.png",
+    "features": [],
     "baseSize": [
         32,
         32
