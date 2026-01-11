@@ -43,6 +43,14 @@
                     <input type="password" id="apiKey" placeholder="sk-xxx...">
                     <button id="toggleKey" class="btn-icon" title="Show/Hide">👁️</button>
                 </div>
+                <div class="help-text">
+                    <small>
+                        <a href="#"
+                            onclick="require('electron').shell.openExternal('https://platform.deepseek.com/api_keys'); return false;">
+                            👉 <span data-i18n="getKeyHelp">Get DeepSeek API Key</span>
+                        </a>
+                    </small>
+                </div>
             </div>
 
             <div class="form-group">
@@ -71,7 +79,7 @@
                     <option value="de">🇩🇪 Deutsch</option>
                 </select>
             </div>
-            
+
             <div class="form-group checkbox-group">
                 <label class="checkbox-label">
                     <input type="checkbox" id="soundEnabled">

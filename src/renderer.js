@@ -178,13 +178,20 @@ class PomodoroManager {
     }
 
     start(minutes) {
-        if (this.isActive) this.stop(false);
+        // Stop any existing timer first (without notifying main - it already knows)
+        if (this.isActive) {
+            this.isActive = false;
+            if (this.timerId) {
+                clearTimeout(this.timerId);
+                this.timerId = null;
+            }
+        }
 
         this.remainingSeconds = minutes * 60;
         this.isActive = true;
 
-        // Notify main process (optional, if needed for tray status)
-        // window.deskmate.setPomodoroState(true);
+        // Main process already knows about this start (it triggered us)
+        // No need to call setPomodoroState here
 
         // Transition to work state
         this.stateMachine.transition(STATES.WORK);
@@ -203,9 +210,6 @@ class PomodoroManager {
 
         this.remainingSeconds--;
 
-        // Update bubble periodically? Or just let it be silent work
-        // Maybe every minute update? Nah, distracting.
-
         this.timerId = setTimeout(() => this.tick(), 1000);
     }
 
@@ -216,7 +220,8 @@ class PomodoroManager {
             this.timerId = null;
         }
 
-        // window.deskmate.setPomodoroState(false);
+        // Main process handles its own state - don't notify here
+        // This prevents the race condition
 
         if (!completed) {
             this.stateMachine.transition(STATES.IDLE);
@@ -226,14 +231,19 @@ class PomodoroManager {
 
     complete() {
         this.stop(true);
-        playNotificationSound();
 
-        // Transition to Sleep/Break
-        this.stateMachine.transition(STATES.SLEEP);
-        showBubble("Time's up! Take a break~ ☕", 0); // Persist until clicked
+        // Transition to Dance (celebratory)
+        this.stateMachine.transition(STATES.DANCE);
 
-        // Auto wake up after a visually distinct break time? 
-        // Or just let user click to wake up.
+        // Use NotificationManager for looping sound and persistent bubble
+        notificationManager.notify("专注完成！休息一下吧~ ☕", 'pomodoro');
+
+        // Return to idle after dance animation
+        setTimeout(() => {
+            if (this.stateMachine.state === STATES.DANCE) {
+                this.stateMachine.transition(STATES.IDLE);
+            }
+        }, 4000);
     }
 }
 
@@ -291,7 +301,10 @@ class DragController {
         if (!this.isDragging) return;
         this.isDragging = false;
 
-        // Play jump/land sound (reuse playSound helper check)
+        // Dismiss any active notification (user acknowledged by dragging)
+        notificationManager.dismiss();
+
+        // Play jump/land sound
         playJumpSound();
 
         if (this.previousState && this.previousState !== STATES.DRAG) {
@@ -299,11 +312,6 @@ class DragController {
         } else {
             this.stateMachine.transition(STATES.IDLE);
         }
-
-        // Restore transparency check (if mouse left during drag)
-        // We generally can't check 'hover' easily here, but usually it's fine 
-        // to leave it 'false' until mouse leaves again. 
-        // Or strictly set to false (clickable) since we just released it.
     }
 }
 
@@ -323,17 +331,45 @@ class ChatManager {
 
     init() {
         this.sendBtn.addEventListener('click', () => this.sendMessage());
-        this.input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.sendMessage();
+        this.input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                this.sendMessage();
+            } else if (e.key === 'Escape') {
+                this.hide();
+            }
         });
 
         // Toggle chat on IPC event
         window.deskmate.onTalkToPet(() => {
-            this.inputContainer.classList.toggle('visible');
-            if (this.inputContainer.classList.contains('visible')) {
-                setTimeout(() => this.input.focus(), 100);
-            }
+            this.toggle();
         });
+
+        // Toggle click-through when hovering the chat input
+        this.inputContainer.addEventListener('mouseenter', () => {
+            window.deskmate.setIgnoreMouseEvents(false);
+        });
+
+        this.inputContainer.addEventListener('mouseleave', () => {
+            window.deskmate.setIgnoreMouseEvents(true);
+        });
+    }
+
+    toggle() {
+        if (this.inputContainer.classList.contains('visible')) {
+            this.hide();
+        } else {
+            this.show();
+        }
+    }
+
+    show() {
+        this.inputContainer.classList.add('visible');
+        setTimeout(() => this.input.focus(), 100);
+    }
+
+    hide() {
+        this.inputContainer.classList.remove('visible');
+        this.input.blur();
     }
 
     async sendMessage() {
@@ -380,10 +416,31 @@ function showBubble(text, duration = 3000, isLoading = false) {
 
     if (duration > 0) {
         bubbleTimer = setTimeout(() => {
-            bubbleEl.classList.remove('visible');
+            hideBubble();
         }, duration);
     }
 }
+
+function hideBubble() {
+    if (bubbleTimer) {
+        clearTimeout(bubbleTimer);
+        bubbleTimer = null;
+    }
+    bubbleEl.classList.remove('visible');
+}
+
+// Allow clicking on bubble to dismiss it
+bubbleEl.addEventListener('click', () => {
+    hideBubble();
+});
+
+// Allow clicking-through for bubble (mouse events)
+bubbleEl.addEventListener('mouseenter', () => {
+    window.deskmate.setIgnoreMouseEvents(false);
+});
+bubbleEl.addEventListener('mouseleave', () => {
+    window.deskmate.setIgnoreMouseEvents(true);
+});
 
 // Sound Helpers
 async function playJumpSound() {
@@ -397,15 +454,92 @@ async function playJumpSound() {
     }
 }
 
-async function playNotificationSound() {
-    const enabled = await window.deskmate.isSoundEnabled();
-    if (!enabled) return;
-    const audio = document.getElementById('notification-sound');
-    if (audio) {
-        audio.currentTime = 0;
-        audio.play().catch(e => console.warn(e));
+// ============================================
+// Notification Manager (Handles Timer Alerts)
+// ============================================
+
+class NotificationManager {
+    constructor() {
+        this.timesUpAudio = document.getElementById('times-up-sound');
+        this.isPlaying = false;
+        this.pendingNotifications = []; // Queue for multiple notifications
+    }
+
+    /**
+     * Queue a notification. If sound is not playing, start it.
+     * @param {string} message - The bubble text to show
+     * @param {string} type - 'pomodoro' or 'reminder'
+     */
+    async notify(message, type = 'pomodoro') {
+        this.pendingNotifications.push({ message, type });
+
+        // If already playing, just queue - user will see next message on dismiss
+        if (this.isPlaying) {
+            console.log('[NotificationManager] Queued:', message);
+            return;
+        }
+
+        await this.playNext();
+    }
+
+    async playNext() {
+        if (this.pendingNotifications.length === 0) {
+            this.isPlaying = false;
+            return;
+        }
+
+        const { message, type } = this.pendingNotifications.shift();
+        this.isPlaying = true;
+
+        // Show bubble (persistent until dismissed)
+        showBubble(message, 0);
+
+        // Play looping sound
+        const enabled = await window.deskmate.isSoundEnabled();
+        if (enabled && this.timesUpAudio) {
+            this.timesUpAudio.currentTime = 0;
+            this.timesUpAudio.play().catch(e => console.warn('[NotificationManager] Audio error:', e));
+        }
+
+        console.log(`[NotificationManager] Playing: ${type} - ${message}`);
+    }
+
+    /**
+     * Stop current notification sound and show next queued message (if any)
+     */
+    dismiss() {
+        if (!this.isPlaying) return;
+
+        // Stop sound
+        if (this.timesUpAudio) {
+            this.timesUpAudio.pause();
+            this.timesUpAudio.currentTime = 0;
+        }
+
+        // Hide current bubble
+        hideBubble();
+
+        // Check for next notification
+        if (this.pendingNotifications.length > 0) {
+            // Show next message without sound (user already acknowledged)
+            const { message } = this.pendingNotifications.shift();
+            showBubble(message, 5000); // Auto-dismiss after 5s
+            console.log('[NotificationManager] Showing queued:', message);
+        }
+
+        this.isPlaying = false;
+    }
+
+    /**
+     * Check if notification sound is currently playing
+     */
+    get isActive() {
+        return this.isPlaying;
     }
 }
+
+// Global instance
+const notificationManager = new NotificationManager();
 
 // ============================================
 // Main Initialization
@@ -423,7 +557,7 @@ async function init() {
 
     // 3. Init Controllers
     new DragController(stateMachine);
-    new ChatManager(stateMachine);
+    const chatManager = new ChatManager(stateMachine);
     new PomodoroManager(stateMachine);
 
     // 4. Initial State
@@ -433,6 +567,11 @@ async function init() {
 
     // 6. Click Interaction
     charEl.addEventListener('click', () => {
+        // Close chat, bubble, and dismiss notification sound
+        chatManager.hide();
+        hideBubble();
+        notificationManager.dismiss();
+
         if (stateMachine.state === STATES.IDLE) {
             stateMachine.transition(STATES.INTERACT);
             playJumpSound();
@@ -444,6 +583,15 @@ async function init() {
     window.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         window.deskmate.showContextMenu();
+    });
+
+    // 8. Escape key to dismiss bubble, chat, and notification
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            chatManager.hide();
+            hideBubble();
+            notificationManager.dismiss();
+        }
     });
 
     console.log('[Renderer] Phase 2 Ready!');

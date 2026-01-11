@@ -77,11 +77,15 @@ function createWindow() {
   mainWindow.webContents.openDevTools({ mode: 'detach' });
 }
 
+/** @type {number} */
+let currentPomodoroDuration = 0;
+
 /**
  * Helper to start pomodoro with given duration
  */
 function startPomodoro(minutes) {
   isPomodoroActive = true;
+  currentPomodoroDuration = minutes;
   mainWindow.webContents.send('pomodoro-start', minutes);
 }
 
@@ -89,6 +93,8 @@ function startPomodoro(minutes) {
  * Builds and shows the context menu with Pomodoro controls
  */
 function showContextMenu() {
+  const durations = [15, 20, 25, 30, 45, 60];
+
   const template = [
     {
       label: t('talkToMe'),
@@ -98,20 +104,21 @@ function showContextMenu() {
     },
     { type: 'separator' },
     {
-      label: isPomodoroActive ? t('focusing') : t('startFocus'),
+      label: isPomodoroActive ? `${t('focusing')} (${currentPomodoroDuration}m)` : t('startFocus'),
       submenu: [
-        { label: `15 ${t('minutes')}`, click: () => startPomodoro(15) },
-        { label: `20 ${t('minutes')}`, click: () => startPomodoro(20) },
-        { label: `25 ${t('minutes')} ⭐`, click: () => startPomodoro(25) },
-        { label: `30 ${t('minutes')}`, click: () => startPomodoro(30) },
-        { label: `45 ${t('minutes')}`, click: () => startPomodoro(45) },
-        { label: `60 ${t('minutes')}`, click: () => startPomodoro(60) },
+        ...durations.map(min => ({
+          label: `${min} ${t('minutes')}${min === 25 ? ' ⭐' : ''}`,
+          type: 'checkbox', // Use checkbox to show selection state
+          checked: isPomodoroActive && currentPomodoroDuration === min,
+          click: () => startPomodoro(min)
+        })),
         { type: 'separator' },
         {
-          label: t('stopFocus'),
+          label: `${t('stopFocus')}`, // Added Red Stop Sign
           enabled: isPomodoroActive,
           click: () => {
             isPomodoroActive = false;
+            currentPomodoroDuration = 0;
             mainWindow.webContents.send('pomodoro-stop');
           }
         }
@@ -500,10 +507,8 @@ ipcMain.on('show-notification', (_, { title, body }) => {
   }
 });
 
-// Update pomodoro state from renderer
-ipcMain.on('pomodoro-state-change', (_, isActive) => {
-  isPomodoroActive = isActive;
-});
+// Pomodoro state is now managed entirely in main.js via startPomodoro/stopPomodoro
+// No need for renderer to notify us
 
 // ============================================
 // AI/LLM IPC Handlers
