@@ -60,6 +60,23 @@ const PROVIDERS = {
 // Default to DeepSeek (China) - change based on your region
 const DEFAULT_REGION = 'global';
 const DEFAULT_PROVIDER = 'openrouter';
+const DEFAULT_SKIN = 'mochi-v1';
+
+// ============================================
+// VIP Feature Flags (set to false before production release)
+// ============================================
+const VIP_FEATURES = {
+    skinSwitching: true,  // TODO: Set to false for production
+    advancedMoods: true,  // TODO: Set to false for production
+    customReminders: true // TODO: Set to false for production
+};
+
+/**
+ * Check if a VIP feature is enabled
+ */
+function isVipFeatureEnabled(feature) {
+    return VIP_FEATURES[feature] === true;
+}
 
 /**
  * Get the active LLM configuration
@@ -105,6 +122,7 @@ function loadUserSettings() {
     try {
         const store = require('./store');
         const llm = store.get('llm');
+        const pet = store.get('pet');
 
         if (llm && llm.apiKey) {
             // Build full config from store
@@ -118,13 +136,29 @@ function loadUserSettings() {
                     apiKey: llm.apiKey,
                     model: llm.model || preset?.model
                 },
-                sound: store.get('sound') || { enabled: true }
+                sound: store.get('sound') || { enabled: true },
+                pet: pet || getDefaultPetState(),
+                skin: store.get('skin') || DEFAULT_SKIN
             };
         }
     } catch (error) {
         console.warn('[Config] Failed to load from store:', error.message);
     }
     return null;
+}
+
+/**
+ * Get default pet state for new users
+ */
+function getDefaultPetState() {
+    return {
+        energy: 75,
+        lastEnergyUpdate: new Date().toISOString(),
+        mood: 'normal',
+        totalInteractions: 0,
+        streakDays: 0,
+        lastActiveDate: null
+    };
 }
 
 /**
@@ -148,11 +182,102 @@ function saveUserSettings(settings) {
             store.set('sound', settings.sound);
         }
 
+        if (settings.pet) {
+            store.set('pet', settings.pet);
+        }
+
+        if (settings.skin) {
+            store.set('skin', settings.skin);
+        }
+
         console.log('[Config] Settings saved to store');
         return true;
     } catch (error) {
         console.error('[Config] Failed to save to store:', error.message);
         return false;
+    }
+}
+
+/**
+ * Get pet state from store
+ */
+function getPetState() {
+    try {
+        const store = require('./store');
+        return store.get('pet') || getDefaultPetState();
+    } catch (error) {
+        return getDefaultPetState();
+    }
+}
+
+/**
+ * Save pet state to store
+ */
+function savePetState(petState) {
+    try {
+        const store = require('./store');
+        store.set('pet', petState);
+        return true;
+    } catch (error) {
+        console.error('[Config] Failed to save pet state:', error.message);
+        return false;
+    }
+}
+
+/**
+ * Get current skin ID
+ */
+function getSkin() {
+    try {
+        const store = require('./store');
+        return store.get('skin') || DEFAULT_SKIN;
+    } catch (error) {
+        return DEFAULT_SKIN;
+    }
+}
+
+/**
+ * Set skin ID
+ */
+function setSkin(skinId) {
+    try {
+        const store = require('./store');
+        store.set('skin', skinId);
+        return true;
+    } catch (error) {
+        console.error('[Config] Failed to save skin:', error.message);
+        return false;
+    }
+}
+
+/**
+ * Get available skins
+ */
+function getAvailableSkins() {
+    const fs = require('fs');
+    const path = require('path');
+    const skinsDir = path.join(__dirname, 'assets', 'skins');
+
+    try {
+        const dirs = fs.readdirSync(skinsDir, { withFileTypes: true })
+            .filter(d => d.isDirectory())
+            .map(d => {
+                const configPath = path.join(skinsDir, d.name, 'config.json');
+                if (fs.existsSync(configPath)) {
+                    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                    return {
+                        id: config.id || d.name,
+                        name: config.name || d.name,
+                        description: config.description || ''
+                    };
+                }
+                return null;
+            })
+            .filter(Boolean);
+        return dirs;
+    } catch (error) {
+        console.error('[Config] Failed to get skins:', error.message);
+        return [{ id: DEFAULT_SKIN, name: 'Mochi', description: 'Default skin' }];
     }
 }
 
@@ -251,10 +376,19 @@ function getAvailablePresets() {
 
 module.exports = {
     PROVIDERS,
+    VIP_FEATURES,
+    DEFAULT_SKIN,
     getActiveConfig,
     loadUserSettings,
     saveUserSettings,
     getDefaultSystemPrompt,
     getModePrompt,
-    getAvailablePresets
+    getAvailablePresets,
+    getDefaultPetState,
+    getPetState,
+    savePetState,
+    getSkin,
+    setSkin,
+    getAvailableSkins,
+    isVipFeatureEnabled
 };

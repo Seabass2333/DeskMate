@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeIma
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
-const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS } = require('./config');
+const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getDefaultPetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled } = require('./config');
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
 
 // Hot reload in development mode only
@@ -198,6 +198,21 @@ function showContextMenu() {
         }
       ]
     },
+    { type: 'separator' },
+    // Skin switching (VIP feature)
+    ...(isVipFeatureEnabled('skinSwitching') ? [{
+      label: `${t('skins') || 'Skins'}`,
+      submenu: getAvailableSkins().map(skin => ({
+        label: skin.name,
+        type: 'radio',
+        checked: getSkin() === skin.id,
+        click: () => {
+          setSkin(skin.id);
+          mainWindow.webContents.send('skin-change', skin.id);
+          console.log(`[Main] Skin changed to: ${skin.id}`);
+        }
+      }))
+    }] : []),
     { type: 'separator' },
     {
       label: t('settings'),
@@ -552,6 +567,32 @@ ipcMain.on('reminder-complete', (_, type) => {
 // Open external URL in default browser
 ipcMain.on('open-external', (_, url) => {
   shell.openExternal(url);
+});
+
+// ============================================
+// Pet Energy IPC Handlers
+// ============================================
+
+// Get pet state
+ipcMain.handle('pet:getState', () => {
+  return getPetState();
+});
+
+// Save pet state
+ipcMain.handle('pet:saveState', (_, petState) => {
+  return savePetState(petState);
+});
+
+// Modify pet energy
+ipcMain.handle('pet:modifyEnergy', (_, delta) => {
+  const state = getPetState();
+  state.energy = Math.max(5, Math.min(100, state.energy + delta)); // Clamp 5-100
+  state.lastEnergyUpdate = new Date().toISOString();
+  if (delta > 0) {
+    state.totalInteractions = (state.totalInteractions || 0) + 1;
+  }
+  savePetState(state);
+  return state;
 });
 
 // ============================================

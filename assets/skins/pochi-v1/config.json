@@ -1,0 +1,172 @@
+{
+    "id": "pochi-v1",
+    "name": "Pochi",
+    "author": "System",
+    "description": "A cat with energy-based moods",
+    "baseSize": [
+        32,
+        32
+    ],
+    "scale": 4,
+    "animations": {
+        "idle": [
+            {
+                "src": "Idle.png",
+                "frames": 6,
+                "speed": 800,
+                "weight": 40
+            },
+            {
+                "src": "Happy.png",
+                "frames": 10,
+                "speed": 1000,
+                "weight": 30
+            },
+            {
+                "src": "Chilling.png",
+                "frames": 8,
+                "speed": 1000,
+                "weight": 20
+            },
+            {
+                "src": "Box1.png",
+                "frames": 12,
+                "speed": 1200,
+                "weight": 10
+            }
+        ],
+        "working": {
+            "src": "Idle.png",
+            "frames": 6,
+            "speed": 800
+        },
+        "thinking": {
+            "src": "Surprised.png",
+            "frames": 4,
+            "speed": 600
+        },
+        "sleep": {
+            "src": "Sleeping.png",
+            "frames": 4,
+            "speed": 1200
+        },
+        "drag": {
+            "src": "Hurt.png",
+            "frames": 8,
+            "speed": 600
+        },
+        "interact": [
+            {
+                "src": "Tickle.png",
+                "frames": 4,
+                "speed": 600,
+                "weight": 50
+            },
+            {
+                "src": "Excited.png",
+                "frames": 3,
+                "speed": 500,
+                "weight": 30
+            },
+            {
+                "src": "Box2.png",
+                "frames": 10,
+                "speed": 800,
+                "weight": 20
+            }
+        ],
+        "dance": {
+            "src": "Dance.png",
+            "frames": 4,
+            "speed": 500
+        },
+        "exhausted": [
+            {
+                "src": "Dead.png",
+                "frames": 1,
+                "speed": 2000,
+                "weight": 40
+            },
+            {
+                "src": "Dead1.png",
+                "frames": 6,
+                "speed": 1000,
+                "weight": 30
+            },
+            {
+                "src": "Dead2.png",
+                "frames": 5,
+                "speed": 1000,
+                "weight": 30
+            }
+        ],
+        "tired": {
+            "src": "Sleeping.png",
+            "frames": 4,
+            "speed": 1200
+        },
+        "relaxed": [
+            {
+                "src": "Chilling.png",
+                "frames": 8,
+                "speed": 1000,
+                "weight": 60
+            },
+            {
+                "src": "Idle.png",
+                "frames": 6,
+                "speed": 800,
+                "weight": 40
+            }
+        ],
+        "energetic": [
+            {
+                "src": "Happy.png",
+                "frames": 10,
+                "speed": 800,
+                "weight": 50
+            },
+            {
+                "src": "Excited.png",
+                "frames": 3,
+                "speed": 400,
+                "weight": 50
+            }
+        ],
+        "hyper": [
+            {
+                "src": "Dance.png",
+                "frames": 4,
+                "speed": 400,
+                "weight": 40
+            },
+            {
+                "src": "Running.png",
+                "frames": 6,
+                "speed": 400,
+                "weight": 30
+            },
+            {
+                "src": "Jump.png",
+                "frames": 12,
+                "speed": 600,
+                "weight": 30
+            }
+        ],
+        "attack": {
+            "src": "Attack.png",
+            "frames": 8,
+            "speed": 500
+        },
+        "jump": {
+            "src": "Jump.png",
+            "frames": 12,
+            "speed": 600
+        },
+        "crying": {
+            "src": "Crying.png",
+            "frames": 4,
+            "speed": 800
+        }
+    }
+}

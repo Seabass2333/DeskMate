@@ -201,5 +201,37 @@ contextBridge.exposeInMainWorld('deskmate', {
      */
     onLanguageChanged: (callback) => {
         ipcRenderer.on('language-changed', (_, lang) => callback(lang));
+    },
+
+    // ============================================
+    // Pet Energy
+    // ============================================
+
+    /**
+     * Get pet state (energy, mood, etc.)
+     */
+    getPetState: () => ipcRenderer.invoke('pet:getState'),
+
+    /**
+     * Save pet state
+     */
+    savePetState: (petState) => ipcRenderer.invoke('pet:saveState', petState),
+
+    /**
+     * Modify pet energy by delta amount
+     * @param {number} delta - Amount to change energy (+/-)
+     * @returns {Promise<object>} Updated pet state
+     */
+    modifyPetEnergy: (delta) => ipcRenderer.invoke('pet:modifyEnergy', delta),
+
+    // ============================================
+    // Skin
+    // ============================================
+
+    /**
+     * Listen for skin change event
+     */
+    onSkinChange: (callback) => {
+        ipcRenderer.on('skin-change', (_, skinId) => callback(skinId));
     }
 });

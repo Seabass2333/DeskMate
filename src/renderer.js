@@ -29,8 +29,25 @@ class AnimationManager {
     }
 
     async init() {
-        // Load default skin
-        await this.skinManager.loadSkin('mochi-v1');
+        // Load saved skin preference or default
+        try {
+            const petState = await window.deskmate.getPetState();
+            const skinId = petState?.skinId || 'mochi-v1';
+            await this.skinManager.loadSkin(skinId);
+        } catch (e) {
+            // Fallback to default skin
+            await this.skinManager.loadSkin('mochi-v1');
+        }
+    }
+
+    /**
+     * Load a new skin dynamically
+     * @param {string} skinId - Skin folder name
+     */
+    async loadSkin(skinId) {
+        console.log(`[AnimationManager] Loading skin: ${skinId}`);
+        await this.skinManager.loadSkin(skinId);
+        console.log(`[AnimationManager] Skin loaded: ${skinId}`);
     }
 
     /**
@@ -161,6 +178,101 @@ class StateMachine {
 }
 
 // ============================================
+// Energy Manager (Pet Mood System)
+// ============================================
+
+/**
+ * Energy tier definitions for animation selection
+ */
+const ENERGY_TIERS = {
+    exhausted: { min: 0, max: 10, animations: ['Dead', 'Dead1', 'Dead2'] },
+    tired: { min: 11, max: 30, animations: ['Sleeping'] },
+    relaxed: { min: 31, max: 50, animations: ['Chilling', 'Idle'] },
+    normal: { min: 51, max: 70, animations: ['Idle', 'Happy'] },
+    energetic: { min: 71, max: 85, animations: ['Happy', 'Excited'] },
+    hyper: { min: 86, max: 100, animations: ['Dance', 'Excited', 'Running'] }
+};
+
+class EnergyManager {
+    constructor() {
+        this.energy = 75;
+        this.lastUpdate = Date.now();
+        this.decayInterval = null;
+        this.DECAY_RATE = 1; // Energy lost per interval
+        this.DECAY_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+        this.MIN_ENERGY = 5;
+        this.MAX_ENERGY = 100;
+    }
+
+    async init() {
+        try {
+            const state = await window.deskmate.getPetState();
+            this.energy = state.energy || 75;
+            this.lastUpdate = new Date(state.lastEnergyUpdate || Date.now()).getTime();
+
+            // Calculate energy decay since last session
+            const timeSinceLastUpdate = Date.now() - this.lastUpdate;
+            const decayIntervals = Math.floor(timeSinceLastUpdate / this.DECAY_INTERVAL_MS);
+            if (decayIntervals > 0) {
+                this.energy = Math.max(this.MIN_ENERGY, this.energy - (decayIntervals * this.DECAY_RATE));
+                this.save();
+            }
+
+            // Start decay timer
+            this.startDecayTimer();
+
+            console.log(`[EnergyManager] Initialized with energy: ${this.energy}`);
+        } catch (error) {
+            console.warn('[EnergyManager] Init error:', error);
+        }
+    }
+
+    startDecayTimer() {
+        this.decayInterval = setInterval(() => {
+            this.modifyEnergy(-this.DECAY_RATE);
+            console.log(`[EnergyManager] Decay: energy now ${this.energy}`);
+        }, this.DECAY_INTERVAL_MS);
+    }
+
+    async modifyEnergy(delta) {
+        this.energy = Math.max(this.MIN_ENERGY, Math.min(this.MAX_ENERGY, this.energy + delta));
+        this.lastUpdate = Date.now();
+        await this.save();
+        return this.energy;
+    }
+
+    async save() {
+        try {
+            await window.deskmate.modifyPetEnergy(0); // Trigger save with current state
+        } catch (error) {
+            console.warn('[EnergyManager] Save error:', error);
+        }
+    }
+
+    getTier() {
+        for (const [tierName, tierData] of Object.entries(ENERGY_TIERS)) {
+            if (this.energy >= tierData.min && this.energy <= tierData.max) {
+                return tierName;
+            }
+        }
+        return 'normal';
+    }
+
+    getIdleAnimation() {
+        const tier = this.getTier();
+        const animations = ENERGY_TIERS[tier]?.animations || ['Idle'];
+        return animations[Math.floor(Math.random() * animations.length)];
+    }
+
+    getEnergy() {
+        return this.energy;
+    }
+}
+
+// Global energy manager instance
+let energyManager = null;
+
+// ============================================
 // Pomodoro Logic
 // ============================================
 
@@ -177,7 +289,7 @@ class PomodoroManager {
         });
     }
 
-    start(minutes) {
+    async start(minutes) {
         // Stop any existing timer first (without notifying main - it already knows)
         if (this.isActive) {
             this.isActive = false;
@@ -195,7 +307,10 @@ class PomodoroManager {
 
         // Transition to work state
         this.stateMachine.transition(STATES.WORK);
-        showBubble(`Focus: ${minutes}m 💪`, 3000);
+
+        // Get localized message
+        const msg = await window.deskmate.t('focusStart');
+        showBubble(msg.replace('${min}', minutes), 3000);
 
         this.tick();
     }
@@ -213,7 +328,7 @@ class PomodoroManager {
         this.timerId = setTimeout(() => this.tick(), 1000);
     }
 
-    stop(completed = false) {
+    async stop(completed = false) {
         this.isActive = false;
         if (this.timerId) {
             clearTimeout(this.timerId);
@@ -225,21 +340,29 @@ class PomodoroManager {
 
         if (!completed) {
             this.stateMachine.transition(STATES.IDLE);
-            showBubble("Stopped focus.", 2000);
+            const msg = await window.deskmate.t('focusStopped');
+            showBubble(msg, 2000);
         }
     }
 
-    complete() {
+    async complete() {
         this.stop(true);
 
         // Notify main process that pomodoro completed (for menu state sync)
         window.deskmate.pomodoroComplete();
 
+        // Boost energy for completing focus session
+        if (energyManager) {
+            await energyManager.modifyEnergy(10);
+            console.log(`[Energy] Pomodoro complete: energy now ${energyManager.getEnergy()}`);
+        }
+
         // Transition to Dance (celebratory)
         this.stateMachine.transition(STATES.DANCE);
 
         // Use NotificationManager for looping sound and persistent bubble
-        notificationManager.notify("专注完成！休息一下吧~ ☕", 'pomodoro');
+        const msg = await window.deskmate.t('focusComplete');
+        notificationManager.notify(msg, 'pomodoro');
 
         // Return to idle after dance animation
         setTimeout(() => {
@@ -268,12 +391,12 @@ class ReminderManager {
             stretch: 45 * 60 // 45 minutes
         };
 
-        // Reminder messages
-        this.messages = {
-            test: '⚡ 测试提醒！',
-            water: '该喝水啦！💧 保持水分哦~',
-            rest: '看看远处，让眼睛休息一下~ 👀',
-            stretch: '起来活动活动筋骨吧！🧘'
+        // Reminder message keys (for i18n)
+        this.messageKeys = {
+            test: 'testReminderMsg',
+            water: 'reminderWater',
+            rest: 'reminderRest',
+            stretch: 'reminderStretch'
         };
 
         // Listen for toggle events from main process
@@ -282,21 +405,25 @@ class ReminderManager {
         });
 
         // Listen for loop mode change
-        window.deskmate.onReminderLoopModeChange((isLoop) => {
+        window.deskmate.onReminderLoopModeChange(async (isLoop) => {
             this.isLoopMode = isLoop;
-            showBubble(`循环模式: ${isLoop ? '开启 🔁' : '关闭'}`, 2000);
+            const msg = isLoop
+                ? await window.deskmate.t('loopModeOn')
+                : await window.deskmate.t('loopModeOff');
+            showBubble(msg, 2000);
             console.log(`[ReminderManager] Loop mode: ${isLoop ? 'ON' : 'OFF'}`);
         });
 
         console.log('[ReminderManager] Initialized');
     }
 
-    toggle(type) {
+    async toggle(type) {
         if (this.activeTimers.has(type)) {
             // Cancel existing timer
             clearTimeout(this.activeTimers.get(type));
             this.activeTimers.delete(type);
-            showBubble(`${type} 提醒已关闭`, 2000);
+            const disabled = await window.deskmate.t('reminderDisabled');
+            showBubble(disabled, 2000);
             console.log(`[ReminderManager] Cancelled: ${type}`);
         } else {
             // Start new timer
@@ -304,14 +431,15 @@ class ReminderManager {
         }
     }
 
-    start(type) {
+    async start(type) {
         const duration = this.durations[type];
         if (!duration) {
             console.warn(`[ReminderManager] Unknown type: ${type}`);
             return;
         }
 
-        showBubble(`${type} 提醒已开启 (${duration}s)`, 2000);
+        const enabled = await window.deskmate.t('reminderEnabled');
+        showBubble(enabled, 2000);
 
         const timerId = setTimeout(() => {
             this.trigger(type);
@@ -321,13 +449,23 @@ class ReminderManager {
         console.log(`[ReminderManager] Started: ${type} (${duration}s)`);
     }
 
-    trigger(type) {
+    async trigger(type) {
         this.activeTimers.delete(type);
 
-        const message = this.messages[type] || `${type} 时间到！`;
+        // Get localized message
+        const key = this.messageKeys[type];
+        const message = key
+            ? await window.deskmate.t(key)
+            : `${type} time!`;
 
         // Use NotificationManager for consistent notification behavior
         notificationManager.notify(message, 'reminder');
+
+        // Boost energy for acknowledging reminder
+        if (energyManager) {
+            await energyManager.modifyEnergy(3);
+            console.log(`[Energy] Reminder: energy now ${energyManager.getEnergy()}`);
+        }
 
         // Show interact animation
         this.stateMachine.transition(STATES.INTERACT);
@@ -481,7 +619,10 @@ class ChatManager {
         // UI Updates
         this.input.value = '';
         this.inputContainer.classList.remove('visible');
-        showBubble("Thinking...", 0, true); // Loading state
+
+        // Get localized thinking message
+        const thinkingMsg = await window.deskmate.t('thinking');
+        showBubble(thinkingMsg, 0, true); // Loading state
 
         // State Transition
         this.stateMachine.transition(STATES.THINKING);
@@ -495,7 +636,8 @@ class ChatManager {
             setTimeout(() => this.stateMachine.transition(STATES.IDLE), 3000);
 
         } catch (e) {
-            showBubble("Connection failed... 😿");
+            const failedMsg = await window.deskmate.t('connectionFailed');
+            showBubble(failedMsg);
             this.stateMachine.transition(STATES.IDLE);
         }
     }
@@ -663,17 +805,27 @@ async function init() {
     new PomodoroManager(stateMachine);
     new ReminderManager(stateMachine);
 
+    // 3.5. Init Energy Manager
+    energyManager = new EnergyManager();
+    await energyManager.init();
+
     // 4. Initial State
     stateMachine.transition(STATES.IDLE);
 
     // 5. Pomodoro Listener (Handled by PomodoroManager)
 
     // 6. Click Interaction
-    charEl.addEventListener('click', () => {
+    charEl.addEventListener('click', async () => {
         // Close chat, bubble, and dismiss notification sound
         chatManager.hide();
         hideBubble();
         notificationManager.dismiss();
+
+        // Boost energy on interaction
+        if (energyManager) {
+            await energyManager.modifyEnergy(2);
+            console.log(`[Energy] Click boost: energy now ${energyManager.getEnergy()}`);
+        }
 
         if (stateMachine.state === STATES.IDLE) {
             stateMachine.transition(STATES.INTERACT);
@@ -695,6 +847,12 @@ async function init() {
             hideBubble();
             notificationManager.dismiss();
         }
+    });
+    // 9. Skin change listener
+    window.deskmate.onSkinChange(async (skinId) => {
+        console.log(`[Renderer] Skin change requested: ${skinId}`);
+        await animManager.loadSkin(skinId);
+        stateMachine.transition(STATES.IDLE); // Refresh animation
     });
 
     console.log('[Renderer] Phase 2 Ready!');
