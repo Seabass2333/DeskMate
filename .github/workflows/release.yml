@@ -3,19 +3,23 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'  # Triggers on version tags like v1.0.0
-
-# Cancel in-progress runs for the same workflow
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+      - 'v*'
 
 jobs:
-  # ============================================
-  # Build macOS (Apple Silicon + Intel Universal)
-  # ============================================
-  build-macos:
-    runs-on: macos-latest
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            artifact_name: mac
+          - os: windows-latest
+            artifact_name: win
+          - os: ubuntu-latest
+            artifact_name: linux
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,100 +31,38 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: Build macOS (Universal)
-        run: npm run build:mac
+      - name: Build Electron App
+        run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            npm run build:mac
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npm run build:win
+          else
+            npm run build:linux
+          fi
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Skip code signing for unsigned builds
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: Upload macOS Artifacts
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-build
+          name: ${{ matrix.artifact_name }}-build
           path: |
             dist/*.dmg
             dist/*.zip
-          if-no-files-found: error
-
-  # ============================================
-  # Build Windows (x64 on Ubuntu via Wine)
-  # ============================================
-  build-windows:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install Wine (for Windows build on Linux)
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y wine64 wine32
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Windows
-        run: npm run build:win
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Windows Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: |
             dist/*.exe
-          if-no-files-found: error
-
-  # ============================================
-  # Build Linux (AppImage on Ubuntu)
-  # ============================================
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Linux
-        run: npm run build:linux
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Linux Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-build
-          path: |
             dist/*.AppImage
-          if-no-files-found: error
+          if-no-files-found: warn
 
-  # ============================================
-  # Create GitHub Release
-  # ============================================
   release:
-    needs: [build-macos, build-windows, build-linux]
+    needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Required to create releases
+      contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -129,12 +71,16 @@ jobs:
           merge-multiple: true
 
       - name: List artifacts
-        run: ls -la artifacts/
+        run: ls -R artifacts/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/*
+          files: |
+            artifacts/*.dmg
+            artifacts/*.zip
+            artifacts/*.exe
+            artifacts/*.AppImage
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
