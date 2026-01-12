@@ -57,12 +57,28 @@ const schema = {
         },
         default: { enabled: false }
     },
+    pet: {
+        type: 'object',
+        properties: {
+            energy: { type: 'number', default: 75, minimum: 5, maximum: 100 },
+            lastEnergyUpdate: { type: 'string', default: '' },
+            mood: { type: 'string', default: 'normal' },
+            totalInteractions: { type: 'number', default: 0 },
+            streakDays: { type: 'number', default: 0 },
+            lastActiveDate: { type: ['string', 'null'], default: '' }
+        },
+        default: { energy: 75 }
+    },
     skin: {
         type: 'string',
         default: 'mochi-v1'
     }
 };
 
-const store = new Store({ schema });
+const store = new Store({
+    schema,
+    clearInvalidConfig: true  // Automatically clear data that violates schema
+});
 
 module.exports = store;
+

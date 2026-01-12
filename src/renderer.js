@@ -255,7 +255,10 @@ class EnergyManager {
 
     async save() {
         try {
-            await window.deskmate.modifyPetEnergy(0); // Trigger save with current state
+            const petState = await window.deskmate.getPetState() || {};
+            petState.energy = this.energy;
+            petState.lastEnergyUpdate = new Date().toISOString();
+            await window.deskmate.savePetState(petState);
         } catch (error) {
             console.warn('[EnergyManager] Save error:', error);
         }
@@ -919,7 +922,6 @@ async function init() {
             const msg = energyManager.getStatusMessage();
             showBubble(msg, 2000);
 
-            console.log(`[Energy] Click boost: energy now ${energyManager.getEnergy()}`);
         }
 
         if (stateMachine.state === STATES.IDLE) {

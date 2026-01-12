@@ -113,18 +113,17 @@ body {
 
 .speech-bubble {
   position: absolute;
-  /* Position above the character */
-  bottom: 140px;
+  bottom: 165px;
   left: 50%;
   transform: translateX(-50%) translateY(10px);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 12px;
+  background: rgba(255, 248, 235, 0.98);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 20px;
   padding: 8px 12px;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.5);
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
   opacity: 0;
   pointer-events: none;
   transition:
@@ -132,10 +131,8 @@ body {
     transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 100;
 
-  /* Wide bubble - no scroll */
   min-width: 150px;
   max-width: 320px;
-
   white-space: normal;
   word-wrap: break-word;
   overflow: visible;
@@ -149,21 +146,45 @@ body {
 .bubble-content {
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: #5a4a3a;
   text-align: center;
   line-height: 1.5;
 }
 
+/* Cloud-style tail with small bubbles */
 .bubble-tail {
   position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: -10px;
+  left: 30%;
   width: 0;
   height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid rgba(255, 255, 255, 0.95);
+  border: none;
+}
+
+/* Large bubble */
+.bubble-tail::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: rgba(255, 248, 235, 0.98);
+  border-radius: 50%;
+  left: 0;
+  top: -6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Small bubble */
+.bubble-tail::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: rgba(255, 248, 235, 0.98);
+  border-radius: 50%;
+  left: 8px;
+  top: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* Loading indicator in bubble */
@@ -294,6 +315,7 @@ body {
     transform: scale(1.05);
   }
 }
+
 /* ============================================
    Energy Bar
    ============================================ */
@@ -317,7 +339,7 @@ body {
 }
 
 /* Show when hovering the character */
-#character:hover ~ .energy-bar-container {
+#character:hover~.energy-bar-container {
   opacity: 1;
 }
 
@@ -330,9 +352,10 @@ body {
 }
 
 /* Tier Colors */
-.energy-bar-fill.tired { 
-    background: linear-gradient(90deg, #f77062 0%, #fe5196 100%);
+.energy-bar-fill.tired {
+  background: linear-gradient(90deg, #f77062 0%, #fe5196 100%);
 }
-.energy-bar-fill.energetic { 
-    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+
+.energy-bar-fill.energetic {
+  background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
 }

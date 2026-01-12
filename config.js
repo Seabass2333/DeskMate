@@ -233,7 +233,7 @@ function getDefaultPetState() {
         mood: 'normal',
         totalInteractions: 0,
         streakDays: 0,
-        lastActiveDate: null
+        lastActiveDate: ''
     };
 }
 
