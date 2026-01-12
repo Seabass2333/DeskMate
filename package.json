@@ -91,7 +91,7 @@
       }
     },
     "win": {
-      "icon": "assets/images/icon.png",
+      "icon": "assets/images/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -108,9 +108,9 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/images/icon.png",
-      "uninstallerIcon": "assets/images/icon.png",
-      "installerHeaderIcon": "assets/images/icon.png",
+      "installerIcon": "assets/images/icon.ico",
+      "uninstallerIcon": "assets/images/icon.ico",
+      "installerHeaderIcon": "assets/images/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "DeskMate"
