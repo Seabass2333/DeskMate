@@ -76,8 +76,10 @@ function createWindow() {
     mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   }
 
-  // Uncomment for debugging
-  mainWindow.webContents.openDevTools({ mode: 'detach' });
+  // Only open DevTools in development mode
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  }
 }
 
 /** @type {number} */
@@ -590,10 +592,23 @@ ipcMain.handle('get-sound-enabled', () => {
 // Load skin configuration
 ipcMain.handle('skin:load', async (_, skinId) => {
   try {
-    const skinPath = path.join(__dirname, 'assets', 'skins', skinId, 'config.json');
+    // Use app.getAppPath() for reliable path in both dev and packaged mode
+    const basePath = app.isPackaged ? app.getAppPath() : __dirname;
+    const skinPath = path.join(basePath, 'assets', 'skins', skinId, 'config.json');
+
+    console.log('[Main] Loading skin from:', skinPath);
+
     if (!fs.existsSync(skinPath)) {
+      console.error('[Main] Skin config not found at:', skinPath);
+      // Try fallback to default skin
+      const defaultPath = path.join(basePath, 'assets', 'skins', 'mochi-v1', 'config.json');
+      if (skinId !== 'mochi-v1' && fs.existsSync(defaultPath)) {
+        console.log('[Main] Falling back to default skin');
+        return JSON.parse(fs.readFileSync(defaultPath, 'utf8'));
+      }
       throw new Error(`Skin config not found: ${skinPath}`);
     }
+
     const config = JSON.parse(fs.readFileSync(skinPath, 'utf8'));
     return config;
   } catch (error) {
