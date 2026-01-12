@@ -41,7 +41,7 @@
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "directories": {
       "output": "dist",
-      "buildResources": "assets"
+      "buildResources": "build"
     },
     "files": [
       "**/*",
@@ -50,7 +50,17 @@
       "!.github/**",
       "!*.md",
       "!_raw_assets/**",
-      "!.agent/**"
+      "!.agent/**",
+      "!build/**"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "mac": {
       "category": "public.app-category.productivity",

@@ -592,16 +592,20 @@ ipcMain.handle('get-sound-enabled', () => {
 // Load skin configuration
 ipcMain.handle('skin:load', async (_, skinId) => {
   try {
-    // Use app.getAppPath() for reliable path in both dev and packaged mode
-    const basePath = app.isPackaged ? app.getAppPath() : __dirname;
-    const skinPath = path.join(basePath, 'assets', 'skins', skinId, 'config.json');
+    // In packaged app, extraResources are in process.resourcesPath
+    // In development, use __dirname
+    const basePath = app.isPackaged
+      ? path.join(process.resourcesPath, 'assets')
+      : path.join(__dirname, 'assets');
+
+    const skinPath = path.join(basePath, 'skins', skinId, 'config.json');
 
     console.log('[Main] Loading skin from:', skinPath);
 
     if (!fs.existsSync(skinPath)) {
       console.error('[Main] Skin config not found at:', skinPath);
       // Try fallback to default skin
-      const defaultPath = path.join(basePath, 'assets', 'skins', 'mochi-v1', 'config.json');
+      const defaultPath = path.join(basePath, 'skins', 'mochi-v1', 'config.json');
       if (skinId !== 'mochi-v1' && fs.existsSync(defaultPath)) {
         console.log('[Main] Falling back to default skin');
         return JSON.parse(fs.readFileSync(defaultPath, 'utf8'));
