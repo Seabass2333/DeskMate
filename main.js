@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeIma
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
-const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getDefaultPetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus } = require('./config');
+const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus } = require('./config');
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
 
 // Hot reload in development mode only
@@ -410,7 +410,6 @@ function reinitializeLLM() {
 // ============================================
 
 // Get current settings
-// Get current settings
 ipcMain.handle('settings:get', () => {
   const userSettings = loadUserSettings();
   const vipStatus = getVipStatus();
@@ -466,8 +465,20 @@ ipcMain.handle('settings:save', (_, settings) => {
     // Save to user settings file
     const result = saveUserSettings({
       llm: llmConfig,
-      sound: { enabled: settings.soundEnabled }
+      sound: { enabled: settings.soundEnabled },
+      skin: settings.skin // Save skin
     });
+
+    // Try to set skin (validates VIP)
+    if (settings.skin) {
+      const skinSet = setSkin(settings.skin);
+      if (skinSet) {
+        // Notify renderer to update skin immediately
+        if (mainWindow) {
+          mainWindow.webContents.send('skin-change', settings.skin);
+        }
+      }
+    }
 
     if (result) {
       // Hot-reload the LLM handler
@@ -603,7 +614,10 @@ ipcMain.handle('pet:saveState', (_, petState) => {
 // ============================================
 
 ipcMain.handle('vip:redeem', (_, code) => {
-  return redeemInviteCode(code);
+  console.log(`[Main] Redeeming code: ${code}`);
+  const result = redeemInviteCode(code);
+  console.log(`[Main] Redeem result:`, result);
+  return result;
 });
 
 ipcMain.handle('vip:getStatus', () => {

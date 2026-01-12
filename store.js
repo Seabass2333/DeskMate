@@ -38,6 +38,19 @@ const schema = {
             stretch: { type: 'boolean', default: false }
         },
         default: {}
+    },
+    vip: {
+        type: 'object',
+        properties: {
+            enabled: { type: 'boolean', default: false },
+            code: { type: 'string', default: '' },
+            activatedAt: { type: 'string', default: '' }
+        },
+        default: { enabled: false }
+    },
+    skin: {
+        type: 'string',
+        default: 'mochi-v1'
     }
 };
 

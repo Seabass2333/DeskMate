@@ -313,9 +313,22 @@ function getSkin() {
 /**
  * Set skin ID
  */
+/**
+ * Set skin ID
+ */
 function setSkin(skinId) {
     try {
         const store = require('./store');
+
+        // VIP Check
+        if (skinId !== DEFAULT_SKIN) {
+            const vip = store.get('vip');
+            if (!vip || !vip.enabled) {
+                console.warn(`[Config] Cannot set skin ${skinId}: VIP required`);
+                return false;
+            }
+        }
+
         store.set('skin', skinId);
         return true;
     } catch (error) {
@@ -346,7 +359,15 @@ function getAvailableSkins() {
                         version: config.version || '1.0.0',
                         author: config.author || 'Unknown',
                         preview: config.preview ? path.join(skinsDir, d.name, config.preview) : null,
-                        features: config.features || []
+                        features: config.features || [],
+                        // New fields for dynamic preview
+                        baseSize: config.baseSize || [32, 32],
+                        previewSprite: (() => {
+                            const idle = config.animations?.idle;
+                            if (!idle) return null;
+                            const src = Array.isArray(idle) ? idle[0].src : idle.src;
+                            return src ? path.join(skinsDir, d.name, src) : null;
+                        })()
                     };
                 }
                 return null;

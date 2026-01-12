@@ -39,13 +39,15 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     /**
      * Open URL in default browser
      */
-    /**
-     * Open URL in default browser
-     */
     openExternal: (url) => ipcRenderer.send('open-external', url),
 
     /**
      * VIP: Redeem invite code
      */
-    redeemInviteCode: (code) => ipcRenderer.invoke('vip:redeem', code)
+    redeemInviteCode: (code) => ipcRenderer.invoke('vip:redeem', code),
+
+    /**
+     * VIP: Get status
+     */
+    getVipStatus: () => ipcRenderer.invoke('vip:getStatus')
 });

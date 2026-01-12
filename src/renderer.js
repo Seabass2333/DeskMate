@@ -528,7 +528,6 @@ class DragController {
         // Prevent drag if context menu (right click)
         if (e.button === 2) return;
 
-        this.isDragging = true;
         this.startMouseX = e.screenX;
         this.startMouseY = e.screenY;
 
@@ -537,25 +536,41 @@ class DragController {
         this.startWinX = x;
         this.startWinY = y;
 
+        // Start dragging logic
+        this.isDragging = true;
+        this.hasMoved = false; // Track if actual movement occurred
+
         this.stateMachine.transition(STATES.DRAG);
     }
 
     onMouseMove(e) {
         if (!this.isDragging) return;
+
         const dx = e.screenX - this.startMouseX;
         const dy = e.screenY - this.startMouseY;
+
+        // Perform move immediately (fixes lag)
         window.deskmate.setWindowPosition(this.startWinX + dx, this.startWinY + dy);
+
+        // Mark as moved if threshold exceeded (for sound distinction only)
+        if (!this.hasMoved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+            this.hasMoved = true;
+        }
     }
 
     onMouseUp() {
         if (!this.isDragging) return;
         this.isDragging = false;
 
-        // Dismiss any active notification (user acknowledged by dragging)
+        // Dismiss any active notification
         notificationManager.dismiss();
 
-        // Play jump/land sound
-        playJumpSound();
+        // Sound Logic: Click vs Drag (Jump)
+        if (this.hasMoved) {
+            playJumpSound(); // Dragged -> Jump loop/land
+        } else {
+            playClickSound(); // Stationary -> Click
+        }
 
         if (this.previousState && this.previousState !== STATES.DRAG) {
             this.stateMachine.transition(this.previousState);
@@ -702,6 +717,18 @@ async function playJumpSound() {
     const enabled = await window.deskmate.isSoundEnabled();
     if (!enabled) return;
     const audio = document.getElementById('jump-sound');
+
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(e => console.warn(e));
+    }
+}
+
+async function playClickSound() {
+    const enabled = await window.deskmate.isSoundEnabled();
+    if (!enabled) return;
+    const audio = document.getElementById('click-sound');
+
     if (audio) {
         audio.currentTime = 0;
         audio.play().catch(e => console.warn(e));
@@ -755,6 +782,11 @@ class NotificationManager {
             this.timesUpAudio.play().catch(e => console.warn('[NotificationManager] Audio error:', e));
         }
 
+        // Trigger excitement animation!
+        if (this.stateMachine) {
+            this.stateMachine.transition(STATES.DANCE);
+        }
+
         console.log(`[NotificationManager] Playing: ${type} - ${message}`);
     }
 
@@ -773,6 +805,11 @@ class NotificationManager {
         // Hide current bubble
         hideBubble();
 
+        // Revert to IDLE
+        if (this.stateMachine) {
+            this.stateMachine.transition(STATES.IDLE);
+        }
+
         // Check for next notification
         if (this.pendingNotifications.length > 0) {
             // Show next message without sound (user already acknowledged)
@@ -789,6 +826,12 @@ class NotificationManager {
      */
     get isActive() {
         return this.isPlaying;
+    }
+    /**
+     * Set state machine reference
+     */
+    setStateMachine(stateMachine) {
+        this.stateMachine = stateMachine;
     }
 }
 
@@ -808,6 +851,9 @@ async function init() {
 
     // 2. Init State Machine
     const stateMachine = new StateMachine(animManager);
+
+    // Inject state machine into notification manager
+    notificationManager.setStateMachine(stateMachine);
 
     // 3. Init Controllers
     new DragController(stateMachine);
@@ -839,7 +885,7 @@ async function init() {
 
         if (stateMachine.state === STATES.IDLE) {
             stateMachine.transition(STATES.INTERACT);
-            playJumpSound();
+            // Sound handled by DragController
             setTimeout(() => stateMachine.transition(STATES.IDLE), 2000);
         }
     });

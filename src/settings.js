@@ -156,6 +156,7 @@ const skinSelect = document.getElementById('skin-select');
 const skinPreviewContainer = document.getElementById('skin-preview-container');
 const vipStatusBadge = document.getElementById('vip-status-badge');
 const vipStatusText = document.getElementById('vip-status-text');
+const vipInputContainer = document.getElementById('vip-input-container');
 const vipCodeInput = document.getElementById('vip-code-input');
 const vipRedeemBtn = document.getElementById('vip-redeem-btn');
 const vipMessage = document.getElementById('vip-message');
@@ -170,61 +171,85 @@ let isVip = false;
 /**
  * Initialize the settings page
  */
+/**
+ * Initialize the settings page
+ */
 async function init() {
-    // Load current settings
-    currentSettings = await window.settingsAPI.getSettings();
-    availableSkins = currentSettings.availableSkins || [];
-    isVip = currentSettings.vipStatus?.enabled || false;
+    try {
+        console.log('[Settings] Initializing...');
 
-    // Populate provider dropdown based on region
-    populateProviders(currentSettings.region || 'china');
+        // Load current settings
+        currentSettings = await window.settingsAPI.getSettings();
+        console.log('[Settings] Loaded settings:', currentSettings);
 
-    // Populate skins
-    populateSkins(availableSkins, currentSettings.currentSkin);
-    updateVipStatusUI(currentSettings.vipStatus);
+        if (!currentSettings) {
+            throw new Error('Failed to load settings (result is null)');
+        }
 
-    // Set initial values (API)
-    regionSelect.value = currentSettings.region || 'china';
-    providerSelect.value = currentSettings.provider || 'deepseek';
-    apiKeyInput.value = currentSettings.apiKey || '';
-    modelInput.value = currentSettings.model || '';
+        availableSkins = currentSettings.availableSkins || [];
+        isVip = currentSettings.vipStatus?.enabled || false;
 
-    // Update API key help link
-    const initialConfig = PROVIDERS[currentSettings.region || 'china']?.[currentSettings.provider || 'deepseek'];
-    if (initialConfig) {
-        updateApiKeyHelpLink(initialConfig);
+        // Populate provider dropdown based on region
+        populateProviders(currentSettings.region || 'china');
+
+        // Populate skins
+        populateSkins(availableSkins, currentSettings.currentSkin);
+        updateVipStatusUI(currentSettings.vipStatus);
+
+        // Set initial values (API)
+        regionSelect.value = currentSettings.region || 'china';
+        providerSelect.value = currentSettings.provider || 'deepseek';
+        apiKeyInput.value = currentSettings.apiKey || '';
+        modelInput.value = currentSettings.model || '';
+
+        // Update API key help link
+        const initialConfig = PROVIDERS[currentSettings.region || 'china']?.[currentSettings.provider || 'deepseek'];
+        if (initialConfig) {
+            updateApiKeyHelpLink(initialConfig);
+        }
+
+        // Set sound toggle
+        const soundToggle = document.getElementById('soundEnabled');
+        if (soundToggle) {
+            soundToggle.checked = currentSettings.soundEnabled !== false;
+        }
+
+        // Load language
+        if (languageSelect && window.settingsAPI.getLanguage) {
+            const lang = await window.settingsAPI.getLanguage();
+            languageSelect.value = lang || 'zh-CN';
+            applyI18n(lang || 'zh-CN');
+        }
+
+        // Event listeners
+        regionSelect.addEventListener('change', onRegionChange);
+        providerSelect.addEventListener('change', onProviderChange);
+        toggleKeyBtn.addEventListener('click', toggleKeyVisibility);
+        testBtn.addEventListener('click', testConnection);
+        saveBtn?.addEventListener('click', saveSettings);
+        // Bind new save button if my previous edit added a duplicate ID
+        const newSaveBtn = document.getElementById('save-settings');
+        if (newSaveBtn) newSaveBtn.addEventListener('click', saveSettings);
+
+        cancelBtn.addEventListener('click', closeWindow);
+        languageSelect?.addEventListener('change', () => applyI18n(languageSelect.value));
+
+        // New Event Listeners
+        skinSelect?.addEventListener('change', onSkinChange);
+        vipRedeemBtn?.addEventListener('click', redeemInviteCode);
+
+        console.log('[Settings] Init complete');
+    } catch (error) {
+        console.error('[Settings] Init error:', error);
+        alert('Settings Init Error: ' + error.message + '\n' + error.stack);
     }
-
-    // Set sound toggle
-    const soundToggle = document.getElementById('soundEnabled');
-    if (soundToggle) {
-        soundToggle.checked = currentSettings.soundEnabled !== false;
-    }
-
-    // Load language
-    if (languageSelect && window.settingsAPI.getLanguage) {
-        const lang = await window.settingsAPI.getLanguage();
-        languageSelect.value = lang || 'zh-CN';
-        applyI18n(lang || 'zh-CN');
-    }
-
-    // Event listeners
-    regionSelect.addEventListener('change', onRegionChange);
-    providerSelect.addEventListener('change', onProviderChange);
-    toggleKeyBtn.addEventListener('click', toggleKeyVisibility);
-    testBtn.addEventListener('click', testConnection);
-    saveBtn?.addEventListener('click', saveSettings);
-    // Bind new save button if my previous edit added a duplicate ID
-    const newSaveBtn = document.getElementById('save-settings');
-    if (newSaveBtn) newSaveBtn.addEventListener('click', saveSettings);
-
-    cancelBtn.addEventListener('click', closeWindow);
-    languageSelect?.addEventListener('change', () => applyI18n(languageSelect.value));
-
-    // New Event Listeners
-    skinSelect?.addEventListener('change', onSkinChange);
-    vipRedeemBtn?.addEventListener('click', redeemInviteCode);
 }
+
+// Global error handler
+window.onerror = function (msg, url, line, col, error) {
+    alert('Global Error: ' + msg + '\nLine: ' + line);
+    return false;
+};
 
 /**
  * Populate skin dropdown
@@ -266,9 +291,32 @@ function updateSkinPreview(skinId) {
     const skin = availableSkins.find(s => s.id === skinId);
     if (!skin) return;
 
-    // Update preview image
+    // Update preview
     if (skinPreviewContainer) {
-        if (skin.preview) {
+        // Clear previous content
+        skinPreviewContainer.innerHTML = '';
+
+        if (skin.previewSprite) {
+            // Create sprite preview div
+            const spriteDiv = document.createElement('div');
+            spriteDiv.style.backgroundImage = `url('${skin.previewSprite.replace(/\\/g, '/')}')`;
+            spriteDiv.style.backgroundRepeat = 'no-repeat';
+
+            // Assuming the first frame is at 0,0
+            spriteDiv.style.backgroundPosition = '0px 0px';
+
+            // Scale up for visibility (e.g., 32px -> 64px or 96px)
+            const scale = 3;
+            const [baseW, baseH] = skin.baseSize || [32, 32];
+
+            spriteDiv.style.width = `${baseW}px`;
+            spriteDiv.style.height = `${baseH}px`;
+            spriteDiv.style.transform = `scale(${scale})`;
+            spriteDiv.style.imageRendering = 'pixelated'; // Keep pixel art crisp
+
+            skinPreviewContainer.appendChild(spriteDiv);
+        } else if (skin.preview) {
+            // Fallback to static preview image if available
             skinPreviewContainer.innerHTML = `<img src="${skin.preview}" alt="${skin.name} preview">`;
         } else {
             skinPreviewContainer.innerHTML = '<div class="no-preview">No Preview</div>';
@@ -318,7 +366,9 @@ async function redeemInviteCode() {
     vipMessage.className = 'vip-message';
 
     try {
+        console.log('[Settings] Calling redeemInviteCode with:', code);
         const result = await window.settingsAPI.redeemInviteCode(code);
+        console.log('[Settings] Redeem result:', result);
 
         if (result.success) {
             vipMessage.textContent = 'Success! Features unlocked.';
