@@ -879,7 +879,17 @@ async function init() {
 
     // 1. Init Animation Manager & Load Skin
     const animManager = new AnimationManager(charEl);
-    await animManager.init();
+    try {
+        await animManager.init();
+    } catch (skinError) {
+        console.error('[Renderer] Skin loading failed, using fallback:', skinError);
+        // Show a basic fallback image so the app isn't invisible
+        charEl.style.backgroundImage = 'url(assets/images/idle.png)';
+        charEl.style.backgroundSize = 'contain';
+        charEl.style.backgroundRepeat = 'no-repeat';
+        charEl.style.width = '128px';
+        charEl.style.height = '128px';
+    }
 
     // 2. Init State Machine
     const stateMachine = new StateMachine(animManager);
