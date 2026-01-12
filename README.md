@@ -15,7 +15,35 @@ A cute desktop pet with AI chat, Pomodoro timer, and smart reminders.
 - 🙈 **Stealth Mode** - Hides from Dock, lives in Tray
 - 🚀 **Auto-start** - Launch on system boot
 
-## 🚀 Quick Start
+## 📥 Download & Install
+
+[![GitHub Release](https://img.shields.io/github/v/release/Seabass2333/DeskMate?style=flat-square)](https://github.com/Seabass2333/DeskMate/releases/latest)
+
+### Windows
+1. Download `DeskMate-x.x.x-win-x64.exe` from [Releases](https://github.com/Seabass2333/DeskMate/releases/latest)
+2. Run the installer and follow the prompts
+3. Launch DeskMate from Start Menu or Desktop shortcut
+
+### macOS
+1. Download `DeskMate-x.x.x-mac-universal.dmg` from [Releases](https://github.com/Seabass2333/DeskMate/releases/latest)
+2. Open the DMG and drag DeskMate to Applications folder
+
+> ⚠️ **首次打开提示 "无法验证开发者"？**
+> 
+> 这是因为应用尚未进行 Apple 官方签名（需要 $99/年的开发者账号）。
+> 
+> **解决方法：**
+> - **方法一**：右键点击 DeskMate.app → 选择「打开」→ 在弹窗中点「打开」
+> - **方法二**：打开终端，运行 `xattr -cr /Applications/DeskMate.app`
+> 
+> 之后即可正常使用，此提示只会出现一次。
+
+### Linux
+Coming soon! (You can build from source)
+
+---
+
+## 🚀 开发者指南
 
 ```bash
 # Install dependencies
