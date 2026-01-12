@@ -7,9 +7,11 @@
     "start": "electron .",
     "dev": "electron . --enable-logging",
     "build": "electron-builder",
-    "build:mac": "electron-builder --mac",
-    "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux"
+    "build:mac": "electron-builder --mac --universal",
+    "build:win": "electron-builder --win --x64",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder -mwl",
+    "pack": "electron-builder --dir"
   },
   "keywords": [
     "electron",
@@ -35,23 +37,58 @@
   "build": {
     "appId": "com.seabass2333.deskmate",
     "productName": "DeskMate",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "assets"
     },
     "files": [
       "**/*",
       "!dist/**",
       "!.git/**",
+      "!.github/**",
       "!*.md",
-      "!_raw_assets/**"
+      "!_raw_assets/**",
+      "!.agent/**"
     ],
     "mac": {
       "category": "public.app-category.productivity",
       "icon": "assets/images/icon.icns",
       "target": [
-        "dmg",
-        "zip"
-      ]
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
     },
     "win": {
       "icon": "assets/images/icon.ico",
@@ -61,25 +98,46 @@
           "arch": [
             "x64"
           ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
         }
-      ]
+      ],
+      "publisherName": "Seabass2333",
+      "verifyUpdateCodeSignature": false,
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/images/icon.ico",
+      "uninstallerIcon": "assets/images/icon.ico",
+      "installerHeaderIcon": "assets/images/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DeskMate"
     },
     "linux": {
       "icon": "assets/images/icon.png",
       "target": [
-        "AppImage",
-        "deb"
-      ]
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "maintainer": "Seabass2333",
+      "synopsis": "Cute desktop pet with AI chat",
+      "description": "A cute desktop pet companion with AI chat, Pomodoro timer, and productivity reminders"
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+    "appImage": {
+      "artifactName": "${productName}-${version}-linux.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Seabass2333",
+      "repo": "DeskMate",
+      "releaseType": "release"
     }
   }
 }
