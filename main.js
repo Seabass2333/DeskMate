@@ -754,7 +754,63 @@ ipcMain.handle('i18n:translate', (_, key) => t(key));
 // ============================================
 // App Lifecycle
 // ============================================
+// Auto Updater Logic
+const { autoUpdater } = require('electron-updater');
 
+function setupAutoUpdater() {
+  // Check for updates every hour
+  const CHECK_INTERVAL = 60 * 60 * 1000;
+
+  autoUpdater.logger = console;
+  autoUpdater.autoDownload = true;
+
+  autoUpdater.on('checking-for-update', () => {
+    console.log('[AutoUpdater] Checking for updates...');
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    console.log('[AutoUpdater] Update available:', info);
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    console.log('[AutoUpdater] Update not available.');
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.error('[AutoUpdater] Error:', err);
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    let log_message = "Download speed: " + progressObj.bytesPerSecond;
+    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+    log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+    console.log('[AutoUpdater] ' + log_message);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('[AutoUpdater] Update downloaded');
+    dialog.showMessageBox({
+      type: 'info',
+      title: 'DeskMate Update',
+      message: 'A new version has been downloaded. Restart the application to apply the update?',
+      buttons: ['Restart', 'Later']
+    }).then((returnValue) => {
+      if (returnValue.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+  });
+
+  // Initial check
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify();
+    setInterval(() => {
+      autoUpdater.checkForUpdatesAndNotify();
+    }, CHECK_INTERVAL);
+  }
+}
+
+// App lifecycle
 app.whenReady().then(() => {
   // Hide dock icon on macOS (tray-only app)
   if (process.platform === 'darwin') {
@@ -779,6 +835,9 @@ app.whenReady().then(() => {
 
   createWindow();
   createTray();
+
+  // Setup Auto Updater
+  setupAutoUpdater();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

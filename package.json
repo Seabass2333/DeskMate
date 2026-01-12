@@ -32,7 +32,8 @@
     "electron-reload": "^2.0.0-alpha.1"
   },
   "dependencies": {
-    "electron-store": "^8.1.0"
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.7.3"
   },
   "build": {
     "appId": "com.seabass2333.deskmate",
@@ -132,6 +133,13 @@
     },
     "appImage": {
       "artifactName": "${productName}-${version}-linux.${ext}"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Seabass2333",
+        "repo": "DeskMate"
+      }
+    ]
   }
 }
