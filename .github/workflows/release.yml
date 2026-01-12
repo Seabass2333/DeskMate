@@ -10,6 +10,7 @@ jobs:
     name: Build (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         include:
@@ -29,6 +30,12 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+
+      - name: Install Linux Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libicns-dev graphicsmagick xz-utils
 
       - name: Install dependencies
         run: npm install
