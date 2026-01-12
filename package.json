@@ -6,11 +6,11 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --enable-logging",
-    "build": "electron-builder -c.publish=never",
-    "build:mac": "electron-builder --mac --universal -c.publish=never",
-    "build:win": "electron-builder --win --x64 -c.publish=never",
-    "build:linux": "electron-builder --linux -c.publish=never",
-    "build:all": "electron-builder -mwl -c.publish=never",
+    "build": "electron-builder --publish never",
+    "build:mac": "electron-builder --mac --universal --publish never",
+    "build:win": "electron-builder --win --x64 --publish never",
+    "build:linux": "electron-builder --linux --publish never",
+    "build:all": "electron-builder -mwl --publish never",
     "pack": "electron-builder --dir"
   },
   "keywords": [
