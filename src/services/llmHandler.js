@@ -202,6 +202,13 @@ class LLMHandler {
                 timeout: this.timeout
             };
 
+            console.log('[LLMHandler] Request:', {
+                url: fullURL,
+                hostname: options.hostname,
+                path: options.path,
+                model: body.model
+            });
+
             const req = httpModule.request(options, (res) => {
                 let data = '';
 

@@ -445,8 +445,8 @@ ipcMain.handle('settings:get', () => {
   if (userSettings && userSettings.llm) {
     return {
       ...baseSettings,
-      region: userSettings.llm.region || 'china',
-      provider: userSettings.llm.provider || 'deepseek',
+      region: userSettings.llm.region || 'global',
+      provider: userSettings.llm.provider || 'openrouter',
       apiKey: userSettings.llm.apiKey || '',
       model: userSettings.llm.model || '',
       soundEnabled: userSettings.sound ? userSettings.sound.enabled : true,
@@ -457,10 +457,10 @@ ipcMain.handle('settings:get', () => {
   // Return defaults
   return {
     ...baseSettings,
-    region: 'china',
-    provider: 'deepseek',
-    apiKey: PROVIDERS.china.deepseek.apiKey || '',
-    model: PROVIDERS.china.deepseek.model,
+    region: 'global',
+    provider: 'openrouter',
+    apiKey: '',
+    model: PROVIDERS.global.openrouter.model,
     soundEnabled: true,
     pomodoro: {},
     reminders: {}
@@ -527,11 +527,21 @@ ipcMain.handle('settings:save', (_, settings) => {
 
 // Test connection with given config
 ipcMain.handle('settings:test', async (_, settings) => {
+  console.log('[Main] Testing connection with:', {
+    region: settings.region,
+    provider: settings.provider,
+    model: settings.model,
+    apiKeyLength: settings.apiKey?.length || 0
+  });
+
   try {
     const preset = PROVIDERS[settings.region]?.[settings.provider];
     if (!preset) {
+      console.log('[Main] Invalid provider:', settings.region, settings.provider);
       return { success: false, message: 'Invalid provider' };
     }
+
+    console.log('[Main] Using baseURL:', preset.baseURL);
 
     const testHandler = new LLMHandler({
       baseURL: preset.baseURL,
@@ -539,8 +549,11 @@ ipcMain.handle('settings:test', async (_, settings) => {
       model: settings.model || preset.model
     });
 
-    return await testHandler.testConnection();
+    const result = await testHandler.testConnection();
+    console.log('[Main] Test result:', result);
+    return result;
   } catch (error) {
+    console.error('[Main] Test connection error:', error);
     return { success: false, message: error.message };
   }
 });

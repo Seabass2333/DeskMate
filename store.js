@@ -12,9 +12,10 @@ const schema = {
             region: { type: 'string', default: 'global' },
             provider: { type: 'string', default: 'openrouter' },
             apiKey: { type: 'string', default: '' },
-            model: { type: 'string', default: '' }
+            model: { type: 'string', default: '' },
+            baseURL: { type: 'string', default: '' }
         },
-        default: {}
+        default: { region: 'global', provider: 'openrouter' }
     },
     pomodoro: {
         type: 'object',

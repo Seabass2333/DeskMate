@@ -16,39 +16,114 @@ const PROVIDERS = {
             name: 'DeepSeek',
             baseURL: 'https://api.deepseek.com/v1',
             model: 'deepseek-chat',
-            apiKey: 'sk-481f2e9192af44df8bf56a41c5911080' // User's API key
+            apiKey: ''
         },
         moonshot: {
             name: 'Moonshot (Kimi)',
             baseURL: 'https://api.moonshot.cn/v1',
             model: 'moonshot-v1-8k',
-            apiKey: 'sk-SnXXevSRnbNAi0cWenlkjiKJaP40oW39oor9CzfCeHInigNu'
+            apiKey: ''
+        },
+        zhipu: {
+            name: '智谱 AI (GLM)',
+            baseURL: 'https://open.bigmodel.cn/api/paas/v4',
+            model: 'glm-4-flash',
+            apiKey: ''
+        },
+        qwen: {
+            name: '通义千问 (Qwen)',
+            baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+            model: 'qwen-turbo',
+            apiKey: ''
+        },
+        baichuan: {
+            name: '百川 AI',
+            baseURL: 'https://api.baichuan-ai.com/v1',
+            model: 'Baichuan2-Turbo',
+            apiKey: ''
+        },
+        doubao: {
+            name: '豆包 (ByteDance)',
+            baseURL: 'https://ark.cn-beijing.volces.com/api/v3',
+            model: 'doubao-pro-4k',
+            apiKey: ''
         }
     },
 
     // Global providers
     global: {
         openrouter: {
-            name: 'OpenRouter',
+            name: 'OpenRouter (推荐)',
             baseURL: 'https://openrouter.ai/api/v1',
-            model: 'deepseek/deepseek-chat', // Can use any model on OpenRouter
-            apiKey: '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'
+            model: 'deepseek/deepseek-chat',
+            apiKey: ''
         },
         openai: {
             name: 'OpenAI',
             baseURL: 'https://api.openai.com/v1',
             model: 'gpt-4o-mini',
-            apiKey: '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'
+            apiKey: ''
+        },
+        anthropic: {
+            name: 'Anthropic Claude',
+            baseURL: 'https://api.anthropic.com/v1',
+            model: 'claude-3-haiku-20240307',
+            apiKey: '',
+            isAnthropic: true  // Uses different API format
+        },
+        gemini: {
+            name: 'Google Gemini',
+            baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
+            model: 'gemini-1.5-flash',
+            apiKey: ''
+        },
+        groq: {
+            name: 'Groq (超快)',
+            baseURL: 'https://api.groq.com/openai/v1',
+            model: 'llama-3.1-8b-instant',
+            apiKey: ''
+        },
+        together: {
+            name: 'Together AI',
+            baseURL: 'https://api.together.xyz/v1',
+            model: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
+            apiKey: ''
+        },
+        mistral: {
+            name: 'Mistral AI',
+            baseURL: 'https://api.mistral.ai/v1',
+            model: 'mistral-small-latest',
+            apiKey: ''
+        },
+        custom: {
+            name: '自定义 API',
+            baseURL: '',
+            model: '',
+            apiKey: '',
+            isCustom: true
         }
     },
 
     // Local/Self-hosted
     local: {
         ollama: {
-            name: 'Ollama (Local)',
+            name: 'Ollama (本地)',
             baseURL: 'http://localhost:11434/v1',
             model: 'llama3.2',
-            apiKey: 'ollama' // Ollama doesn't need a real key but the field is required
+            apiKey: 'ollama'
+        },
+        lmstudio: {
+            name: 'LM Studio',
+            baseURL: 'http://localhost:1234/v1',
+            model: 'local-model',
+            apiKey: 'lm-studio'
+        },
+        custom_local: {
+            name: '自定义本地 API',
+            baseURL: 'http://localhost:8080/v1',
+            model: '',
+            apiKey: '',
+            isCustom: true
         }
     }
 };

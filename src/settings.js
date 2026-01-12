@@ -17,11 +17,35 @@ const PROVIDERS = {
             model: 'moonshot-v1-8k',
             apiKeyUrl: 'https://platform.moonshot.cn/console/api-keys',
             getKeyText: { 'zh-CN': '获取 Moonshot API Key', 'en': 'Get Moonshot API Key' }
+        },
+        zhipu: {
+            name: '智谱 AI (GLM)',
+            model: 'glm-4-flash',
+            apiKeyUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
+            getKeyText: { 'zh-CN': '获取智谱 API Key', 'en': 'Get Zhipu API Key' }
+        },
+        qwen: {
+            name: '通义千问 (Qwen)',
+            model: 'qwen-turbo',
+            apiKeyUrl: 'https://dashscope.console.aliyun.com/apiKey',
+            getKeyText: { 'zh-CN': '获取通义千问 API Key', 'en': 'Get Qwen API Key' }
+        },
+        baichuan: {
+            name: '百川 AI',
+            model: 'Baichuan2-Turbo',
+            apiKeyUrl: 'https://platform.baichuan-ai.com/console/apikey',
+            getKeyText: { 'zh-CN': '获取百川 API Key', 'en': 'Get Baichuan API Key' }
+        },
+        doubao: {
+            name: '豆包 (ByteDance)',
+            model: 'doubao-pro-4k',
+            apiKeyUrl: 'https://console.volcengine.com/ark',
+            getKeyText: { 'zh-CN': '获取豆包 API Key', 'en': 'Get Doubao API Key' }
         }
     },
     global: {
         openrouter: {
-            name: 'OpenRouter',
+            name: 'OpenRouter (推荐)',
             model: 'deepseek/deepseek-chat',
             apiKeyUrl: 'https://openrouter.ai/keys',
             getKeyText: { 'zh-CN': '获取 OpenRouter API Key', 'en': 'Get OpenRouter API Key' }
@@ -31,14 +55,64 @@ const PROVIDERS = {
             model: 'gpt-4o-mini',
             apiKeyUrl: 'https://platform.openai.com/api-keys',
             getKeyText: { 'zh-CN': '获取 OpenAI API Key', 'en': 'Get OpenAI API Key' }
+        },
+        anthropic: {
+            name: 'Anthropic Claude',
+            model: 'claude-3-haiku-20240307',
+            apiKeyUrl: 'https://console.anthropic.com/settings/keys',
+            getKeyText: { 'zh-CN': '获取 Claude API Key', 'en': 'Get Claude API Key' }
+        },
+        gemini: {
+            name: 'Google Gemini',
+            model: 'gemini-1.5-flash',
+            apiKeyUrl: 'https://aistudio.google.com/app/apikey',
+            getKeyText: { 'zh-CN': '获取 Gemini API Key', 'en': 'Get Gemini API Key' }
+        },
+        groq: {
+            name: 'Groq (超快)',
+            model: 'llama-3.1-8b-instant',
+            apiKeyUrl: 'https://console.groq.com/keys',
+            getKeyText: { 'zh-CN': '获取 Groq API Key', 'en': 'Get Groq API Key' }
+        },
+        together: {
+            name: 'Together AI',
+            model: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
+            apiKeyUrl: 'https://api.together.xyz/settings/api-keys',
+            getKeyText: { 'zh-CN': '获取 Together API Key', 'en': 'Get Together API Key' }
+        },
+        mistral: {
+            name: 'Mistral AI',
+            model: 'mistral-small-latest',
+            apiKeyUrl: 'https://console.mistral.ai/api-keys',
+            getKeyText: { 'zh-CN': '获取 Mistral API Key', 'en': 'Get Mistral API Key' }
+        },
+        custom: {
+            name: '自定义 API',
+            model: '',
+            apiKeyUrl: '',
+            getKeyText: { 'zh-CN': '使用任意 OpenAI 兼容 API', 'en': 'Use any OpenAI-compatible API' },
+            isCustom: true
         }
     },
     local: {
         ollama: {
-            name: 'Ollama',
+            name: 'Ollama (本地)',
             model: 'llama3.2',
             apiKeyUrl: 'https://ollama.ai/download',
             getKeyText: { 'zh-CN': '下载 Ollama', 'en': 'Download Ollama' }
+        },
+        lmstudio: {
+            name: 'LM Studio',
+            model: 'local-model',
+            apiKeyUrl: 'https://lmstudio.ai/',
+            getKeyText: { 'zh-CN': '下载 LM Studio', 'en': 'Download LM Studio' }
+        },
+        custom_local: {
+            name: '自定义本地 API',
+            model: '',
+            apiKeyUrl: '',
+            getKeyText: { 'zh-CN': '使用自定义本地服务', 'en': 'Use custom local server' },
+            isCustom: true
         }
     }
 };
@@ -196,15 +270,15 @@ async function init() {
         isVip = currentSettings.vipStatus?.enabled || false;
 
         // Populate provider dropdown based on region
-        populateProviders(currentSettings.region || 'china');
+        populateProviders(currentSettings.region || 'global');
 
         // Populate skins
         populateSkins(availableSkins, currentSettings.currentSkin);
         updateVipStatusUI(currentSettings.vipStatus);
 
         // Set initial values (API)
-        regionSelect.value = currentSettings.region || 'china';
-        providerSelect.value = currentSettings.provider || 'deepseek';
+        regionSelect.value = currentSettings.region || 'global';
+        providerSelect.value = currentSettings.provider || 'openrouter';
         apiKeyInput.value = currentSettings.apiKey || '';
         modelInput.value = currentSettings.model || '';
 
