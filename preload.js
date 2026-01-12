@@ -239,5 +239,17 @@ contextBridge.exposeInMainWorld('deskmate', {
      */
     onSkinChange: (callback) => {
         ipcRenderer.on('skin-change', (_, skinId) => callback(skinId));
-    }
+    },
+
+    /**
+     * Listen for settings update (real-time sync)
+     */
+    onSettingsUpdated: (callback) => {
+        ipcRenderer.on('settings-updated', (_, settings) => callback(settings));
+    },
+
+    /**
+     * Get full user settings
+     */
+    getSettings: () => ipcRenderer.invoke('settings:get')
 });

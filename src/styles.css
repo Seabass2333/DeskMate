@@ -294,3 +294,45 @@ body {
     transform: scale(1.05);
   }
 }
+/* ============================================
+   Energy Bar
+   ============================================ */
+.energy-bar-container {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: 10px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 90;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Show when hovering the character */
+#character:hover ~ .energy-bar-container {
+  opacity: 1;
+}
+
+.energy-bar-fill {
+  width: 75%;
+  height: 100%;
+  background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+  border-radius: 10px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease;
+}
+
+/* Tier Colors */
+.energy-bar-fill.tired { 
+    background: linear-gradient(90deg, #f77062 0%, #fe5196 100%);
+}
+.energy-bar-fill.energetic { 
+    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+}

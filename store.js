@@ -19,7 +19,7 @@ const schema = {
     pomodoro: {
         type: 'object',
         properties: {
-            defaultDuration: { type: 'number', default: 25, minimum: 15, maximum: 60 }
+            defaultDuration: { type: 'number', default: 25, minimum: 1, maximum: 120 }
         },
         default: { defaultDuration: 25 }
     },
@@ -35,7 +35,16 @@ const schema = {
         properties: {
             water: { type: 'boolean', default: false },
             rest: { type: 'boolean', default: false },
-            stretch: { type: 'boolean', default: false }
+            stretch: { type: 'boolean', default: false },
+            intervals: {
+                type: 'object',
+                properties: {
+                    water: { type: 'number', default: 30, minimum: 1 },
+                    rest: { type: 'number', default: 20, minimum: 1 },
+                    stretch: { type: 'number', default: 45, minimum: 1 }
+                },
+                default: { water: 30, rest: 20, stretch: 45 }
+            }
         },
         default: {}
     },

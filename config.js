@@ -212,7 +212,9 @@ function loadUserSettings() {
                 },
                 sound: store.get('sound') || { enabled: true },
                 pet: pet || getDefaultPetState(),
-                skin: store.get('skin') || DEFAULT_SKIN
+                skin: store.get('skin') || DEFAULT_SKIN,
+                pomodoro: store.get('pomodoro') || {},
+                reminders: store.get('reminders') || {}
             };
         }
     } catch (error) {
@@ -262,6 +264,14 @@ function saveUserSettings(settings) {
 
         if (settings.skin) {
             store.set('skin', settings.skin);
+        }
+
+        if (settings.pomodoro) {
+            store.set('pomodoro', settings.pomodoro);
+        }
+
+        if (settings.reminders) {
+            store.set('reminders', settings.reminders);
         }
 
         console.log('[Config] Settings saved to store');
@@ -367,6 +377,15 @@ function getAvailableSkins() {
                             if (!idle) return null;
                             const src = Array.isArray(idle) ? idle[0].src : idle.src;
                             return src ? path.join(skinsDir, d.name, src) : null;
+                        })(),
+                        idleAnimation: (() => {
+                            const idle = config.animations?.idle;
+                            if (!idle) return null;
+                            const anim = Array.isArray(idle) ? idle[0] : idle;
+                            return {
+                                frames: anim.frames,
+                                speed: anim.speed
+                            };
                         })()
                     };
                 }

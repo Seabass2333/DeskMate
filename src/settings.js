@@ -162,6 +162,12 @@ const vipRedeemBtn = document.getElementById('vip-redeem-btn');
 const vipMessage = document.getElementById('vip-message');
 const vipLockMsg = document.getElementById('vip-lock-msg');
 
+// Timer Inputs
+const pomodoroInput = document.getElementById('pomodoroDuration');
+const waterInput = document.getElementById('waterInterval');
+const restInput = document.getElementById('restInterval');
+const stretchInput = document.getElementById('stretchInterval');
+
 // State
 let currentSettings = null;
 let keyVisible = false;
@@ -202,6 +208,12 @@ async function init() {
         apiKeyInput.value = currentSettings.apiKey || '';
         modelInput.value = currentSettings.model || '';
 
+        // Timer Defaults
+        if (pomodoroInput) pomodoroInput.value = currentSettings.pomodoro?.defaultDuration || 25;
+        if (waterInput) waterInput.value = currentSettings.reminders?.intervals?.water || 30;
+        if (restInput) restInput.value = currentSettings.reminders?.intervals?.rest || 20;
+        if (stretchInput) stretchInput.value = currentSettings.reminders?.intervals?.stretch || 45;
+
         // Update API key help link
         const initialConfig = PROVIDERS[currentSettings.region || 'china']?.[currentSettings.provider || 'deepseek'];
         if (initialConfig) {
@@ -237,6 +249,31 @@ async function init() {
         // New Event Listeners
         skinSelect?.addEventListener('change', onSkinChange);
         vipRedeemBtn?.addEventListener('click', redeemInviteCode);
+
+        // Enhance Invite Code UX
+        if (vipCodeInput && vipRedeemBtn) {
+            // Initial state
+            vipRedeemBtn.disabled = !vipCodeInput.value.trim();
+            // Gray out button style handled by CSS :disabled selector usually, 
+            // otherwise add class? standard HTML disabled attribute usually suffices for default button styles.
+
+            vipCodeInput.addEventListener('input', () => {
+                const val = vipCodeInput.value.trim();
+                vipRedeemBtn.disabled = !val;
+
+                // Clear error message when user starts typing again
+                if (vipMessage && vipMessage.textContent) {
+                    vipMessage.textContent = '';
+                    vipMessage.className = 'vip-message';
+                }
+            });
+
+            vipCodeInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !vipRedeemBtn.disabled) {
+                    redeemInviteCode();
+                }
+            });
+        }
 
         console.log('[Settings] Init complete');
     } catch (error) {
@@ -302,19 +339,42 @@ function updateSkinPreview(skinId) {
             spriteDiv.style.backgroundImage = `url('${skin.previewSprite.replace(/\\/g, '/')}')`;
             spriteDiv.style.backgroundRepeat = 'no-repeat';
 
-            // Assuming the first frame is at 0,0
-            spriteDiv.style.backgroundPosition = '0px 0px';
-
-            // Scale up for visibility (e.g., 32px -> 64px or 96px)
-            const scale = 3;
+            // Dimensions setup
             const [baseW, baseH] = skin.baseSize || [32, 32];
 
+            // Animation Data
+            const anim = skin.idleAnimation;
+            const frames = anim ? anim.frames : 1;
+            const speed = anim ? anim.speed : 1000;
+
+            // Set container size (unscaled)
             spriteDiv.style.width = `${baseW}px`;
             spriteDiv.style.height = `${baseH}px`;
+
+            // Background Size: width * frames
+            const totalWidth = baseW * frames;
+            spriteDiv.style.backgroundSize = `${totalWidth}px ${baseH}px`;
+
+            // Transform for visibility
+            const scale = 3;
             spriteDiv.style.transform = `scale(${scale})`;
-            spriteDiv.style.imageRendering = 'pixelated'; // Keep pixel art crisp
+            spriteDiv.style.imageRendering = 'pixelated';
 
             skinPreviewContainer.appendChild(spriteDiv);
+
+            // Play Animation if multiple frames
+            if (frames > 1) {
+                spriteDiv.animate([
+                    { backgroundPosition: '0px 0px' },
+                    { backgroundPosition: `-${totalWidth}px 0px` }
+                ], {
+                    duration: speed,
+                    easing: `steps(${frames}, end)`,
+                    iterations: Infinity
+                });
+            } else {
+                spriteDiv.style.backgroundPosition = '0px 0px';
+            }
         } else if (skin.preview) {
             // Fallback to static preview image if available
             skinPreviewContainer.innerHTML = `<img src="${skin.preview}" alt="${skin.name} preview">`;
@@ -371,13 +431,23 @@ async function redeemInviteCode() {
         console.log('[Settings] Redeem result:', result);
 
         if (result.success) {
-            vipMessage.textContent = 'Success! Features unlocked.';
+            vipMessage.textContent = '✅ Success! Features unlocked.';
             vipMessage.className = 'vip-message success';
             // Reload status
             const newStatus = await window.settingsAPI.getVipStatus();
             updateVipStatusUI(newStatus);
         } else {
-            vipMessage.textContent = result.message || 'Invalid code';
+            // Classify errors
+            let errorMsg = result.message;
+            if (result.message === 'Invalid code') {
+                errorMsg = '❌ Invalid code. Please check again.';
+            } else if (result.message === 'Code is empty') {
+                errorMsg = '⚠️ Please enter a code.';
+            } else {
+                errorMsg = `❌ Error: ${result.message}`;
+            }
+
+            vipMessage.textContent = errorMsg;
             vipMessage.className = 'vip-message error';
         }
     } catch (e) {
@@ -415,7 +485,21 @@ async function saveSettings() {
             apiKey: apiKeyInput.value,
             model: modelInput.value,
             soundEnabled: soundToggle ? soundToggle.checked : true,
-            skin: selectedSkin
+            skin: selectedSkin,
+            pomodoro: {
+                defaultDuration: parseInt(pomodoroInput.value) || 25
+            },
+            reminders: {
+                // Preserve enabled states
+                water: currentSettings?.reminders?.water ?? false,
+                rest: currentSettings?.reminders?.rest ?? false,
+                stretch: currentSettings?.reminders?.stretch ?? false,
+                intervals: {
+                    water: parseInt(waterInput.value) || 30,
+                    rest: parseInt(restInput.value) || 20,
+                    stretch: parseInt(stretchInput.value) || 45
+                }
+            }
         };
 
         // Save language if changed
@@ -549,44 +633,6 @@ async function testConnection() {
         testResult.className = 'test-result error';
     } finally {
         testBtn.disabled = false;
-    }
-}
-
-/**
- * Save settings and close window
- */
-async function saveSettings() {
-    saveBtn.disabled = true;
-    saveBtn.textContent = '保存中...';
-
-    try {
-        const soundToggle = document.getElementById('soundEnabled');
-
-        const settings = {
-            region: regionSelect.value,
-            provider: providerSelect.value,
-            apiKey: apiKeyInput.value,
-            model: modelInput.value,
-            soundEnabled: soundToggle ? soundToggle.checked : true
-        };
-
-        // Save language if changed
-        if (languageSelect && window.settingsAPI.setLanguage) {
-            await window.settingsAPI.setLanguage(languageSelect.value);
-        }
-
-        const result = await window.settingsAPI.saveSettings(settings);
-
-        if (result.success) {
-            closeWindow();
-        } else {
-            alert('保存失败: ' + result.message);
-        }
-    } catch (error) {
-        alert('保存失败: ' + error.message);
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = '保存设置';
     }
 }
 

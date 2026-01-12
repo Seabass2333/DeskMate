@@ -96,10 +96,28 @@ function startPomodoro(minutes) {
  * Builds and shows the context menu with Pomodoro controls
  */
 function showContextMenu() {
+  const settings = loadUserSettings();
+  const defaultDur = settings?.pomodoro?.defaultDuration || 25;
+
   // Add 0.25 (15 seconds) for testing
-  const durations = [0.25, 15, 20, 25, 30, 45, 60];
+  let durations = [0.25, 15, 20, 25, 30, 45, 60];
+
+  // Ensure default duration is in the list
+  if (!durations.includes(defaultDur)) {
+    durations.push(defaultDur);
+    durations.sort((a, b) => a - b);
+  }
+  const petState = getPetState();
+
+  const reminderIntervals = {
+    water: settings?.reminders?.intervals?.water || 30,
+    rest: settings?.reminders?.intervals?.rest || 20,
+    stretch: settings?.reminders?.intervals?.stretch || 45
+  };
 
   const template = [
+    { label: `⚡ Energy: ${Math.round(petState.energy)}%`, enabled: false },
+    { type: 'separator' },
     {
       label: t('talkToMe'),
       click: () => {
@@ -111,7 +129,7 @@ function showContextMenu() {
       label: isPomodoroActive ? `${t('focusing')} (${currentPomodoroDuration}m)` : t('startFocus'),
       submenu: [
         ...durations.map(min => ({
-          label: min < 1 ? `⚡ ${Math.round(min * 60)}s (Test)` : `${min} ${t('minutes')}${min === 25 ? ' ⭐' : ''}`,
+          label: min < 1 ? `⚡ ${Math.round(min * 60)}s (Test)` : `${min} ${t('minutes')}${min === defaultDur ? ' (Default)' : ''}`,
           type: 'checkbox',
           checked: isPomodoroActive && currentPomodoroDuration === min,
           click: () => startPomodoro(min)
@@ -158,7 +176,7 @@ function showContextMenu() {
         },
         { type: 'separator' },
         {
-          label: `${t('drinkWater')} (30${t('minutes')})`,
+          label: `${t('drinkWater')} (${reminderIntervals.water}${t('minutes')})`,
           type: 'checkbox',
           checked: activeReminders.has('water'),
           click: () => {
@@ -171,7 +189,7 @@ function showContextMenu() {
           }
         },
         {
-          label: `${t('restEyes')} (20${t('minutes')})`,
+          label: `${t('restEyes')} (${reminderIntervals.rest}${t('minutes')})`,
           type: 'checkbox',
           checked: activeReminders.has('rest'),
           click: () => {
@@ -184,7 +202,7 @@ function showContextMenu() {
           }
         },
         {
-          label: `${t('stretch')} (45${t('minutes')})`,
+          label: `${t('stretch')} (${reminderIntervals.stretch}${t('minutes')})`,
           type: 'checkbox',
           checked: activeReminders.has('stretch'),
           click: () => {
@@ -431,7 +449,9 @@ ipcMain.handle('settings:get', () => {
       provider: userSettings.llm.provider || 'deepseek',
       apiKey: userSettings.llm.apiKey || '',
       model: userSettings.llm.model || '',
-      soundEnabled: userSettings.sound ? userSettings.sound.enabled : true
+      soundEnabled: userSettings.sound ? userSettings.sound.enabled : true,
+      pomodoro: userSettings.pomodoro,
+      reminders: userSettings.reminders
     };
   }
   // Return defaults
@@ -441,7 +461,9 @@ ipcMain.handle('settings:get', () => {
     provider: 'deepseek',
     apiKey: PROVIDERS.china.deepseek.apiKey || '',
     model: PROVIDERS.china.deepseek.model,
-    soundEnabled: true
+    soundEnabled: true,
+    pomodoro: {},
+    reminders: {}
   };
 });
 
@@ -466,8 +488,23 @@ ipcMain.handle('settings:save', (_, settings) => {
     const result = saveUserSettings({
       llm: llmConfig,
       sound: { enabled: settings.soundEnabled },
-      skin: settings.skin // Save skin
+      skin: settings.skin,
+      pomodoro: settings.pomodoro,
+      reminders: settings.reminders
     });
+
+    if (!result) {
+      return { success: false, message: 'Failed to persist settings to storage' };
+    }
+
+    // Notify Renderer (MainWindow) of updates
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('settings-updated', {
+        pomodoro: settings.pomodoro,
+        reminders: settings.reminders,
+        sound: { enabled: settings.soundEnabled }
+      });
+    }
 
     // Try to set skin (validates VIP)
     if (settings.skin) {
@@ -480,12 +517,9 @@ ipcMain.handle('settings:save', (_, settings) => {
       }
     }
 
-    if (result) {
-      // Hot-reload the LLM handler
-      reinitializeLLM();
-      return { success: true };
-    }
-    return { success: false, message: 'Failed to save file' };
+    // Hot-reload the LLM handler
+    reinitializeLLM();
+    return { success: true };
   } catch (error) {
     return { success: false, message: error.message };
   }

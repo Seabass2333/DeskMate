@@ -230,6 +230,7 @@ class EnergyManager {
 
             // Start decay timer
             this.startDecayTimer();
+            this.updateUI();
 
             console.log(`[EnergyManager] Initialized with energy: ${this.energy}`);
         } catch (error) {
@@ -247,6 +248,7 @@ class EnergyManager {
     async modifyEnergy(delta) {
         this.energy = Math.max(this.MIN_ENERGY, Math.min(this.MAX_ENERGY, this.energy + delta));
         this.lastUpdate = Date.now();
+        this.updateUI();
         await this.save();
         return this.energy;
     }
@@ -276,6 +278,22 @@ class EnergyManager {
 
     getEnergy() {
         return this.energy;
+    }
+
+    getStatusMessage() {
+        const tier = this.getTier();
+        switch (tier) {
+            case 'hyper': return "I'm overflowing with energy! ⚡️";
+            case 'energetic': return "Feeling great! Ready to help! 😺";
+            case 'normal': return "Just chilling... 🐟";
+            case 'tired': return "Getting a bit sleepy... 🥱";
+            case 'exhausted': return "Too tired... need rest... 💤";
+            default: return "Meow?";
+        }
+    }
+
+    updateUI() {
+        // UI Bar removed per user request
     }
 }
 
@@ -425,6 +443,17 @@ class ReminderManager {
         });
 
         console.log('[ReminderManager] Initialized');
+    }
+
+    updateConfiguration(settings) {
+        if (!settings || !settings.reminders || !settings.reminders.intervals) return;
+
+        const intervals = settings.reminders.intervals;
+        if (intervals.water) this.durations.water = intervals.water * 60;
+        if (intervals.rest) this.durations.rest = intervals.rest * 60;
+        if (intervals.stretch) this.durations.stretch = intervals.stretch * 60;
+
+        console.log('[ReminderManager] Updated durations:', this.durations);
     }
 
     async toggle(type) {
@@ -859,7 +888,13 @@ async function init() {
     new DragController(stateMachine);
     const chatManager = new ChatManager(stateMachine);
     new PomodoroManager(stateMachine);
-    new ReminderManager(stateMachine);
+    const reminderManager = new ReminderManager(stateMachine);
+    try {
+        const settings = await window.deskmate.getSettings();
+        if (settings) reminderManager.updateConfiguration(settings);
+    } catch (e) {
+        console.warn('Failed to load settings:', e);
+    }
 
     // 3.5. Init Energy Manager
     energyManager = new EnergyManager();
@@ -880,6 +915,10 @@ async function init() {
         // Boost energy on interaction
         if (energyManager) {
             await energyManager.modifyEnergy(2);
+            // Show status bubble
+            const msg = energyManager.getStatusMessage();
+            showBubble(msg, 2000);
+
             console.log(`[Energy] Click boost: energy now ${energyManager.getEnergy()}`);
         }
 
@@ -922,6 +961,14 @@ async function init() {
             stateMachine.transition(firstState);
         }
         console.log(`[Renderer] Skin changed to: ${skinId}, state: ${stateMachine.state}`);
+    });
+
+    // 10. Settings change listener (Real-time sync)
+    window.deskmate.onSettingsUpdated((settings) => {
+        console.log('[Renderer] Settings updated:', settings);
+        if (settings) {
+            reminderManager.updateConfiguration(settings);
+        }
     });
 
     console.log('[Renderer] Phase 2 Ready!');
