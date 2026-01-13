@@ -73,6 +73,10 @@ const schema = {
     skin: {
         type: 'string',
         default: 'mochi-v1'
+    },
+    quietMode: {
+        type: 'boolean',
+        default: true
     }
 };
 

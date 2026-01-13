@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeIma
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
-const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus } = require('./config');
+const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus, getQuietMode, setQuietMode } = require('./config');
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
 
 // Hot reload in development mode only
@@ -233,6 +233,20 @@ function showContextMenu() {
         }
       }))
     }] : []),
+    { type: 'separator' },
+    {
+      label: `💤 ${t('quietMode') || 'Quiet Mode'}`,
+      type: 'checkbox',
+      checked: getQuietMode(),
+      click: (menuItem) => {
+        const enabled = menuItem.checked;
+        setQuietMode(enabled);
+        if (mainWindow) {
+          mainWindow.webContents.send('quiet-mode-changed', enabled);
+        }
+        console.log('[Main] Quiet mode:', enabled ? 'ON' : 'OFF');
+      }
+    },
     { type: 'separator' },
     {
       label: t('settings'),
@@ -683,6 +697,19 @@ ipcMain.handle('vip:redeem', (_, code) => {
 
 ipcMain.handle('vip:getStatus', () => {
   return getVipStatus();
+});
+
+// Quiet Mode IPC handlers
+ipcMain.handle('quietMode:get', () => {
+  return getQuietMode();
+});
+
+ipcMain.handle('quietMode:set', (_, enabled) => {
+  const success = setQuietMode(enabled);
+  if (success && mainWindow) {
+    mainWindow.webContents.send('quiet-mode-changed', enabled);
+  }
+  return { success, enabled: getQuietMode() };
 });
 
 // Modify pet energy

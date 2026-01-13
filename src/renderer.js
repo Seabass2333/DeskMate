@@ -112,6 +112,8 @@ class StateMachine {
         this.state = null; // Start with null to allow initial transition to IDLE
         this.previousState = null;
         this.idleTimer = null;
+        this.quietMode = true; // Default quiet mode ON
+        this.wakeTimer = null; // Timer for wake-up after click in quiet mode
     }
 
     transition(newState) {
@@ -151,6 +153,23 @@ class StateMachine {
     }
 
     /**
+     * Set quiet mode
+     */
+    setQuietMode(enabled) {
+        this.quietMode = enabled;
+        console.log(`[State] Quiet mode: ${enabled ? 'ON' : 'OFF'}`);
+
+        // If turning quiet mode ON, transition to sleep
+        if (enabled && this.state === STATES.IDLE) {
+            this.transition(STATES.SLEEP);
+        }
+        // If turning quiet mode OFF and sleeping, wake up
+        if (!enabled && this.state === STATES.SLEEP) {
+            this.transition(STATES.IDLE);
+        }
+    }
+
+    /**
      * Randomly trigger interactions when IDLE
      */
     manageIdleTimer() {
@@ -158,6 +177,11 @@ class StateMachine {
         if (this.idleTimer) {
             clearTimeout(this.idleTimer);
             this.idleTimer = null;
+        }
+
+        // In quiet mode, don't schedule random actions
+        if (this.quietMode) {
+            return;
         }
 
         // Only schedule random actions if IDLE
@@ -913,8 +937,19 @@ async function init() {
     energyManager = new EnergyManager();
     await energyManager.init();
 
-    // 4. Initial State
-    stateMachine.transition(STATES.IDLE);
+    // 4. Initial State - Check quiet mode
+    const isQuiet = await window.deskmate.getQuietMode();
+    stateMachine.setQuietMode(isQuiet);
+    if (isQuiet) {
+        stateMachine.transition(STATES.SLEEP);
+    } else {
+        stateMachine.transition(STATES.IDLE);
+    }
+
+    // 4.5. Listen for quiet mode changes
+    window.deskmate.onQuietModeChanged((enabled) => {
+        stateMachine.setQuietMode(enabled);
+    });
 
     // 5. Pomodoro Listener (Handled by PomodoroManager)
 
@@ -931,12 +966,20 @@ async function init() {
             // Show status bubble
             const msg = await energyManager.getStatusMessage();
             showBubble(msg, 2000);
-
         }
 
-        if (stateMachine.state === STATES.IDLE) {
+        // In quiet mode: brief wake-up then return to sleep
+        if (stateMachine.quietMode) {
+            // Clear any existing wake timer
+            if (stateMachine.wakeTimer) {
+                clearTimeout(stateMachine.wakeTimer);
+            }
             stateMachine.transition(STATES.INTERACT);
-            // Sound handled by DragController
+            stateMachine.wakeTimer = setTimeout(() => {
+                stateMachine.transition(STATES.SLEEP);
+            }, 3000);
+        } else if (stateMachine.state === STATES.IDLE) {
+            stateMachine.transition(STATES.INTERACT);
             setTimeout(() => stateMachine.transition(STATES.IDLE), 2000);
         }
     });
@@ -960,17 +1003,26 @@ async function init() {
         console.log(`[Renderer] Skin change requested: ${skinId}`);
         await animManager.loadSkin(skinId);
 
-        // Reset to idle state, or first available animation if idle doesn't exist
-        const hasIdle = animManager.skinManager.getAnimation('idle');
-        if (hasIdle) {
-            stateMachine.state = null; // Force state change
-            stateMachine.transition(STATES.IDLE);
+        // Respect quiet mode: if quiet, stay in sleep; otherwise go to idle
+        stateMachine.state = null; // Force state change
+        if (stateMachine.quietMode) {
+            const hasSleep = animManager.skinManager.getAnimation('sleep');
+            if (hasSleep) {
+                stateMachine.transition(STATES.SLEEP);
+            } else {
+                // Fallback to idle if no sleep animation
+                stateMachine.transition(STATES.IDLE);
+            }
         } else {
-            // Get first available animation key from new skin
-            const animations = animManager.skinManager.currentSkin?.animations;
-            const firstState = animations ? Object.keys(animations)[0] : 'idle';
-            stateMachine.state = null;
-            stateMachine.transition(firstState);
+            const hasIdle = animManager.skinManager.getAnimation('idle');
+            if (hasIdle) {
+                stateMachine.transition(STATES.IDLE);
+            } else {
+                // Get first available animation key from new skin
+                const animations = animManager.skinManager.currentSkin?.animations;
+                const firstState = animations ? Object.keys(animations)[0] : 'idle';
+                stateMachine.transition(firstState);
+            }
         }
         console.log(`[Renderer] Skin changed to: ${skinId}, state: ${stateMachine.state}`);
     });

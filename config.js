@@ -567,6 +567,34 @@ function getAvailablePresets() {
     return presets;
 }
 
+/**
+ * Get quiet mode state
+ */
+function getQuietMode() {
+    try {
+        const store = require('./store');
+        const value = store.get('quietMode');
+        // Default to true if not set
+        return value !== undefined ? value : true;
+    } catch (error) {
+        return true;
+    }
+}
+
+/**
+ * Set quiet mode state
+ */
+function setQuietMode(enabled) {
+    try {
+        const store = require('./store');
+        store.set('quietMode', enabled);
+        return true;
+    } catch (error) {
+        console.error('[Config] Failed to save quiet mode:', error.message);
+        return false;
+    }
+}
+
 module.exports = {
     PROVIDERS,
     VIP_FEATURES,
@@ -586,5 +614,7 @@ module.exports = {
     isVipFeatureEnabled,
     isUserVip,
     redeemInviteCode,
-    getVipStatus
+    getVipStatus,
+    getQuietMode,
+    setQuietMode
 };

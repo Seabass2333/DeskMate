@@ -25,7 +25,7 @@ const translations = {
         skins: '🎨 皮肤',
         autoStart: '🚀 开机自启',
         showHide: '🐱 显示/隐藏',
-        exit: '❌ 退出',
+        exit: '🚪 退出',
 
         // Onboarding
         welcomeBack: '哼，你终于来了喵~ 😼',
@@ -98,7 +98,8 @@ const translations = {
         statusNormal: "悠闲自在... 🐟",
         statusTired: "有点困了... 🥱",
         statusExhausted: "累趴了... 需要休息... 💤",
-        statusMeow: "喵？"
+        statusMeow: "喵？",
+        quietMode: '安静模式'
     },
 
     'en': {
@@ -116,7 +117,7 @@ const translations = {
         skins: '🎨 Skins',
         autoStart: '🚀 Auto Start',
         showHide: '🐱 Show/Hide',
-        exit: '❌ Exit',
+        exit: '🚪 Exit',
 
         // Onboarding
         welcomeBack: 'Hmph, you finally showed up~ 😼',
@@ -189,7 +190,8 @@ const translations = {
         statusNormal: "Just chilling... 🐟",
         statusTired: "Getting a bit sleepy... 🥱",
         statusExhausted: "Too tired... need rest... 💤",
-        statusMeow: "Meow?"
+        statusMeow: "Meow?",
+        quietMode: 'Quiet Mode'
     },
 
     'ja': {
@@ -207,7 +209,7 @@ const translations = {
         skins: '🎨 スキン',
         autoStart: '🚀 自動起動',
         showHide: '🐱 表示/非表示',
-        exit: '❌ 終了',
+        exit: '🚪 終了',
 
         // Onboarding
         welcomeBack: 'ふん、やっと来たにゃ~ 😼',
@@ -275,7 +277,8 @@ const translations = {
         statusNormal: "まったり中... 🐟",
         statusTired: "ちょっと眠いにゃ... 🥱",
         statusExhausted: "疲れたにゃ... 休ませて... 💤",
-        statusMeow: "にゃ？"
+        statusMeow: "にゃ？",
+        quietMode: '静かモード'
     },
 
     'ko': {
@@ -293,7 +296,7 @@ const translations = {
         skins: '🎨 스킨',
         autoStart: '🚀 자동 시작',
         showHide: '🐱 보이기/숨기기',
-        exit: '❌ 종료',
+        exit: '🚪 종료',
 
         // Onboarding
         welcomeBack: '흥, 드디어 왔냥~ 😼',
@@ -361,7 +364,8 @@ const translations = {
         statusNormal: "빈둥빈둥... 🐟",
         statusTired: "좀 졸리다냥... 🥱",
         statusExhausted: "너무 힘들어... 쉴래... 💤",
-        statusMeow: "냥?"
+        statusMeow: "냥?",
+        quietMode: '조용한 모드'
     },
 
     'es': {
@@ -379,7 +383,7 @@ const translations = {
         skins: '🎨 Skins',
         autoStart: '🚀 Inicio Automático',
         showHide: '🐱 Mostrar/Ocultar',
-        exit: '❌ Salir',
+        exit: '🚪 Salir',
 
         // Onboarding
         welcomeBack: 'Hmph, finalmente llegaste~ 😼',
@@ -447,7 +451,8 @@ const translations = {
         statusNormal: "Solo relajándome... 🐟",
         statusTired: "Me está entrando sueño... 🥱",
         statusExhausted: "Demasiado cansado... necesito descansar... 💤",
-        statusMeow: "¿Miau?"
+        statusMeow: "¿Miau?",
+        quietMode: 'Modo Silencioso'
     },
 
     'fr': {
@@ -465,7 +470,7 @@ const translations = {
         skins: '🎨 Thèmes',
         autoStart: '🚀 Démarrage Auto',
         showHide: '🐱 Afficher/Masquer',
-        exit: '❌ Quitter',
+        exit: '🚪 Quitter',
 
         // Onboarding
         welcomeBack: 'Hmph, tu es enfin là~ 😼',
@@ -533,7 +538,8 @@ const translations = {
         statusNormal: "Je me détends... 🐟",
         statusTired: "Je commence à avoir sommeil... 🥱",
         statusExhausted: "Trop fatigué... besoin de repos... 💤",
-        statusMeow: "Miaou?"
+        statusMeow: "Miaou?",
+        quietMode: 'Mode Silencieux'
     },
 
     'de': {
@@ -551,7 +557,7 @@ const translations = {
         skins: '🎨 Skins',
         autoStart: '🚀 Autostart',
         showHide: '🐱 Zeigen/Verbergen',
-        exit: '❌ Beenden',
+        exit: '🚪 Beenden',
 
         // Onboarding
         welcomeBack: 'Hmph, endlich bist du da~ 😼',
@@ -619,7 +625,8 @@ const translations = {
         statusNormal: "Nur am Chillen... 🐟",
         statusTired: "Werde langsam müde... 🥱",
         statusExhausted: "Zu müde... brauche Ruhe... 💤",
-        statusMeow: "Miau?"
+        statusMeow: "Miau?",
+        quietMode: 'Leiser Modus'
     }
 };
 

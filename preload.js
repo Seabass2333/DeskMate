@@ -231,6 +231,15 @@ contextBridge.exposeInMainWorld('deskmate', {
     getVipStatus: () => ipcRenderer.invoke('vip:getStatus'),
 
     // ============================================
+    // Quiet Mode
+    // ============================================
+    getQuietMode: () => ipcRenderer.invoke('quietMode:get'),
+    setQuietMode: (enabled) => ipcRenderer.invoke('quietMode:set', enabled),
+    onQuietModeChanged: (callback) => {
+        ipcRenderer.on('quiet-mode-changed', (_, enabled) => callback(enabled));
+    },
+
+    // ============================================
     // Skin
     // ============================================
 
