@@ -52,10 +52,8 @@ jobs:
           name: ${{ matrix.artifact_name }}-build
           path: |
             dist/*.dmg
-            dist/*.zip
             dist/*.exe
-            dist/*.yml
-            dist/*.blockmap
+            dist/*latest*.yml
           if-no-files-found: warn
 
   release:
@@ -78,10 +76,8 @@ jobs:
         with:
           files: |
             artifacts/*.dmg
-            artifacts/*.zip
             artifacts/*.exe
-            artifacts/*.yml
-            artifacts/*.blockmap
+            artifacts/*latest*.yml
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') }}
