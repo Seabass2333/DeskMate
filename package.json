@@ -53,18 +53,10 @@
       "!.agent/**",
       "!build/**"
     ],
-    "extraResources": [
-      {
-        "from": "assets",
-        "to": "assets",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
+    "asar": true,
     "mac": {
       "category": "public.app-category.productivity",
-      "icon": "assets/images/icon.icns",
+      "icon": "build/icon.icns",
       "target": [
         {
           "target": "dmg",
@@ -102,7 +94,7 @@
       }
     },
     "win": {
-      "icon": "assets/images/icon.ico",
+      "icon": "build/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -119,9 +111,9 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/images/icon.ico",
-      "uninstallerIcon": "assets/images/icon.ico",
-      "installerHeaderIcon": "assets/images/icon.ico",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "DeskMate"
