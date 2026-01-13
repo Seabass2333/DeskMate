@@ -607,9 +607,14 @@ function updateSkinPreview(skinId) {
             const totalWidth = baseW * frames;
             spriteDiv.style.backgroundSize = `${totalWidth}px ${baseH}px`;
 
-            // Transform for visibility
-            const scale = 3;
-            spriteDiv.style.transform = `scale(${scale})`;
+            // Transform for visibility - use smaller scale for larger base sprites
+            const baseMaxDim = Math.max(baseW, baseH);
+            // Target ~100px display, but cap scale for very large sprites
+            const scale = baseMaxDim >= 64 ? 2 : 3;
+            // Move larger sprites up to center them visually
+            const translateY = baseMaxDim >= 64 ? '-20px' : '0';
+            spriteDiv.style.transform = `scale(${scale}) translateY(${translateY})`;
+            spriteDiv.style.transformOrigin = 'center center';
             spriteDiv.style.imageRendering = 'pixelated';
 
             skinPreviewContainer.appendChild(spriteDiv);

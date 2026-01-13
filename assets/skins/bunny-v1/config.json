@@ -6,8 +6,11 @@
     "description": "A bouncy bunny",
     "preview": "idle.png",
     "features": [],
-    "baseSize": [32, 32],
-    "scale": 4,
+    "baseSize": [
+        32,
+        32
+    ],
+    "scale": 5,
     "animations": {
         "idle": {
             "src": "idle.png",

@@ -284,11 +284,12 @@ select option {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
     padding: 20px;
-    min-height: 140px;
+    min-height: 200px;
     border: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
 }
 
 .skin-preview-container img {

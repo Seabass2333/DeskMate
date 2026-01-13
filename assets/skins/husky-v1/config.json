@@ -6,8 +6,11 @@
     "description": "A loyal husky",
     "preview": "idle.png",
     "features": [],
-    "baseSize": [64, 64],
-    "scale": 2,
+    "baseSize": [
+        64,
+        64
+    ],
+    "scale": 3,
     "animations": {
         "idle": {
             "src": "idle.png",
