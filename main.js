@@ -276,7 +276,7 @@ function createTray() {
   let trayIcon = createFallbackTrayIcon();
 
   // Try to load custom icon
-  const iconPath = path.join(__dirname, 'assets/images/tray-icon.png');
+  const iconPath = path.join(__dirname, 'assets/images/tray-icon-optimized.png');
   try {
     const customIcon = nativeImage.createFromPath(iconPath);
     if (!customIcon.isEmpty()) {

@@ -139,7 +139,21 @@ const SETTINGS_I18N = {
         save: '保存设置',
         testing: '测试中...',
         connectionSuccess: '✓ 连接成功',
-        saving: '保存中...'
+        saving: '保存中...',
+        vipSection: '👑 VIP 会员',
+        skinSection: '🎨 皮肤',
+        vipPro: '专业版',
+        vipFree: '免费版',
+        vipUnlocked: '已通过邀请码解锁: ${code}',
+        vipDesc: '输入邀请码解锁高级功能（Pochi 皮肤、无限专注时常等）',
+        redeem: '兑换',
+        redeeming: '验证中...',
+        redeemSuccess: '✅ 成功！已解锁高级功能。',
+        redeemInvalid: '❌ 无效的邀请码。',
+        redeemEmpty: '⚠️ 请输入邀请码。',
+        redeemError: '❌ 错误: ${msg}',
+        vipRequired: '此皮肤需要 VIP 会员。',
+        getKeyHelp: '获取 API Key'
     },
     'en': {
         settingsTitle: 'Settings',
@@ -161,7 +175,21 @@ const SETTINGS_I18N = {
         save: 'Save Settings',
         testing: 'Testing...',
         connectionSuccess: '✓ Connected',
-        saving: 'Saving...'
+        saving: 'Saving...',
+        vipSection: '👑 VIP Membership',
+        skinSection: '🎨 Skin',
+        vipPro: 'PRO MEMBER',
+        vipFree: 'FREE',
+        vipUnlocked: 'Unlocked via code: ${code}',
+        vipDesc: 'Enter invite code for premium features (Pochi skin, unlimited Pomodoro, etc.)',
+        redeem: 'Redeem',
+        redeeming: 'Checking...',
+        redeemSuccess: '✅ Success! Features unlocked.',
+        redeemInvalid: '❌ Invalid code.',
+        redeemEmpty: '⚠️ Please enter a code.',
+        redeemError: '❌ Error: ${msg}',
+        vipRequired: 'This skin requires VIP membership.',
+        getKeyHelp: 'Get API Key'
     },
     'ja': {
         settingsTitle: '設定',
@@ -181,7 +209,157 @@ const SETTINGS_I18N = {
         save: '保存',
         testing: 'テスト中...',
         connectionSuccess: '✓ 接続成功',
-        saving: '保存中...'
+        saving: '保存中...',
+        vipSection: '👑 VIP メンバーシップ',
+        skinSection: '🎨 スキン',
+        vipPro: 'プロ会員',
+        vipFree: '無料',
+        vipUnlocked: 'コードでロック解除済み: ${code}',
+        vipDesc: '招待コードを入力してプレミアム機能をロック解除',
+        redeem: '引き換える',
+        redeeming: '確認中...',
+        redeemSuccess: '✅ 成功！機能がロック解除されました。',
+        redeemInvalid: '❌ 無効なコードです。',
+        redeemEmpty: '⚠️ コードを入力してください。',
+        redeemError: '❌ エラー: ${msg}',
+        vipRequired: 'このスキンにはVIPメンバーシップが必要です。',
+        getKeyHelp: 'API Keyを取得'
+    },
+    'ko': {
+        settingsTitle: '설정',
+        providerSection: 'API 제공자',
+        region: '지역',
+        regionChina: '🇨🇳 중국',
+        regionGlobal: '🌍 글로벌',
+        regionLocal: '💻 로컬',
+        provider: '제공자',
+        apiKeySection: 'API 키',
+        apiKey: 'API 키',
+        model: '모델',
+        testConnection: '연결 테스트',
+        language: '언어',
+        interfaceLanguage: '인터페이스 언어',
+        cancel: '취소',
+        save: '저장',
+        testing: '테스트 중...',
+        connectionSuccess: '✓ 연결 성공',
+        saving: '저장 중...',
+        vipSection: '👑 VIP 멤버십',
+        skinSection: '🎨 스킨',
+        vipPro: '프로 회원',
+        vipFree: '무료',
+        vipUnlocked: '코드 ${code}로 잠금 해제됨',
+        vipDesc: '초대 코드를 입력하여 프리미엄 기능을 잠금 해제하세요',
+        redeem: '사용하기',
+        redeeming: '확인 중...',
+        redeemSuccess: '✅ 성공! 기능이 잠금 해제되었습니다.',
+        redeemInvalid: '❌ 유효하지 않은 코드입니다.',
+        redeemEmpty: '⚠️ 코드를 입력해주세요.',
+        redeemError: '❌ 오류: ${msg}',
+        vipRequired: '이 스킨은 VIP 멤버십이 필요합니다.',
+        getKeyHelp: 'API Key 받기'
+    },
+    'es': {
+        settingsTitle: 'Configuración',
+        providerSection: 'Proveedor API',
+        region: 'Región',
+        regionChina: '🇨🇳 China',
+        regionGlobal: '🌍 Global',
+        regionLocal: '💻 Local',
+        provider: 'Proveedor',
+        apiKeySection: 'Clave API',
+        apiKey: 'Clave API',
+        model: 'Modelo',
+        testConnection: 'Probar Conexión',
+        language: 'Idioma',
+        interfaceLanguage: 'Idioma de Interfaz',
+        cancel: 'Cancelar',
+        save: 'Guardar',
+        testing: 'Probando...',
+        connectionSuccess: '✓ Conectado',
+        saving: 'Guardando...',
+        vipSection: '👑 Membresía VIP',
+        skinSection: '🎨 Skin',
+        vipPro: 'MIEMBRO PRO',
+        vipFree: 'GRATIS',
+        vipUnlocked: 'Desbloqueado vía código: ${code}',
+        vipDesc: 'Ingresa código de invitación para funciones premium',
+        redeem: 'Canjear',
+        redeeming: 'Comprobando...',
+        redeemSuccess: '✅ ¡Éxito! Funciones desbloqueadas.',
+        redeemInvalid: '❌ Código inválido.',
+        redeemEmpty: '⚠️ Ingresa un código.',
+        redeemError: '❌ Error: ${msg}',
+        vipRequired: 'Este skin requiere membresía VIP.',
+        getKeyHelp: 'Obtener API Key'
+    },
+    'fr': {
+        settingsTitle: 'Paramètres',
+        providerSection: 'Fournisseur API',
+        region: 'Région',
+        regionChina: '🇨🇳 Chine',
+        regionGlobal: '🌍 Global',
+        regionLocal: '💻 Local',
+        provider: 'Fournisseur',
+        apiKeySection: 'Clé API',
+        apiKey: 'Clé API',
+        model: 'Modèle',
+        testConnection: 'Tester Connexion',
+        language: 'Langue',
+        interfaceLanguage: 'Langue d\'interface',
+        cancel: 'Annuler',
+        save: 'Enregistrer',
+        testing: 'Test...',
+        connectionSuccess: '✓ Connecté',
+        saving: 'Enregistrement...',
+        vipSection: '👑 Membre VIP',
+        skinSection: '🎨 Thème',
+        vipPro: 'MEMBRE PRO',
+        vipFree: 'GRATUIT',
+        vipUnlocked: 'Débloqué via code: ${code}',
+        vipDesc: 'Entrez le code d\'invitation pour les fonctions premium',
+        redeem: 'Échanger',
+        redeeming: 'Vérification...',
+        redeemSuccess: '✅ Succès! Fonctions débloquées.',
+        redeemInvalid: '❌ Code invalide.',
+        redeemEmpty: '⚠️ Veuillez entrer un code.',
+        redeemError: '❌ Erreur: ${msg}',
+        vipRequired: 'Ce thème nécessite un membre VIP.',
+        getKeyHelp: 'Obtenir Clé API'
+    },
+    'de': {
+        settingsTitle: 'Einstellungen',
+        providerSection: 'API Anbieter',
+        region: 'Region',
+        regionChina: '🇨🇳 China',
+        regionGlobal: '🌍 Global',
+        regionLocal: '💻 Lokal',
+        provider: 'Anbieter',
+        apiKeySection: 'API Key',
+        apiKey: 'API Key',
+        model: 'Modell',
+        testConnection: 'Verbindung testen',
+        language: 'Sprache',
+        interfaceLanguage: 'Interface Sprache',
+        cancel: 'Abbrechen',
+        save: 'Speichern',
+        testing: 'Testen...',
+        connectionSuccess: '✓ Verbunden',
+        saving: 'Speichern...',
+        vipSection: '👑 VIP Mitgliedschaft',
+        skinSection: '🎨 Skin',
+        vipPro: 'PRO MITGLIED',
+        vipFree: 'KOSTENLOS',
+        vipUnlocked: 'Freigeschaltet mit Code: ${code}',
+        vipDesc: 'Einladungscode eingeben für Premium-Funktionen',
+        redeem: 'Einlösen',
+        redeeming: 'Prüfen...',
+        redeemSuccess: '✅ Erfolg! Funktionen freigeschaltet.',
+        redeemInvalid: '❌ Ungültiger Code.',
+        redeemEmpty: '⚠️ Bitte Code eingeben.',
+        redeemError: '❌ Fehler: ${msg}',
+        vipRequired: 'Dieser Skin benötigt VIP-Mitgliedschaft.',
+        getKeyHelp: 'API Key erhalten'
     }
 };
 
@@ -471,15 +649,15 @@ function updateVipStatusUI(status) {
     if (!vipStatusBadge) return;
 
     if (status && status.enabled) {
-        vipStatusBadge.textContent = 'PRO MEMBER';
+        vipStatusBadge.textContent = t('vipPro');
         vipStatusBadge.classList.add('premium');
-        vipStatusText.textContent = `Unlocked via code: ${status.code}`;
+        vipStatusText.textContent = t('vipUnlocked').replace('${code}', status.code);
         vipInputContainer.classList.add('hidden'); // Hide input if already VIP
         isVip = true;
     } else {
-        vipStatusBadge.textContent = 'FREE';
+        vipStatusBadge.textContent = t('vipFree');
         vipStatusBadge.classList.remove('premium');
-        vipStatusText.textContent = 'Enter invite code for premium features (Pochi skin, unlimited Pomodoro, etc.)';
+        vipStatusText.textContent = t('vipDesc');
         isVip = false;
     }
 
@@ -495,7 +673,7 @@ async function redeemInviteCode() {
     if (!code) return;
 
     vipRedeemBtn.disabled = true;
-    vipRedeemBtn.textContent = 'Checking...';
+    vipRedeemBtn.textContent = t('redeeming');
     vipMessage.textContent = '';
     vipMessage.className = 'vip-message';
 
@@ -505,7 +683,7 @@ async function redeemInviteCode() {
         console.log('[Settings] Redeem result:', result);
 
         if (result.success) {
-            vipMessage.textContent = '✅ Success! Features unlocked.';
+            vipMessage.textContent = t('redeemSuccess');
             vipMessage.className = 'vip-message success';
             // Reload status
             const newStatus = await window.settingsAPI.getVipStatus();
@@ -514,11 +692,11 @@ async function redeemInviteCode() {
             // Classify errors
             let errorMsg = result.message;
             if (result.message === 'Invalid code') {
-                errorMsg = '❌ Invalid code. Please check again.';
+                errorMsg = t('redeemInvalid');
             } else if (result.message === 'Code is empty') {
-                errorMsg = '⚠️ Please enter a code.';
+                errorMsg = t('redeemEmpty');
             } else {
-                errorMsg = `❌ Error: ${result.message}`;
+                errorMsg = t('redeemError').replace('${msg}', result.message);
             }
 
             vipMessage.textContent = errorMsg;
@@ -529,7 +707,7 @@ async function redeemInviteCode() {
         vipMessage.className = 'vip-message error';
     } finally {
         vipRedeemBtn.disabled = false;
-        vipRedeemBtn.textContent = 'Redeem';
+        vipRedeemBtn.textContent = t('redeem');
     }
 }
 
@@ -549,7 +727,7 @@ async function saveSettings() {
         // Check if selected skin is locked
         let selectedSkin = skinSelect ? skinSelect.value : 'mochi-v1';
         if (!isVip && selectedSkin !== 'mochi-v1') {
-            alert('This skin requires VIP membership. Reverting to Mochi.');
+            alert(t('vipRequired'));
             selectedSkin = 'mochi-v1';
         }
 
@@ -663,8 +841,10 @@ function updateApiKeyHelpLink(config) {
     }
 
     if (helpText && config.getKeyText) {
-        const lang = currentLang.startsWith('zh') ? 'zh-CN' : 'en';
-        helpText.textContent = config.getKeyText[lang] || config.getKeyText['en'];
+        // Fallback hierarchy: currentLang -> en -> zh-CN
+        const text = config.getKeyText[currentLang] || config.getKeyText['en'] || config.getKeyText['zh-CN'];
+        // If still not found (e.g. skin/vip keys), use generic "Get API Key"
+        helpText.textContent = text || t('getKeyHelp');
     }
 }
 

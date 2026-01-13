@@ -90,7 +90,15 @@ const translations = {
             "你在干嘛？...随便问问 👀",
             "有小鱼干吗？🐟",
             "该休息了吧？本喵说的 ☕"
-        ]
+        ],
+
+        // Status Messages
+        statusHyper: "能量爆棚！⚡️",
+        statusEnergetic: "感觉超棒！随时待命！😺",
+        statusNormal: "悠闲自在... 🐟",
+        statusTired: "有点困了... 🥱",
+        statusExhausted: "累趴了... 需要休息... 💤",
+        statusMeow: "喵？"
     },
 
     'en': {
@@ -173,7 +181,15 @@ const translations = {
             "What are you doing? ...just asking 👀",
             "Got any treats? 🐟",
             "Time for a break, I said so ☕"
-        ]
+        ],
+
+        // Status Messages
+        statusHyper: "I'm overflowing with energy! ⚡️",
+        statusEnergetic: "Feeling great! Ready to help! 😺",
+        statusNormal: "Just chilling... 🐟",
+        statusTired: "Getting a bit sleepy... 🥱",
+        statusExhausted: "Too tired... need rest... 💤",
+        statusMeow: "Meow?"
     },
 
     'ja': {
@@ -251,7 +267,15 @@ const translations = {
             "何してるの？...聞いてみただけ 👀",
             "おやつある？🐟",
             "もう休憩したら？私がそう言うんだから ☕"
-        ]
+        ],
+
+        // Status Messages
+        statusHyper: "エネルギー満タンだにゃ！⚡️",
+        statusEnergetic: "調子いいにゃ！任せて！😺",
+        statusNormal: "まったり中... 🐟",
+        statusTired: "ちょっと眠いにゃ... 🥱",
+        statusExhausted: "疲れたにゃ... 休ませて... 💤",
+        statusMeow: "にゃ？"
     },
 
     'ko': {
@@ -329,7 +353,15 @@ const translations = {
             "뭐해? ...그냥 물어봤어 👀",
             "간식 있어? 🐟",
             "이제 쉴 때 됐잖아? 내가 그렇다면 그런거야 ☕"
-        ]
+        ],
+
+        // Status Messages
+        statusHyper: "에너지가 넘친다냥! ⚡️",
+        statusEnergetic: "기분 최고다냥! 준비 완료! 😺",
+        statusNormal: "빈둥빈둥... 🐟",
+        statusTired: "좀 졸리다냥... 🥱",
+        statusExhausted: "너무 힘들어... 쉴래... 💤",
+        statusMeow: "냥?"
     },
 
     'es': {
@@ -407,7 +439,15 @@ const translations = {
             "¿Qué haces? ...solo pregunto 👀",
             "¿Tienes premios? 🐟",
             "Hora de un descanso, yo lo digo ☕"
-        ]
+        ],
+
+        // Status Messages
+        statusHyper: "¡Estoy rebosante de energía! ⚡️",
+        statusEnergetic: "¡Me siento genial! ¡Listo para ayudar! 😺",
+        statusNormal: "Solo relajándome... 🐟",
+        statusTired: "Me está entrando sueño... 🥱",
+        statusExhausted: "Demasiado cansado... necesito descansar... 💤",
+        statusMeow: "¿Miau?"
     },
 
     'fr': {
@@ -485,7 +525,15 @@ const translations = {
             "Tu fais quoi? ...je demande juste 👀",
             "Tu as des friandises? 🐟",
             "L'heure de la pause, c'est moi qui le dis ☕"
-        ]
+        ],
+
+        // Status Messages
+        statusHyper: "Je déborde d'énergie! ⚡️",
+        statusEnergetic: "Je me sens super bien! Prêt à aider! 😺",
+        statusNormal: "Je me détends... 🐟",
+        statusTired: "Je commence à avoir sommeil... 🥱",
+        statusExhausted: "Trop fatigué... besoin de repos... 💤",
+        statusMeow: "Miaou?"
     },
 
     'de': {
@@ -563,7 +611,15 @@ const translations = {
             "Was machst du? ...frage nur so 👀",
             "Hast du Leckerlis? 🐟",
             "Zeit für eine Pause, sag ich ☕"
-        ]
+        ],
+
+        // Status Messages
+        statusHyper: "Ich platze vor Energie! ⚡️",
+        statusEnergetic: "Fühl mich super! Bereit zu helfen! 😺",
+        statusNormal: "Nur am Chillen... 🐟",
+        statusTired: "Werde langsam müde... 🥱",
+        statusExhausted: "Zu müde... brauche Ruhe... 💤",
+        statusMeow: "Miau?"
     }
 };
 

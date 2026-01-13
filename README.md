@@ -2,7 +2,7 @@
 
 A cute desktop pet with AI chat, Pomodoro timer, and smart reminders.
 
-![DeskMate Screenshot](assets/images/idle.png)
+![DeskMate Screenshot](assets/skins/mochi-v1/idle.png)
 
 ## ✨ Features
 

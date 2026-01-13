@@ -91,7 +91,8 @@
       "window": {
         "width": 540,
         "height": 380
-      }
+      },
+      "background": "assets/images/cover.png"
     },
     "win": {
       "icon": "build/icon.ico",
@@ -119,7 +120,7 @@
       "shortcutName": "DeskMate"
     },
     "linux": {
-      "icon": "assets/images/icon.png",
+      "icon": "build/icon.png",
       "target": [
         {
           "target": "AppImage",

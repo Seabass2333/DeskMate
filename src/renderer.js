@@ -283,15 +283,15 @@ class EnergyManager {
         return this.energy;
     }
 
-    getStatusMessage() {
+    async getStatusMessage() {
         const tier = this.getTier();
         switch (tier) {
-            case 'hyper': return "I'm overflowing with energy! ⚡️";
-            case 'energetic': return "Feeling great! Ready to help! 😺";
-            case 'normal': return "Just chilling... 🐟";
-            case 'tired': return "Getting a bit sleepy... 🥱";
-            case 'exhausted': return "Too tired... need rest... 💤";
-            default: return "Meow?";
+            case 'hyper': return await window.deskmate.t('statusHyper');
+            case 'energetic': return await window.deskmate.t('statusEnergetic');
+            case 'normal': return await window.deskmate.t('statusNormal');
+            case 'tired': return await window.deskmate.t('statusTired');
+            case 'exhausted': return await window.deskmate.t('statusExhausted');
+            default: return await window.deskmate.t('statusMeow');
         }
     }
 
@@ -884,7 +884,7 @@ async function init() {
     } catch (skinError) {
         console.error('[Renderer] Skin loading failed, using fallback:', skinError);
         // Show a basic fallback image so the app isn't invisible
-        charEl.style.backgroundImage = 'url(assets/images/idle.png)';
+        charEl.style.backgroundImage = 'url(assets/skins/mochi-v1/idle.png)';
         charEl.style.backgroundSize = 'contain';
         charEl.style.backgroundRepeat = 'no-repeat';
         charEl.style.width = '128px';
@@ -929,7 +929,7 @@ async function init() {
         if (energyManager) {
             await energyManager.modifyEnergy(2);
             // Show status bubble
-            const msg = energyManager.getStatusMessage();
+            const msg = await energyManager.getStatusMessage();
             showBubble(msg, 2000);
 
         }

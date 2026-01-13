@@ -38,7 +38,7 @@ body {
 
 /*
  * SPRITE SHEET SETUP:
- * - Place your sprite sheet at: assets/images/idle.png
+ * - Place your sprite sheet at: assets/skins/<skin-name>/idle.png
  * - Expected: 10 frames horizontally, each 32x32px
  * - Total sprite sheet size: 320x32px
  * - Displayed at: 128x128px (4x scale)
