@@ -1,0 +1,43 @@
+{
+    "id": "tiger-v1",
+    "name": "Tiger Cat",
+    "author": "DeskMate",
+    "version": "1.0.0",
+    "description": "A fierce but cute tiger cat",
+    "preview": "idle.png",
+    "features": [],
+    "baseSize": [32, 32],
+    "scale": 4,
+    "animations": {
+        "idle": {
+            "src": "idle.png",
+            "frames": 7,
+            "speed": 1000
+        },
+        "working": {
+            "src": "working.png",
+            "frames": 7,
+            "speed": 800
+        },
+        "sleep": {
+            "src": "sleep.png",
+            "frames": 3,
+            "speed": 1500
+        },
+        "thinking": {
+            "src": "thinking.png",
+            "frames": 3,
+            "speed": 1000
+        },
+        "drag": {
+            "src": "drag.png",
+            "frames": 7,
+            "speed": 600
+        },
+        "interact": {
+            "src": "interact.png",
+            "frames": 9,
+            "speed": 800
+        }
+    }
+}

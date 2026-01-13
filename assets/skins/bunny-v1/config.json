@@ -1,0 +1,43 @@
+{
+    "id": "bunny-v1",
+    "name": "Bunny",
+    "author": "DeskMate",
+    "version": "1.0.0",
+    "description": "A bouncy bunny",
+    "preview": "idle.png",
+    "features": [],
+    "baseSize": [32, 32],
+    "scale": 4,
+    "animations": {
+        "idle": {
+            "src": "idle.png",
+            "frames": 12,
+            "speed": 1200
+        },
+        "working": {
+            "src": "working.png",
+            "frames": 8,
+            "speed": 800
+        },
+        "sleep": {
+            "src": "sleep.png",
+            "frames": 6,
+            "speed": 1500
+        },
+        "thinking": {
+            "src": "idle.png",
+            "frames": 12,
+            "speed": 1200
+        },
+        "drag": {
+            "src": "drag.png",
+            "frames": 8,
+            "speed": 600
+        },
+        "interact": {
+            "src": "interact.png",
+            "frames": 9,
+            "speed": 800
+        }
+    }
+}
