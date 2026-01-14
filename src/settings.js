@@ -138,6 +138,7 @@ const SETTINGS_I18N = {
         cancel: '取消',
         save: '保存设置',
         testing: '测试中...',
+        sending: '发送中...',
         connectionSuccess: '✓ 连接成功',
         saving: '保存中...',
         vipSection: '👑 VIP 会员',
@@ -184,6 +185,7 @@ const SETTINGS_I18N = {
         cancel: 'Cancel',
         save: 'Save Settings',
         testing: 'Testing...',
+        sending: 'Sending...',
         connectionSuccess: '✓ Connected',
         saving: 'Saving...',
         vipSection: '👑 VIP Membership',
@@ -227,6 +229,7 @@ const SETTINGS_I18N = {
         cancel: 'キャンセル',
         save: '保存',
         testing: 'テスト中...',
+        sending: '送信中...',
         connectionSuccess: '✓ 接続成功',
         saving: '保存中...',
         vipSection: '👑 VIP メンバーシップ',
@@ -261,6 +264,7 @@ const SETTINGS_I18N = {
         cancel: '취소',
         save: '저장',
         testing: '테스트 중...',
+        sending: '전송 중...',
         connectionSuccess: '✓ 연결 성공',
         saving: '저장 중...',
         vipSection: '👑 VIP 멤버십',
@@ -295,6 +299,7 @@ const SETTINGS_I18N = {
         cancel: 'Cancelar',
         save: 'Guardar',
         testing: 'Probando...',
+        sending: 'Enviando...',
         connectionSuccess: '✓ Conectado',
         saving: 'Guardando...',
         vipSection: '👑 Membresía VIP',
@@ -329,6 +334,7 @@ const SETTINGS_I18N = {
         cancel: 'Annuler',
         save: 'Enregistrer',
         testing: 'Test...',
+        sending: 'Envoi...',
         connectionSuccess: '✓ Connecté',
         saving: 'Enregistrement...',
         vipSection: '👑 Membre VIP',
@@ -363,6 +369,7 @@ const SETTINGS_I18N = {
         cancel: 'Abbrechen',
         save: 'Speichern',
         testing: 'Testen...',
+        sending: 'Senden...',
         connectionSuccess: '✓ Verbunden',
         saving: 'Speichern...',
         vipSection: '👑 VIP Mitgliedschaft',
@@ -521,8 +528,30 @@ async function init() {
         skinSelect?.addEventListener('change', onSkinChange);
         vipRedeemBtn?.addEventListener('click', redeemInviteCode);
 
+        // Dev: Reset VIP
+        document.getElementById('reset-vip-btn')?.addEventListener('click', async () => {
+            if (confirm('Reset VIP status to Free? This will lock skins and features.')) {
+                await window.settingsAPI.resetVip();
+                // Reload settings to refresh UI
+                const newStatus = await window.settingsAPI.getVipStatus();
+                updateVipStatusUI(newStatus);
+
+                // Also refresh stats as skin might change
+                currentSettings = await window.settingsAPI.getSettings();
+                isVip = newStatus?.enabled || false; // Update global state
+
+                populateSkins(availableSkins, currentSettings.skin);
+                updateTimerLocks(); // Update locks
+
+                alert('VIP reset to Free.');
+            }
+        });
+
         // Init Auth
         initAuth();
+
+        // Initial Timer Lock Check
+        updateTimerLocks();
 
         // Enhance Invite Code UX
         if (vipCodeInput && vipRedeemBtn) {
@@ -690,6 +719,27 @@ function updateVipStatusUI(status) {
 
     // Refresh skin list to update locks
     populateSkins(availableSkins, skinSelect ? skinSelect.value : null);
+
+    // Refresh Timer Locks
+    updateTimerLocks();
+}
+
+/**
+ * Update Timer Locks (Phase 4)
+ */
+function updateTimerLocks() {
+    if (!pomodoroInput) return;
+
+    if (isVip) {
+        pomodoroInput.disabled = false;
+        pomodoroInput.title = '';
+        pomodoroInput.parentElement.classList.remove('locked-input');
+    } else {
+        pomodoroInput.disabled = true;
+        pomodoroInput.value = 25; // Reset to default
+        pomodoroInput.title = t('vipRequired') || 'VIP Required';
+        // Optional: Add visual indicator style if needed, for now standard disabled attribute is sufficient
+    }
 }
 
 /**
@@ -765,8 +815,10 @@ async function saveSettings() {
             model: modelInput.value,
             soundEnabled: soundToggle ? soundToggle.checked : true,
             skin: selectedSkin,
+            skin: selectedSkin,
             pomodoro: {
-                defaultDuration: parseInt(pomodoroInput.value) || 25
+                // Phase 4: Enforce 25m limit for non-VIP
+                defaultDuration: isVip ? (parseInt(pomodoroInput.value) || 25) : 25
             },
             reminders: {
                 // Preserve enabled states
@@ -831,6 +883,21 @@ async function initAuth() {
     sendOtpBtn?.addEventListener('click', handleSendOtp);
     verifyOtpBtn?.addEventListener('click', handleVerifyOtp);
     signOutBtn?.addEventListener('click', handleSignOut);
+
+    // Email Input Logic (Enable button only if valid)
+    if (linkEmailInput && sendOtpBtn) {
+        // Initial state
+        sendOtpBtn.disabled = !linkEmailInput.value.trim();
+
+        linkEmailInput.addEventListener('input', () => {
+            const val = linkEmailInput.value.trim();
+            sendOtpBtn.disabled = !val;
+            // Clear error on type
+            if (authMessage && authMessage.textContent) {
+                authMessage.textContent = '';
+            }
+        });
+    }
 
     // OTP Input Logic
     otpInputs = Array.from(document.querySelectorAll('.otp-digit'));
@@ -959,12 +1026,13 @@ let countdownTimer = null;
 async function handleSendOtp() {
     const email = linkEmailInput.value.trim();
     if (!email) {
-        showAuthMessage(t('redeemEmpty'), 'error');
+        // Should be ignored if disabled, but double check
+        showAuthMessage(t('emailRequired') || 'Email required', 'error');
         return;
     }
 
     sendOtpBtn.disabled = true;
-    showAuthMessage(t('testing'), 'info'); // "Testing..." -> "Sending..."
+    showAuthMessage(t('sending'), 'info'); // "Sending..."
 
     try {
         const result = await window.settingsAPI.sendOtp(email);

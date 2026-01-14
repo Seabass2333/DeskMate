@@ -131,16 +131,30 @@
         </div>
 
         <div class="settings-group">
-            <h3>👑 <span data-i18n="vipSection">VIP Membership</span></h3>
+            <h3><span data-i18n="vipSection">VIP Membership</span></h3>
             <div id="vip-status-container" class="vip-status-container">
-                <span id="vip-status-badge" class="badge">FREE</span>
-                <p id="vip-status-text">Enter invite code to unlock premium features.</p>
+                <div class="vip-card-header">
+                    <span id="vip-status-badge" class="badge">FREE</span>
+                    <p id="vip-status-text">Unlock premium skins & unlimited focus timer.</p>
+                </div>
+
+                <div class="vip-input-row" id="vip-input-container">
+                    <input type="text" id="vip-code-input" placeholder="Invite Code (e.g. CAT-LOVER)" maxlength="20">
+                    <button id="vip-redeem-btn" class="btn-primary" data-i18n="redeem" disabled>Redeem</button>
+                </div>
+                <div id="vip-message" class="vip-message"></div>
+                <div id="vip-lock-msg" class="vip-lock-msg hidden">
+                    <span class="lock-icon">🔒</span> <span data-i18n="vipRequired">VIP Required</span>
+                </div>
+
+                <!-- Dev Tool: Reset VIP -->
+                <!-- <div style="margin-top: 10px; text-align: center;">
+                    <button id="reset-vip-btn"
+                        style="background: none; border: none; color: #666; font-size: 11px; cursor: pointer; text-decoration: underline;">
+                        [Dev] Reset VIP
+                    </button>
+                </div> -->
             </div>
-            <div id="vip-input-container" class="vip-input-container">
-                <input type="text" id="vip-code-input" class="settings-input" placeholder="Enter Invite Code">
-                <button id="vip-redeem-btn" class="settings-save-btn" data-i18n="redeem">Redeem</button>
-            </div>
-            <div id="vip-message" class="vip-message"></div>
         </div>
 
         <!-- User Account (v1.2) -->

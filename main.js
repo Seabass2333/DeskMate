@@ -5,7 +5,7 @@ const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeIma
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
-const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus, getQuietMode, setQuietMode } = require('./config');
+const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus, getQuietMode, setQuietMode, isUserVip } = require('./config');
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
 const { trackAppLaunched, trackSkinChanged, trackVipActivated } = require('./src/services/AnalyticsService');
 const { authService } = require('./src/services/AuthService');
@@ -135,12 +135,20 @@ function showContextMenu() {
     {
       label: isPomodoroActive ? `${t('focusing')} (${currentPomodoroDuration}m)` : t('startFocus'),
       submenu: [
-        ...durations.map(min => ({
-          label: min < 1 ? `⚡ ${Math.round(min * 60)}s (Test)` : `${min} ${t('minutes')}${min === defaultDur ? ' (Default)' : ''}`,
-          type: 'checkbox',
-          checked: isPomodoroActive && currentPomodoroDuration === min,
-          click: () => startPomodoro(min)
-        })),
+        ...durations.map(min => {
+          // Phase 4: Lock >25m for non-VIP
+          const isLocked = !isUserVip() && min > 25;
+          return {
+            label: min < 1 ? `⚡ ${Math.round(min * 60)}s (Test)` : `${min} ${t('minutes')}${min === defaultDur ? ' (Default)' : ''}${isLocked ? ' 🔒 (VIP)' : ''}`,
+            type: 'checkbox',
+            checked: isPomodoroActive && currentPomodoroDuration === min,
+            enabled: !isLocked,
+            click: () => {
+              if (isLocked) return;
+              startPomodoro(min);
+            }
+          };
+        }),
         { type: 'separator' },
         {
           label: `${t('stopFocus')}`,
@@ -227,17 +235,22 @@ function showContextMenu() {
     // Skin switching (VIP feature)
     ...(isVipFeatureEnabled('skinSwitching') ? [{
       label: `${t('skins') || 'Skins'}`,
-      submenu: getAvailableSkins().map(skin => ({
-        label: skin.name,
-        type: 'radio',
-        checked: getSkin() === skin.id,
-        click: () => {
-          setSkin(skin.id);
-          mainWindow.webContents.send('skin-change', skin.id);
-          trackSkinChanged(skin.id).catch(e => console.warn('[Analytics] Skin tracking failed:', e.message));
-          console.log(`[Main] Skin changed to: ${skin.id}`);
-        }
-      }))
+      submenu: getAvailableSkins().map(skin => {
+        const isLocked = !isUserVip() && skin.id !== 'mochi-v1';
+        return {
+          label: skin.name + (isLocked ? ' 🔒 (VIP)' : ''),
+          type: 'radio',
+          checked: getSkin() === skin.id,
+          enabled: !isLocked,
+          click: () => {
+            if (isLocked) return;
+            setSkin(skin.id);
+            mainWindow.webContents.send('skin-change', skin.id);
+            trackSkinChanged(skin.id).catch(e => console.warn('[Analytics] Skin tracking failed:', e.message));
+            console.log(`[Main] Skin changed to: ${skin.id}`);
+          }
+        };
+      })
     }] : []),
     { type: 'separator' },
     {
@@ -530,11 +543,18 @@ ipcMain.handle('settings:save', (_, settings) => {
 
     // Try to set skin (validates VIP)
     if (settings.skin) {
-      const skinSet = setSkin(settings.skin);
+      let skinId = settings.skin;
+      // Phase 4: Enforce Skin Locking
+      if (!isUserVip() && skinId !== 'mochi-v1') {
+        console.warn('[Main] Blocked non-VIP skin change attempt');
+        skinId = 'mochi-v1';
+      }
+
+      const skinSet = setSkin(skinId);
       if (skinSet) {
         // Notify renderer to update skin immediately
         if (mainWindow) {
-          mainWindow.webContents.send('skin-change', settings.skin);
+          mainWindow.webContents.send('skin-change', skinId);
         }
       }
     }
@@ -718,6 +738,17 @@ ipcMain.handle('vip:getStatus', () => {
 // Quiet Mode IPC handlers
 ipcMain.handle('quietMode:get', () => {
   return getQuietMode();
+});
+
+// Debug: Reset VIP
+ipcMain.handle('vip:reset', () => {
+  const store = require('./store');
+  store.set('vip', { enabled: false, code: '', activatedAt: '' });
+  // Also reset skin if premium
+  if (getSkin() !== 'mochi-v1') {
+    setSkin('mochi-v1');
+  }
+  return { success: true };
 });
 
 // ============================================

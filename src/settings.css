@@ -300,48 +300,77 @@ select option {
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
+/* VIP Section Card Design */
 .vip-status-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vip-card-header {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 15px;
-    background: rgba(0, 0, 0, 0.15);
-    padding: 10px;
-    border-radius: 8px;
 }
 
 .badge {
-    padding: 4px 10px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 6px;
     font-size: 11px;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     background: #4b5563;
     color: #fff;
-    letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
 
 .badge.premium {
     background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-    color: #fff;
-    box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+    box-shadow: 0 2px 10px rgba(251, 191, 36, 0.2);
 }
 
 #vip-status-text {
-    font-size: 12px;
+    font-size: 13px;
     color: #d1d5db;
     line-height: 1.4;
-    flex: 1;
+    margin: 0;
 }
 
-.vip-input-container {
+.vip-input-row {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    width: 100%;
+}
+
+#vip-code-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+#vip-code-input:focus {
+    border-color: #6366f1;
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .vip-message {
-    margin-top: 8px;
     font-size: 12px;
-    min-height: 18px;
+    min-height: 0;
+    /* remove fixed min-height to avoid gaps */
+    margin-top: -8px;
+    /* pull closer to input */
+    margin-bottom: 4px;
 }
 
 .vip-message.success {
@@ -350,6 +379,14 @@ select option {
 
 .vip-message.error {
     color: #f87171;
+}
+
+#auth-message {
+    margin-top: 8px;
+    margin-left: 2px;
+    color: #f87171;
+    font-size: 12px;
+    font-weight: 500;
 }
 
 .vip-lock-msg {
