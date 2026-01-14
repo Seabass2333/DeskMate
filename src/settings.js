@@ -706,14 +706,28 @@ function updateVipStatusUI(status) {
 
     if (status && status.enabled) {
         vipStatusBadge.textContent = t('vipPro');
-        vipStatusBadge.classList.add('premium');
-        vipStatusText.textContent = t('vipUnlocked').replace('${code}', status.code);
-        vipInputContainer.classList.add('hidden'); // Hide input if already VIP
+        vipStatusBadge.className = 'badge premium-solid';
+        vipStatusText.textContent = t('vipUnlocked').replace('${code}', status.code || '********');
+
+        // Show expiration if available
+        if (status.validUntil) {
+            const date = new Date(status.validUntil).toLocaleDateString();
+            vipStatusText.textContent += ` (Expires: ${date})`;
+        }
+
+        vipCodeInput.disabled = true;
+        vipRedeemBtn.disabled = true;
+        vipRedeemBtn.textContent = 'Activated';
+        vipInputRow.style.display = 'none'; // Hide input to verify clean look
         isVip = true;
     } else {
         vipStatusBadge.textContent = t('vipFree');
         vipStatusBadge.classList.remove('premium');
         vipStatusText.textContent = t('vipDesc');
+        vipInputRow.style.display = 'flex'; // Show input row
+        vipCodeInput.disabled = false;
+        vipRedeemBtn.disabled = !vipCodeInput.value.trim();
+        vipRedeemBtn.textContent = t('redeem');
         isVip = false;
     }
 

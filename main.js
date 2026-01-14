@@ -5,7 +5,7 @@ const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeIma
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
-const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus, getQuietMode, setQuietMode, isUserVip } = require('./config');
+const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus, syncVipStatus, getQuietMode, setQuietMode, isUserVip } = require('./config');
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
 const { trackAppLaunched, trackSkinChanged, trackVipActivated } = require('./src/services/AnalyticsService');
 const { authService } = require('./src/services/AuthService');
@@ -962,6 +962,9 @@ app.whenReady().then(() => {
 
   // Track app launch (v1.2 analytics)
   trackAppLaunched().catch(e => console.warn('[Analytics] App launch tracking failed:', e.message));
+
+  // Sync VIP Status (Check expiration)
+  syncVipStatus();
 
   // Setup Auto Updater
   setupAutoUpdater();

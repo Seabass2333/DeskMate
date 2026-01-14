@@ -101,7 +101,8 @@ async function redeemInviteCode(code) {
                 enabled: true,
                 code: code,
                 vipLevel: result.tier || 'pro',
-                activatedAt: new Date().toISOString()
+                activatedAt: new Date().toISOString(),
+                validUntil: result.valid_until || null
             });
             return { success: true, message: result.message, tier: result.tier || 'pro' };
         } catch (error) {
@@ -121,6 +122,43 @@ function getVipStatus() {
         return store.get('vip') || { enabled: false };
     } catch (error) {
         return { enabled: false };
+    }
+}
+
+/**
+ * Sync VIP status with backend (Check for expiration)
+ */
+async function syncVipStatus() {
+    try {
+        const { inviteCodeService } = require('./src/services/InviteCodeService');
+        if (!inviteCodeService.useRemote) return;
+
+        const remoteStatus = await inviteCodeService.getUserStatus();
+        // remoteStatus: { vip_tier, activated_at, valid_until, email }
+
+        const store = require('./store');
+        const currentVip = store.get('vip') || { enabled: false };
+
+        // If remote says free but local says enabled -> Expired or Reset
+        if (remoteStatus.vip_tier === 'free' && currentVip.enabled) {
+            console.log('[Config] VIP expired or reset remotely. Syncing...');
+            store.set('vip', { enabled: false, code: '', activatedAt: '' });
+            return;
+        }
+
+        // If remote is VIP, update local details
+        if (remoteStatus.vip_tier !== 'free') {
+            store.set('vip', {
+                enabled: true,
+                code: currentVip.code || 'SYNCED',
+                vipLevel: remoteStatus.vip_tier,
+                activatedAt: remoteStatus.activated_at,
+                validUntil: remoteStatus.valid_until
+            });
+            console.log('[Config] VIP status synced:', remoteStatus.vip_tier);
+        }
+    } catch (error) {
+        console.error('[Config] Failed to sync VIP status:', error);
     }
 }
 
@@ -510,8 +548,10 @@ module.exports = {
     getAvailableSkins,
     isVipFeatureEnabled,
     isUserVip,
+    isUserVip,
     redeemInviteCode,
     getVipStatus,
+    syncVipStatus,
     getQuietMode,
     setQuietMode
 };
