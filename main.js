@@ -741,10 +741,17 @@ ipcMain.handle('quietMode:get', () => {
 });
 
 // Debug: Reset VIP
-ipcMain.handle('vip:reset', () => {
+ipcMain.handle('vip:reset', async () => {
   const store = require('./store');
+  const { inviteCodeService } = require('./src/services/InviteCodeService');
+
+  // 1. Reset Local
   store.set('vip', { enabled: false, code: '', activatedAt: '' });
-  // Also reset skin if premium
+
+  // 2. Reset Backend
+  await inviteCodeService.debugResetUser();
+
+  // 3. Reset Skin
   if (getSkin() !== 'mochi-v1') {
     setSkin('mochi-v1');
   }

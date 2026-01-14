@@ -1,5 +1,12 @@
+# Node
 node_modules
+
 .env
 .env.local
 
+# Supabase
+supabase/
+
+# Electron
 dist
+build

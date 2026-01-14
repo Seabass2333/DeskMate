@@ -117,6 +117,21 @@ class InviteCodeService {
     }
 
     /**
+     * DEBUG: 重置用户状态
+     */
+    async debugResetUser() {
+        if (!this.useRemote) return { success: true };
+
+        try {
+            const deviceId = getDeviceId();
+            return await rpc('debug_reset_user', { p_device_id: deviceId });
+        } catch (error) {
+            console.error('[InviteCodeService] Reset failed:', error);
+            return { success: false };
+        }
+    }
+
+    /**
      * 启用/禁用远程验证
      */
     setRemoteValidation(enabled) {
