@@ -51,8 +51,16 @@
     </audio>
   </div>
 
-  <!-- Renderer handles UI logic, AI calls go through IPC to main process -->
+  <!-- Core Modules -->
   <script src="src/managers/SkinManager.js"></script>
+  <script src="src/core/AnimationManager.js"></script>
+  <script src="src/core/StateMachine.js"></script>
+  <script src="src/core/EnergyManager.js"></script>
+  <!-- Feature Modules -->
+  <script src="src/features/PomodoroManager.js"></script>
+  <script src="src/features/ReminderManager.js"></script>
+  <script src="src/features/DragController.js"></script>
+  <!-- Main Renderer -->
   <script src="src/renderer.js"></script>
 </body>
 

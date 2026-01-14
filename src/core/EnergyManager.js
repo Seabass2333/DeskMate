@@ -1,16 +1,7 @@
 /**
  * Energy Manager - Handles pet energy/mood system
- * 
- * Responsibilities:
- * - Track energy level (5-100)
- * - Energy decay over time
- * - Persist energy state
- * - Get status messages based on tier
  */
 
-/**
- * Energy tier definitions for animation selection
- */
 const ENERGY_TIERS = {
     exhausted: { min: 0, max: 10, animations: ['Dead', 'Dead1', 'Dead2'] },
     tired: { min: 11, max: 30, animations: ['Sleeping'] },
@@ -20,37 +11,30 @@ const ENERGY_TIERS = {
     hyper: { min: 86, max: 100, animations: ['Dance', 'Excited', 'Running'] }
 };
 
-// Configuration constants
-const ENERGY_CONFIG = {
-    DECAY_RATE: 1,              // Energy lost per interval
-    DECAY_INTERVAL_MS: 10 * 60 * 1000,  // 10 minutes
-    MIN_ENERGY: 5,
-    MAX_ENERGY: 100,
-    DEFAULT_ENERGY: 75
-};
-
 class EnergyManager {
     constructor() {
-        this.energy = ENERGY_CONFIG.DEFAULT_ENERGY;
+        this.energy = 75;
         this.lastUpdate = Date.now();
         this.decayInterval = null;
+        this.DECAY_RATE = 1;
+        this.DECAY_INTERVAL_MS = 10 * 60 * 1000;
+        this.MIN_ENERGY = 5;
+        this.MAX_ENERGY = 100;
     }
 
     async init() {
         try {
             const state = await window.deskmate.getPetState();
-            this.energy = state.energy || ENERGY_CONFIG.DEFAULT_ENERGY;
+            this.energy = state.energy || 75;
             this.lastUpdate = new Date(state.lastEnergyUpdate || Date.now()).getTime();
 
-            // Calculate energy decay since last session
             const timeSinceLastUpdate = Date.now() - this.lastUpdate;
-            const decayIntervals = Math.floor(timeSinceLastUpdate / ENERGY_CONFIG.DECAY_INTERVAL_MS);
+            const decayIntervals = Math.floor(timeSinceLastUpdate / this.DECAY_INTERVAL_MS);
             if (decayIntervals > 0) {
-                this.energy = Math.max(ENERGY_CONFIG.MIN_ENERGY, this.energy - (decayIntervals * ENERGY_CONFIG.DECAY_RATE));
+                this.energy = Math.max(this.MIN_ENERGY, this.energy - (decayIntervals * this.DECAY_RATE));
                 this.save();
             }
 
-            // Start decay timer
             this.startDecayTimer();
             this.updateUI();
 
@@ -62,23 +46,13 @@ class EnergyManager {
 
     startDecayTimer() {
         this.decayInterval = setInterval(() => {
-            this.modifyEnergy(-ENERGY_CONFIG.DECAY_RATE);
+            this.modifyEnergy(-this.DECAY_RATE);
             console.log(`[EnergyManager] Decay: energy now ${this.energy}`);
-        }, ENERGY_CONFIG.DECAY_INTERVAL_MS);
-    }
-
-    stopDecayTimer() {
-        if (this.decayInterval) {
-            clearInterval(this.decayInterval);
-            this.decayInterval = null;
-        }
+        }, this.DECAY_INTERVAL_MS);
     }
 
     async modifyEnergy(delta) {
-        this.energy = Math.max(
-            ENERGY_CONFIG.MIN_ENERGY,
-            Math.min(ENERGY_CONFIG.MAX_ENERGY, this.energy + delta)
-        );
+        this.energy = Math.max(this.MIN_ENERGY, Math.min(this.MAX_ENERGY, this.energy + delta));
         this.lastUpdate = Date.now();
         this.updateUI();
         await this.save();
@@ -128,14 +102,9 @@ class EnergyManager {
     }
 
     updateUI() {
-        // UI Bar removed per user request - placeholder for future use
+        // Placeholder for future UI
     }
 }
 
-// Export for browser (window) and potential future module bundler
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { EnergyManager, ENERGY_TIERS, ENERGY_CONFIG };
-}
-if (typeof window !== 'undefined') {
-    window.EnergyManager = EnergyManager;
-}
+// Expose to window
+window.EnergyManager = EnergyManager;
