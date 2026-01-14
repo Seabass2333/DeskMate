@@ -2,22 +2,22 @@
  * Invite Code Service - 邀请码验证服务
  * 
  * v1.1: 本地验证
- * v1.2: 切换为 API 验证
+ * v1.2: Supabase 远程验证
  * 
  * 设计原则：抽象验证逻辑，使本地/远程切换无缝
  */
 
-// v1.2: 取消注释启用
-// const { apiService } = require('./ApiService');
+const { isConfigured, rpc } = require('./SupabaseClient');
+const { getDeviceId } = require('./DeviceIdService');
 
 /**
  * 邀请码验证配置
  */
 const CONFIG = {
-    // v1.2 时改为 true
-    useRemoteValidation: false,
+    // v1.2: 启用远程验证（如果 Supabase 已配置）
+    useRemoteValidation: true,
 
-    // 本地有效邀请码（v1.2 移除）
+    // 本地有效邀请码（降级备用）
     localCodes: [
         'VIP-2024-CAT',
         'MOCHI-LOVE',
@@ -28,13 +28,15 @@ const CONFIG = {
 
 class InviteCodeService {
     constructor() {
-        this.useRemote = CONFIG.useRemoteValidation;
+        // 自动检测：如果 Supabase 配置了就用远程，否则本地
+        this.useRemote = CONFIG.useRemoteValidation && isConfigured();
+        console.log(`[InviteCodeService] Mode: ${this.useRemote ? 'REMOTE' : 'LOCAL'}`);
     }
 
     /**
      * 验证邀请码
      * @param {string} code 
-     * @returns {Promise<{valid: boolean, message: string, vipLevel?: string}>}
+     * @returns {Promise<{valid: boolean, message: string, tier?: string}>}
      */
     async verify(code) {
         if (!code || typeof code !== 'string') {
@@ -44,13 +46,18 @@ class InviteCodeService {
         const trimmedCode = code.trim().toUpperCase();
 
         if (this.useRemote) {
-            return this.verifyRemote(trimmedCode);
+            try {
+                return await this.verifyRemote(trimmedCode);
+            } catch (error) {
+                console.error('[InviteCodeService] Remote verification failed, falling back to local:', error);
+                return this.verifyLocal(trimmedCode);
+            }
         }
         return this.verifyLocal(trimmedCode);
     }
 
     /**
-     * 本地验证（v1.1）
+     * 本地验证（降级备用）
      */
     verifyLocal(code) {
         // 支持开发测试码
@@ -61,7 +68,7 @@ class InviteCodeService {
             return {
                 valid: true,
                 message: 'VIP Activated!',
-                vipLevel: 'pro'
+                tier: 'pro'
             };
         }
 
@@ -69,31 +76,52 @@ class InviteCodeService {
     }
 
     /**
-     * 远程验证（v1.2 启用）
+     * 远程验证（v1.2 Supabase）
      */
     async verifyRemote(code) {
-        // v1.2: 取消注释
-        // const result = await apiService.post('/api/invite-code/verify', { code });
-        // if (result.success && result.data.valid) {
-        //     return {
-        //         valid: true,
-        //         message: result.data.message || 'VIP Activated!',
-        //         vipLevel: result.data.vipLevel || 'pro'
-        //     };
-        // }
-        // return { valid: false, message: result.data?.message || 'Invalid code' };
+        const deviceId = getDeviceId();
 
-        // v1.1: 远程验证未启用，回退到本地
-        console.warn('[InviteCodeService] Remote validation not enabled, falling back to local');
-        return this.verifyLocal(code);
+        const result = await rpc('verify_invite_code', {
+            p_code: code,
+            p_device_id: deviceId
+        });
+
+        console.log('[InviteCodeService] Remote result:', result);
+
+        return {
+            valid: result.valid,
+            message: result.message,
+            tier: result.tier || 'free',
+            alreadyActivated: result.already_activated || false
+        };
+    }
+
+    /**
+     * 获取当前用户状态
+     */
+    async getUserStatus() {
+        if (!this.useRemote) {
+            return { vip_tier: 'free', activated_at: null };
+        }
+
+        try {
+            const deviceId = getDeviceId();
+            const result = await rpc('get_user_status', {
+                p_device_id: deviceId
+            });
+            return result;
+        } catch (error) {
+            console.error('[InviteCodeService] Failed to get user status:', error);
+            return { vip_tier: 'free', activated_at: null };
+        }
     }
 
     /**
      * 启用/禁用远程验证
      */
     setRemoteValidation(enabled) {
-        this.useRemote = enabled;
-        console.log(`[InviteCodeService] Remote validation: ${enabled ? 'ON' : 'OFF'}`);
+        this.useRemote = enabled && isConfigured();
+        console.log(`[InviteCodeService] Remote validation: ${this.useRemote ? 'ON' : 'OFF'}`);
     }
 }
 

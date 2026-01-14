@@ -100,10 +100,10 @@ async function redeemInviteCode(code) {
             store.set('vip', {
                 enabled: true,
                 code: code,
-                vipLevel: result.vipLevel || 'pro',
+                vipLevel: result.tier || 'pro',
                 activatedAt: new Date().toISOString()
             });
-            return { success: true, message: result.message };
+            return { success: true, message: result.message, tier: result.tier || 'pro' };
         } catch (error) {
             return { success: false, message: 'Storage error' };
         }

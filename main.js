@@ -1,9 +1,13 @@
+// Load environment variables from .env.local
+require('dotenv').config({ path: require('path').join(__dirname, '.env.local') });
+
 const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeImage, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
 const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus, getQuietMode, setQuietMode } = require('./config');
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
+const { trackAppLaunched, trackSkinChanged, trackVipActivated } = require('./src/services/AnalyticsService');
 
 // Hot reload in development mode only
 if (!app.isPackaged) {
@@ -229,6 +233,7 @@ function showContextMenu() {
         click: () => {
           setSkin(skin.id);
           mainWindow.webContents.send('skin-change', skin.id);
+          trackSkinChanged(skin.id).catch(e => console.warn('[Analytics] Skin tracking failed:', e.message));
           console.log(`[Main] Skin changed to: ${skin.id}`);
         }
       }))
@@ -688,11 +693,21 @@ ipcMain.handle('pet:saveState', (_, petState) => {
 // VIP IPC Handlers
 // ============================================
 
-ipcMain.handle('vip:redeem', (_, code) => {
+ipcMain.handle('vip:redeem', async (_, code) => {
   console.log(`[Main] Redeeming code: ${code}`);
-  const result = redeemInviteCode(code);
-  console.log(`[Main] Redeem result:`, result);
-  return result;
+  try {
+    const result = await redeemInviteCode(code);
+    console.log(`[Main] Redeem result:`, result);
+
+    if (result.success) {
+      trackVipActivated(result.tier).catch(e => console.warn('[Analytics] VIP tracking failed:', e.message));
+    }
+
+    return result;
+  } catch (error) {
+    console.error('[Main] Redeem error:', error);
+    return { valid: false, message: 'Internal error' };
+  }
 });
 
 ipcMain.handle('vip:getStatus', () => {
@@ -876,6 +891,9 @@ app.whenReady().then(() => {
 
   createWindow();
   createTray();
+
+  // Track app launch (v1.2 analytics)
+  trackAppLaunched().catch(e => console.warn('[Analytics] App launch tracking failed:', e.message));
 
   // Setup Auto Updater
   setupAutoUpdater();
