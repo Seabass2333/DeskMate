@@ -191,28 +191,29 @@ function isUserVip() {
 
 /**
  * Validate and redeem invite code
+ * Uses InviteCodeService for validation abstraction (local v1.1, remote v1.2)
  */
-function redeemInviteCode(code) {
-    if (!code) return { success: false, message: 'Code is empty' };
+async function redeemInviteCode(code) {
+    const { inviteCodeService } = require('./src/services/InviteCodeService');
 
-    // Check if valid hardcoded code or starts with VIP-DEV (for testing)
-    const isValid = VALID_INVITE_CODES.includes(code) || code.startsWith('DEV-VIP-');
+    const result = await inviteCodeService.verify(code);
 
-    if (isValid) {
+    if (result.valid) {
         try {
             const store = require('./store');
             store.set('vip', {
                 enabled: true,
                 code: code,
+                vipLevel: result.vipLevel || 'pro',
                 activatedAt: new Date().toISOString()
             });
-            return { success: true, message: 'VIP Activated!' };
+            return { success: true, message: result.message };
         } catch (error) {
             return { success: false, message: 'Storage error' };
         }
     }
 
-    return { success: false, message: 'Invalid code' };
+    return { success: false, message: result.message };
 }
 
 /**
