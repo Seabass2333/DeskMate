@@ -6,126 +6,22 @@
  */
 
 // ============================================
-// Provider Presets
+// LLM Providers Configuration
 // ============================================
 
-const PROVIDERS = {
-    // China-accessible providers
-    china: {
-        deepseek: {
-            name: 'DeepSeek',
-            baseURL: 'https://api.deepseek.com/v1',
-            model: 'deepseek-chat',
-            apiKey: ''
-        },
-        moonshot: {
-            name: 'Moonshot (Kimi)',
-            baseURL: 'https://api.moonshot.cn/v1',
-            model: 'moonshot-v1-8k',
-            apiKey: ''
-        },
-        zhipu: {
-            name: '智谱 AI (GLM)',
-            baseURL: 'https://open.bigmodel.cn/api/paas/v4',
-            model: 'glm-4-flash',
-            apiKey: ''
-        },
-        qwen: {
-            name: '通义千问 (Qwen)',
-            baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-            model: 'qwen-turbo',
-            apiKey: ''
-        },
-        baichuan: {
-            name: '百川 AI',
-            baseURL: 'https://api.baichuan-ai.com/v1',
-            model: 'Baichuan2-Turbo',
-            apiKey: ''
-        },
-        doubao: {
-            name: '豆包 (ByteDance)',
-            baseURL: 'https://ark.cn-beijing.volces.com/api/v3',
-            model: 'doubao-pro-4k',
-            apiKey: ''
-        }
-    },
+// Load providers from external JSON file for easier maintenance
+const PROVIDERS = require('./providers.json');
 
-    // Global providers
-    global: {
-        openrouter: {
-            name: 'OpenRouter (推荐)',
-            baseURL: 'https://openrouter.ai/api/v1',
-            model: 'deepseek/deepseek-chat',
-            apiKey: ''
-        },
-        openai: {
-            name: 'OpenAI',
-            baseURL: 'https://api.openai.com/v1',
-            model: 'gpt-4o-mini',
-            apiKey: ''
-        },
-        anthropic: {
-            name: 'Anthropic Claude',
-            baseURL: 'https://api.anthropic.com/v1',
-            model: 'claude-3-haiku-20240307',
-            apiKey: '',
-            isAnthropic: true  // Uses different API format
-        },
-        gemini: {
-            name: 'Google Gemini',
-            baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
-            model: 'gemini-1.5-flash',
-            apiKey: ''
-        },
-        groq: {
-            name: 'Groq (超快)',
-            baseURL: 'https://api.groq.com/openai/v1',
-            model: 'llama-3.1-8b-instant',
-            apiKey: ''
-        },
-        together: {
-            name: 'Together AI',
-            baseURL: 'https://api.together.xyz/v1',
-            model: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
-            apiKey: ''
-        },
-        mistral: {
-            name: 'Mistral AI',
-            baseURL: 'https://api.mistral.ai/v1',
-            model: 'mistral-small-latest',
-            apiKey: ''
-        },
-        custom: {
-            name: '自定义 API',
-            baseURL: '',
-            model: '',
-            apiKey: '',
-            isCustom: true
-        }
-    },
+// ============================================
+// API Configuration (v1.2 Backend Placeholder)
+// ============================================
 
-    // Local/Self-hosted
-    local: {
-        ollama: {
-            name: 'Ollama (本地)',
-            baseURL: 'http://localhost:11434/v1',
-            model: 'llama3.2',
-            apiKey: 'ollama'
-        },
-        lmstudio: {
-            name: 'LM Studio',
-            baseURL: 'http://localhost:1234/v1',
-            model: 'local-model',
-            apiKey: 'lm-studio'
-        },
-        custom_local: {
-            name: '自定义本地 API',
-            baseURL: 'http://localhost:8080/v1',
-            model: '',
-            apiKey: '',
-            isCustom: true
-        }
-    }
+const API_CONFIG = {
+    // Backend API URL - to be configured in v1.2
+    baseURL: process.env.API_URL || '',
+    // Feature flags
+    useRemoteValidation: false,  // Enable in v1.2 for remote invite code validation
+    syncEnabled: false           // Enable in future for cloud sync
 };
 
 // ============================================
