@@ -8,6 +8,7 @@ const LLMHandler = require('./src/services/llmHandler');
 const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus, getQuietMode, setQuietMode } = require('./config');
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
 const { trackAppLaunched, trackSkinChanged, trackVipActivated } = require('./src/services/AnalyticsService');
+const { authService } = require('./src/services/AuthService');
 
 // Hot reload in development mode only
 if (!app.isPackaged) {
@@ -717,6 +718,35 @@ ipcMain.handle('vip:getStatus', () => {
 // Quiet Mode IPC handlers
 ipcMain.handle('quietMode:get', () => {
   return getQuietMode();
+});
+
+// ============================================
+// Auth IPC Handlers
+// ============================================
+
+ipcMain.handle('auth:sendOtp', async (_, email) => {
+  try {
+    return await authService.sendOtp(email);
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
+ipcMain.handle('auth:verifyOtp', async (_, { email, token }) => {
+  try {
+    return await authService.verifyOtp(email, token);
+  } catch (error) {
+    return { error: error.message };
+  }
+});
+
+ipcMain.handle('auth:getStatus', () => {
+  return authService.getUser();
+});
+
+ipcMain.handle('auth:signOut', async () => {
+  await authService.signOut();
+  return true;
 });
 
 ipcMain.handle('quietMode:set', (_, enabled) => {

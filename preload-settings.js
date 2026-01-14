@@ -49,5 +49,11 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     /**
      * VIP: Get status
      */
-    getVipStatus: () => ipcRenderer.invoke('vip:getStatus')
+    getVipStatus: () => ipcRenderer.invoke('vip:getStatus'),
+
+    // Auth
+    sendOtp: (email) => ipcRenderer.invoke('auth:sendOtp', email),
+    verifyOtp: (email, token) => ipcRenderer.invoke('auth:verifyOtp', { email, token }),
+    getAuthStatus: () => ipcRenderer.invoke('auth:getStatus'),
+    signOut: () => ipcRenderer.invoke('auth:signOut')
 });

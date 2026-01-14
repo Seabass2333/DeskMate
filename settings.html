@@ -143,6 +143,69 @@
             <div id="vip-message" class="vip-message"></div>
         </div>
 
+        <!-- User Account (v1.2) -->
+        <div class="settings-group" id="account-section">
+            <h3 class="group-header">
+                👤 <span data-i18n="accountSection">Account</span>
+            </h3>
+
+            <div id="account-status-container">
+                <!-- If not linked -->
+                <div id="account-unlinked" class="fade-in">
+                    <p class="description-text" data-i18n="accountLinkDesc">Link email to sync VIP status across
+                        devices.</p>
+
+                    <div class="email-input-group">
+                        <div class="input-icon-wrapper">
+                            <span class="input-icon">✉️</span>
+                            <input type="email" id="link-email" placeholder="name@example.com"
+                                class="settings-input with-icon">
+                        </div>
+                        <button id="send-otp-btn" class="btn-primary" data-i18n="sendCode">Send Code</button>
+                    </div>
+                </div>
+
+                <!-- OTP Input (hidden by default) -->
+                <div id="otp-container" class="hidden mt-4 fade-in">
+                    <p class="description-text center" data-i18n="enterCodeDesc">Enter the 6-digit code sent to your
+                        email.</p>
+                    <div class="otp-inputs-wrapper">
+                        <div class="otp-input-group">
+                            <input type="text" maxlength="1" class="otp-digit" data-index="0" inputmode="numeric">
+                            <input type="text" maxlength="1" class="otp-digit" data-index="1" inputmode="numeric">
+                            <input type="text" maxlength="1" class="otp-digit" data-index="2" inputmode="numeric">
+                            <input type="text" maxlength="1" class="otp-digit" data-index="3" inputmode="numeric">
+                            <input type="text" maxlength="1" class="otp-digit" data-index="4" inputmode="numeric">
+                            <input type="text" maxlength="1" class="otp-digit" data-index="5" inputmode="numeric">
+                        </div>
+                        <button id="verify-otp-btn" class="btn-primary full-width mt-3" data-i18n="verify"
+                            disabled>Verify</button>
+                    </div>
+                </div>
+
+                <!-- If linked (hidden by default) -->
+                <div id="account-linked" class="hidden fade-in">
+                    <div class="profile-card">
+                        <div class="profile-avatar">
+                            <div class="avatar-circle">👤</div>
+                        </div>
+                        <div class="profile-info">
+                            <div class="profile-email" id="linked-email">user@example.com</div>
+                            <div class="profile-badges">
+                                <span class="badge premium-solid">LINKED</span>
+                                <!-- Feature: Show VIP badge here too if applicable -->
+                            </div>
+                        </div>
+                        <button id="sign-out-btn" class="btn-icon-text danger" title="Sign Out">
+                            ↪
+                        </button>
+                    </div>
+                </div>
+
+                <div id="auth-message" class="vip-message mt-2"></div>
+            </div>
+        </div>
+
 
 
         <!-- Actions -->

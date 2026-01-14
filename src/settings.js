@@ -153,7 +153,17 @@ const SETTINGS_I18N = {
         redeemEmpty: '⚠️ 请输入邀请码。',
         redeemError: '❌ 错误: ${msg}',
         vipRequired: '此皮肤需要 VIP 会员。',
-        getKeyHelp: '获取 API Key'
+        vipRequired: '此皮肤需要 VIP 会员。',
+        getKeyHelp: '获取 API Key',
+        accountSection: '账户',
+        accountLinkDesc: '绑定邮箱以跨设备同步 VIP 状态。',
+        sendCode: '发送验证码',
+        verify: '验证',
+        enterCodeDesc: '输入邮箱收到的 6 位验证码。',
+        signOut: '退出登录',
+        codeSent: '验证码已发送！',
+        verifySuccess: '✅ 绑定成功！',
+        verifyError: '❌ 验证失败: ${msg}'
     },
     'en': {
         settingsTitle: 'Settings',
@@ -189,7 +199,16 @@ const SETTINGS_I18N = {
         redeemEmpty: '⚠️ Please enter a code.',
         redeemError: '❌ Error: ${msg}',
         vipRequired: 'This skin requires VIP membership.',
-        getKeyHelp: 'Get API Key'
+        getKeyHelp: 'Get API Key',
+        accountSection: 'Account',
+        accountLinkDesc: 'Link email to sync VIP status across devices.',
+        sendCode: 'Send Code',
+        verify: 'Verify',
+        enterCodeDesc: 'Enter the 6-digit code sent to your email.',
+        signOut: 'Sign Out',
+        codeSent: 'Code sent!',
+        verifySuccess: '✅ Details linked!',
+        verifyError: '❌ Verification failed: ${msg}'
     },
     'ja': {
         settingsTitle: '設定',
@@ -502,6 +521,9 @@ async function init() {
         skinSelect?.addEventListener('change', onSkinChange);
         vipRedeemBtn?.addEventListener('click', redeemInviteCode);
 
+        // Init Auth
+        initAuth();
+
         // Enhance Invite Code UX
         if (vipCodeInput && vipRedeemBtn) {
             // Initial state
@@ -782,6 +804,277 @@ async function saveSettings() {
 }
 
 // ... rest of helper functions ...
+
+/**
+ * Auth Elements
+ */
+const linkEmailInput = document.getElementById('link-email');
+const sendOtpBtn = document.getElementById('send-otp-btn');
+const otpContainer = document.getElementById('otp-container');
+// Replace single input with collection
+const verifyOtpBtn = document.getElementById('verify-otp-btn');
+const accountUnlinked = document.getElementById('account-unlinked');
+const accountLinked = document.getElementById('account-linked');
+const linkedEmail = document.getElementById('linked-email');
+const signOutBtn = document.getElementById('sign-out-btn');
+const authMessage = document.getElementById('auth-message');
+
+let otpInputs = [];
+
+/**
+ * Initialize Auth UI
+ */
+async function initAuth() {
+    if (!window.settingsAPI.getAuthStatus) return;
+
+    // Listeners
+    sendOtpBtn?.addEventListener('click', handleSendOtp);
+    verifyOtpBtn?.addEventListener('click', handleVerifyOtp);
+    signOutBtn?.addEventListener('click', handleSignOut);
+
+    // OTP Input Logic
+    otpInputs = Array.from(document.querySelectorAll('.otp-digit'));
+    setupOtpInputs();
+
+    // Check Status
+    await checkAuthStatus();
+}
+
+function setupOtpInputs() {
+    otpInputs.forEach((input, index) => {
+        // Handle input
+        input.addEventListener('input', (e) => {
+            const val = e.target.value;
+
+            // Allow only numbers
+            if (!/^\d*$/.test(val)) {
+                e.target.value = val.replace(/\D/g, '');
+                return;
+            }
+
+            if (val.length === 1) {
+                // Move to next
+                if (index < 5) {
+                    otpInputs[index + 1].focus();
+                }
+            }
+
+            checkOtpComplete();
+        });
+
+        // Handle Paste
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            const digits = text.replace(/\D/g, '').split('').slice(0, 6);
+
+            digits.forEach((digit, i) => {
+                if (otpInputs[i]) otpInputs[i].value = digit;
+            });
+
+            // Focus last filled or next empty
+            const lastFilled = Math.min(digits.length, 5);
+            otpInputs[lastFilled].focus();
+            checkOtpComplete();
+        });
+
+        // Handle Backspace
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value) {
+                if (index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (index > 0) otpInputs[index - 1].focus();
+            } else if (e.key === 'ArrowRight') {
+                if (index < 5) otpInputs[index + 1].focus();
+            } else if (e.key === 'Enter') {
+                if (!verifyOtpBtn.disabled) handleVerifyOtp();
+            }
+        });
+    });
+}
+
+function checkOtpComplete() {
+    const code = getOtpCode();
+    // Safety check for button
+    if (verifyOtpBtn) {
+        if (code.length === 6) {
+            verifyOtpBtn.disabled = false;
+            // Removed classList check that was causing error as we now style via attribute or simple disable
+        } else {
+            verifyOtpBtn.disabled = true;
+        }
+    }
+}
+
+function getOtpCode() {
+    return otpInputs.map(i => i.value).join('');
+}
+
+/**
+ * Check and update auth status
+ */
+async function checkAuthStatus() {
+    try {
+        const user = await window.settingsAPI.getAuthStatus();
+        updateAuthUI(user);
+    } catch (e) {
+        console.error('Auth status check failed:', e);
+    }
+}
+
+/**
+ * Update Auth UI based on user state
+ */
+function updateAuthUI(user) {
+    if (!accountUnlinked) return;
+
+    if (user) {
+        // Linked
+        accountUnlinked.classList.add('hidden');
+        otpContainer.classList.add('hidden');
+        accountLinked.classList.remove('hidden');
+        if (linkedEmail) linkedEmail.textContent = user.email;
+        authMessage.textContent = '';
+    } else {
+        // Unlinked
+        accountUnlinked.classList.remove('hidden');
+        accountLinked.classList.add('hidden');
+        otpContainer.classList.add('hidden');
+        resetOtpInputs();
+    }
+}
+
+function resetOtpInputs() {
+    otpInputs.forEach(i => i.value = '');
+    verifyOtpBtn.disabled = true;
+}
+
+/**
+ * Handle Send OTP
+ */
+let countdownTimer = null;
+
+async function handleSendOtp() {
+    const email = linkEmailInput.value.trim();
+    if (!email) {
+        showAuthMessage(t('redeemEmpty'), 'error');
+        return;
+    }
+
+    sendOtpBtn.disabled = true;
+    showAuthMessage(t('testing'), 'info'); // "Testing..." -> "Sending..."
+
+    try {
+        const result = await window.settingsAPI.sendOtp(email);
+        if (result && !result.error) {
+            showAuthMessage(t('codeSent'), 'success');
+            otpContainer.classList.remove('hidden');
+            accountUnlinked.querySelector('.input-with-button')?.classList.add('hidden');
+
+            // Focus first digit
+            setTimeout(() => {
+                if (otpInputs && otpInputs[0]) otpInputs[0].focus();
+            }, 100);
+
+            // Start countdown
+            startOtpCountdown();
+
+        } else {
+            showAuthMessage(result?.error || 'Failed to send code', 'error');
+            sendOtpBtn.disabled = false;
+        }
+    } catch (e) {
+        showAuthMessage(e.message, 'error');
+        sendOtpBtn.disabled = false;
+    }
+}
+
+function startOtpCountdown() {
+    let seconds = 60;
+
+    // Save original text if not saved
+    if (!sendOtpBtn.dataset.originalText) {
+        sendOtpBtn.dataset.originalText = sendOtpBtn.textContent || t('sendCode');
+    }
+    const originalText = sendOtpBtn.dataset.originalText;
+
+    sendOtpBtn.disabled = true;
+    sendOtpBtn.textContent = `${originalText} (${seconds})`;
+
+    if (countdownTimer) clearInterval(countdownTimer);
+
+    countdownTimer = setInterval(() => {
+        seconds--;
+        if (seconds <= 0) {
+            clearInterval(countdownTimer);
+            sendOtpBtn.textContent = originalText;
+            sendOtpBtn.disabled = false;
+        } else {
+            sendOtpBtn.textContent = `${originalText} (${seconds})`;
+        }
+    }, 1000);
+}
+
+/**
+ * Handle Verify OTP
+ */
+async function handleVerifyOtp() {
+    const email = linkEmailInput.value.trim();
+    const token = getOtpCode();
+
+    if (token.length !== 6) return;
+
+    verifyOtpBtn.disabled = true;
+
+    try {
+        const result = await window.settingsAPI.verifyOtp(email, token);
+        if (result && !result.error) {
+            showAuthMessage(t('verifySuccess'), 'success');
+            await checkAuthStatus();
+            // Refresh VIP status too
+            const newStatus = await window.settingsAPI.getVipStatus();
+            updateVipStatusUI(newStatus);
+        } else {
+            showAuthMessage(t('verifyError').replace('${msg}', result?.error || 'Invalid code'), 'error');
+            verifyOtpBtn.disabled = false;
+            // Shake effect safely
+            if (otpInputs) {
+                otpInputs.forEach(i => i.classList.add('error'));
+                setTimeout(() => otpInputs.forEach(i => i.classList.remove('error')), 500);
+            }
+        }
+    } catch (e) {
+        showAuthMessage(e.message, 'error');
+        verifyOtpBtn.disabled = false;
+    }
+}
+
+/**
+ * Handle Sign Out
+ */
+async function handleSignOut() {
+    if (!confirm('Are you sure you want to sign out?')) return;
+
+    try {
+        await window.settingsAPI.signOut();
+        await checkAuthStatus();
+        accountUnlinked.querySelector('.input-with-button').classList.remove('hidden');
+        linkEmailInput.value = '';
+        otpCodeInput.value = '';
+        sendOtpBtn.disabled = false;
+        verifyOtpBtn.disabled = false;
+    } catch (e) {
+        console.error('Sign out error:', e);
+    }
+}
+
+function showAuthMessage(msg, type) {
+    if (!authMessage) return;
+    authMessage.textContent = msg;
+    authMessage.className = `vip-message ${type}`;
+}
 
 /**
  * Populate provider dropdown based on selected region
