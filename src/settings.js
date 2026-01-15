@@ -19,25 +19,25 @@ const PROVIDERS = {
             getKeyText: { 'zh-CN': '获取 Moonshot API Key', 'en': 'Get Moonshot API Key' }
         },
         zhipu: {
-            name: '智谱 AI (GLM)',
+            name: { 'zh-CN': '智谱 AI (GLM)', 'en': 'Zhipu AI (GLM)' },
             model: 'glm-4-flash',
             apiKeyUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
             getKeyText: { 'zh-CN': '获取智谱 API Key', 'en': 'Get Zhipu API Key' }
         },
         qwen: {
-            name: '通义千问 (Qwen)',
+            name: { 'zh-CN': '通义千问 (Qwen)', 'en': 'Qwen (Alibaba)' },
             model: 'qwen-turbo',
             apiKeyUrl: 'https://dashscope.console.aliyun.com/apiKey',
             getKeyText: { 'zh-CN': '获取通义千问 API Key', 'en': 'Get Qwen API Key' }
         },
         baichuan: {
-            name: '百川 AI',
+            name: { 'zh-CN': '百川 AI', 'en': 'Baichuan AI' },
             model: 'Baichuan2-Turbo',
             apiKeyUrl: 'https://platform.baichuan-ai.com/console/apikey',
             getKeyText: { 'zh-CN': '获取百川 API Key', 'en': 'Get Baichuan API Key' }
         },
         doubao: {
-            name: '豆包 (ByteDance)',
+            name: { 'zh-CN': '豆包 (ByteDance)', 'en': 'Doubao (ByteDance)' },
             model: 'doubao-pro-4k',
             apiKeyUrl: 'https://console.volcengine.com/ark',
             getKeyText: { 'zh-CN': '获取豆包 API Key', 'en': 'Get Doubao API Key' }
@@ -45,7 +45,7 @@ const PROVIDERS = {
     },
     global: {
         openrouter: {
-            name: 'OpenRouter (推荐)',
+            name: { 'zh-CN': 'OpenRouter (推荐)', 'en': 'OpenRouter (Recommended)' },
             model: 'deepseek/deepseek-chat',
             apiKeyUrl: 'https://openrouter.ai/keys',
             getKeyText: { 'zh-CN': '获取 OpenRouter API Key', 'en': 'Get OpenRouter API Key' }
@@ -69,7 +69,7 @@ const PROVIDERS = {
             getKeyText: { 'zh-CN': '获取 Gemini API Key', 'en': 'Get Gemini API Key' }
         },
         groq: {
-            name: 'Groq (超快)',
+            name: { 'zh-CN': 'Groq (超快)', 'en': 'Groq (Fast)' },
             model: 'llama-3.1-8b-instant',
             apiKeyUrl: 'https://console.groq.com/keys',
             getKeyText: { 'zh-CN': '获取 Groq API Key', 'en': 'Get Groq API Key' }
@@ -87,7 +87,7 @@ const PROVIDERS = {
             getKeyText: { 'zh-CN': '获取 Mistral API Key', 'en': 'Get Mistral API Key' }
         },
         custom: {
-            name: '自定义 API',
+            name: { 'zh-CN': '自定义 API', 'en': 'Custom API' },
             model: '',
             apiKeyUrl: '',
             getKeyText: { 'zh-CN': '使用任意 OpenAI 兼容 API', 'en': 'Use any OpenAI-compatible API' },
@@ -96,7 +96,7 @@ const PROVIDERS = {
     },
     local: {
         ollama: {
-            name: 'Ollama (本地)',
+            name: { 'zh-CN': 'Ollama (本地)', 'en': 'Ollama (Local)' },
             model: 'llama3.2',
             apiKeyUrl: 'https://ollama.ai/download',
             getKeyText: { 'zh-CN': '下载 Ollama', 'en': 'Download Ollama' }
@@ -164,7 +164,30 @@ const SETTINGS_I18N = {
         signOut: '退出登录',
         codeSent: '验证码已发送！',
         verifySuccess: '✅ 绑定成功！',
-        verifyError: '❌ 验证失败: ${msg}'
+        verifyError: '❌ 验证失败: ${msg}',
+        // Feedback Form (v1.3)
+        feedbackSection: '意见反馈',
+        feedbackCategory: '分类',
+        feedbackCategoryBug: '🐛 Bug 反馈',
+        feedbackCategoryFeature: '💡 功能建议',
+        feedbackCategoryQuestion: '❓ 问题咨询',
+        feedbackCategoryOther: '📝 其他',
+        feedbackContent: '您的反馈',
+        feedbackContentPlaceholder: '请详细描述您的问题或建议...',
+        feedbackEmail: '邮箱（可选）',
+        feedbackEmailHint: '如需进一步沟通，我们会通过此邮箱联系您。',
+        submitFeedback: '提交反馈',
+        submittingFeedback: '提交中...',
+        feedbackSuccess: '感谢您的反馈！',
+        feedbackMinLength: '请至少输入 10 个字符',
+        feedbackError: '提交失败: ${msg}',
+        // VIP Expiration
+        vipExpires: '有效期至: ${date}',
+        activated: '已激活',
+        redeemErrorGeneric: '兑换失败',
+        saveFailed: '保存失败: ${msg}',
+        testSuccess: '✓ 连接成功 (${ms}ms)',
+        testFailed: '✗ ${msg}'
     },
     'en': {
         settingsTitle: 'Settings',
@@ -210,7 +233,30 @@ const SETTINGS_I18N = {
         signOut: 'Sign Out',
         codeSent: 'Code sent!',
         verifySuccess: '✅ Details linked!',
-        verifyError: '❌ Verification failed: ${msg}'
+        verifyError: '❌ Verification failed: ${msg}',
+        // Feedback Form (v1.3)
+        feedbackSection: 'Feedback',
+        feedbackCategory: 'Category',
+        feedbackCategoryBug: '🐛 Bug Report',
+        feedbackCategoryFeature: '💡 Feature Request',
+        feedbackCategoryQuestion: '❓ Question',
+        feedbackCategoryOther: '📝 Other',
+        feedbackContent: 'Your Feedback',
+        feedbackContentPlaceholder: 'Tell us what\'s on your mind...',
+        feedbackEmail: 'Email (optional)',
+        feedbackEmailHint: 'We\'ll only contact you if we need more info.',
+        submitFeedback: 'Submit Feedback',
+        submittingFeedback: 'Submitting...',
+        feedbackSuccess: 'Thank you for your feedback!',
+        feedbackMinLength: 'Please enter at least 10 characters',
+        feedbackError: 'Failed to submit: ${msg}',
+        // VIP Expiration
+        vipExpires: 'Valid until: ${date}',
+        activated: 'Activated',
+        redeemErrorGeneric: 'Error redeeming code',
+        saveFailed: 'Save failed: ${msg}',
+        testSuccess: '✓ Connected (${ms}ms)',
+        testFailed: '✗ ${msg}'
     },
     'ja': {
         settingsTitle: '設定',
@@ -245,7 +291,29 @@ const SETTINGS_I18N = {
         redeemEmpty: '⚠️ コードを入力してください。',
         redeemError: '❌ エラー: ${msg}',
         vipRequired: 'このスキンにはVIPメンバーシップが必要です。',
-        getKeyHelp: 'API Keyを取得'
+        getKeyHelp: 'API Keyを取得',
+        // Feedback (v1.3)
+        feedbackSection: 'フィードバック',
+        feedbackCategory: 'カテゴリ',
+        feedbackCategoryBug: '🐛 バグ報告',
+        feedbackCategoryFeature: '💡 機能リクエスト',
+        feedbackCategoryQuestion: '❓ 質問',
+        feedbackCategoryOther: '📝 その他',
+        feedbackContent: 'ご意見',
+        feedbackContentPlaceholder: 'ご意見をお聞かせください...',
+        feedbackEmail: 'メール（任意）',
+        feedbackEmailHint: '必要に応じてご連絡します',
+        submitFeedback: '送信',
+        submittingFeedback: '送信中...',
+        feedbackSuccess: 'ご意見ありがとうございます！',
+        feedbackMinLength: '10文字以上を入力してください',
+        feedbackError: '送信失敗: ${msg}',
+        vipExpires: '有効期限: ${date}',
+        activated: '有効化済み',
+        redeemErrorGeneric: '引き換えに失敗しました',
+        saveFailed: '保存に失敗: ${msg}',
+        testSuccess: '✓ 接続成功 (${ms}ms)',
+        testFailed: '✗ ${msg}'
     },
     'ko': {
         settingsTitle: '설정',
@@ -280,7 +348,29 @@ const SETTINGS_I18N = {
         redeemEmpty: '⚠️ 코드를 입력해주세요.',
         redeemError: '❌ 오류: ${msg}',
         vipRequired: '이 스킨은 VIP 멤버십이 필요합니다.',
-        getKeyHelp: 'API Key 받기'
+        getKeyHelp: 'API Key 받기',
+        // Feedback (v1.3)
+        feedbackSection: '피드백',
+        feedbackCategory: '카테고리',
+        feedbackCategoryBug: '🐛 버그 신고',
+        feedbackCategoryFeature: '💡 기능 요청',
+        feedbackCategoryQuestion: '❓ 질문',
+        feedbackCategoryOther: '📝 기타',
+        feedbackContent: '피드백 내용',
+        feedbackContentPlaceholder: '의견을 남겨주세요...',
+        feedbackEmail: '이메일 (선택)',
+        feedbackEmailHint: '필요시 연락드립니다',
+        submitFeedback: '제출',
+        submittingFeedback: '제출 중...',
+        feedbackSuccess: '피드백 감사합니다!',
+        feedbackMinLength: '10자 이상 입력하세요',
+        feedbackError: '제출 실패: ${msg}',
+        vipExpires: '만료일: ${date}',
+        activated: '활성화됨',
+        redeemErrorGeneric: '코드 사용 실패',
+        saveFailed: '저장 실패: ${msg}',
+        testSuccess: '✓ 연결 성공 (${ms}ms)',
+        testFailed: '✗ ${msg}'
     },
     'es': {
         settingsTitle: 'Configuración',
@@ -315,7 +405,29 @@ const SETTINGS_I18N = {
         redeemEmpty: '⚠️ Ingresa un código.',
         redeemError: '❌ Error: ${msg}',
         vipRequired: 'Este skin requiere membresía VIP.',
-        getKeyHelp: 'Obtener API Key'
+        getKeyHelp: 'Obtener API Key',
+        // Feedback (v1.3)
+        feedbackSection: 'Comentarios',
+        feedbackCategory: 'Categoría',
+        feedbackCategoryBug: '🐛 Error',
+        feedbackCategoryFeature: '💡 Sugerencia',
+        feedbackCategoryQuestion: '❓ Pregunta',
+        feedbackCategoryOther: '📝 Otro',
+        feedbackContent: 'Tu comentario',
+        feedbackContentPlaceholder: 'Cuéntanos tu opinión...',
+        feedbackEmail: 'Email (opcional)',
+        feedbackEmailHint: 'Solo te contactaremos si es necesario',
+        submitFeedback: 'Enviar',
+        submittingFeedback: 'Enviando...',
+        feedbackSuccess: '¡Gracias por tu comentario!',
+        feedbackMinLength: 'Mínimo 10 caracteres',
+        feedbackError: 'Error: ${msg}',
+        vipExpires: 'Válido hasta: ${date}',
+        activated: 'Activado',
+        redeemErrorGeneric: 'Error al canjear',
+        saveFailed: 'Error al guardar: ${msg}',
+        testSuccess: '✓ Conectado (${ms}ms)',
+        testFailed: '✗ ${msg}'
     },
     'fr': {
         settingsTitle: 'Paramètres',
@@ -350,7 +462,29 @@ const SETTINGS_I18N = {
         redeemEmpty: '⚠️ Veuillez entrer un code.',
         redeemError: '❌ Erreur: ${msg}',
         vipRequired: 'Ce thème nécessite un membre VIP.',
-        getKeyHelp: 'Obtenir Clé API'
+        getKeyHelp: 'Obtenir Clé API',
+        // Feedback (v1.3)
+        feedbackSection: 'Avis',
+        feedbackCategory: 'Catégorie',
+        feedbackCategoryBug: '🐛 Bug',
+        feedbackCategoryFeature: '💡 Idée',
+        feedbackCategoryQuestion: '❓ Question',
+        feedbackCategoryOther: '📝 Autre',
+        feedbackContent: 'Votre avis',
+        feedbackContentPlaceholder: 'Dites-nous ce que vous pensez...',
+        feedbackEmail: 'Email (optionnel)',
+        feedbackEmailHint: 'Nous vous contacterons si nécessaire',
+        submitFeedback: 'Envoyer',
+        submittingFeedback: 'Envoi...',
+        feedbackSuccess: 'Merci pour votre avis!',
+        feedbackMinLength: 'Minimum 10 caractères',
+        feedbackError: 'Erreur: ${msg}',
+        vipExpires: 'Valide jusqu\'au: ${date}',
+        activated: 'Activé',
+        redeemErrorGeneric: 'Échec de l\'échange',
+        saveFailed: 'Échec de sauvegarde: ${msg}',
+        testSuccess: '✓ Connecté (${ms}ms)',
+        testFailed: '✗ ${msg}'
     },
     'de': {
         settingsTitle: 'Einstellungen',
@@ -385,7 +519,29 @@ const SETTINGS_I18N = {
         redeemEmpty: '⚠️ Bitte Code eingeben.',
         redeemError: '❌ Fehler: ${msg}',
         vipRequired: 'Dieser Skin benötigt VIP-Mitgliedschaft.',
-        getKeyHelp: 'API Key erhalten'
+        getKeyHelp: 'API Key erhalten',
+        // Feedback (v1.3)
+        feedbackSection: 'Feedback',
+        feedbackCategory: 'Kategorie',
+        feedbackCategoryBug: '🐛 Bug',
+        feedbackCategoryFeature: '💡 Vorschlag',
+        feedbackCategoryQuestion: '❓ Frage',
+        feedbackCategoryOther: '📝 Andere',
+        feedbackContent: 'Ihr Feedback',
+        feedbackContentPlaceholder: 'Teilen Sie uns Ihre Meinung mit...',
+        feedbackEmail: 'Email (optional)',
+        feedbackEmailHint: 'Wir kontaktieren Sie nur bei Bedarf',
+        submitFeedback: 'Senden',
+        submittingFeedback: 'Senden...',
+        feedbackSuccess: 'Danke für Ihr Feedback!',
+        feedbackMinLength: 'Mindestens 10 Zeichen',
+        feedbackError: 'Fehler: ${msg}',
+        vipExpires: 'Gültig bis: ${date}',
+        activated: 'Aktiviert',
+        redeemErrorGeneric: 'Einlösen fehlgeschlagen',
+        saveFailed: 'Speichern fehlgeschlagen: ${msg}',
+        testSuccess: '✓ Verbunden (${ms}ms)',
+        testFailed: '✗ ${msg}'
     }
 };
 
@@ -407,6 +563,21 @@ function applyI18n(lang) {
 
     // Update document title
     document.title = `DeskMate ${translations.settingsTitle}`;
+
+    // Refresh provider dropdown with new language
+    if (regionSelect && providerSelect) {
+        const currentProvider = providerSelect.value;
+        populateProviders(regionSelect.value);
+        // Restore selection if it still exists
+        if ([...providerSelect.options].some(o => o.value === currentProvider)) {
+            providerSelect.value = currentProvider;
+        }
+    }
+
+    // Refresh VIP status UI with new language
+    if (typeof cachedVipStatus !== 'undefined' && cachedVipStatus) {
+        updateVipStatusUI(cachedVipStatus);
+    }
 }
 
 /**
@@ -451,6 +622,7 @@ let currentSettings = null;
 let keyVisible = false;
 let availableSkins = [];
 let isVip = false;
+let cachedVipStatus = null;
 
 /**
  * Initialize the settings page
@@ -478,6 +650,7 @@ async function init() {
 
         // Populate skins
         populateSkins(availableSkins, currentSettings.currentSkin);
+        cachedVipStatus = currentSettings.vipStatus;
         updateVipStatusUI(currentSettings.vipStatus);
 
         // Set initial values (API)
@@ -712,19 +885,19 @@ function updateVipStatusUI(status) {
         // Show expiration if available
         if (status.validUntil) {
             const date = new Date(status.validUntil).toLocaleDateString();
-            vipStatusText.textContent += ` (Expires: ${date})`;
+            vipStatusText.textContent += ` (${t('vipExpires').replace('${date}', date)})`
         }
 
         vipCodeInput.disabled = true;
         vipRedeemBtn.disabled = true;
-        vipRedeemBtn.textContent = 'Activated';
-        vipInputRow.style.display = 'none'; // Hide input to verify clean look
+        vipRedeemBtn.textContent = t('activated');
+        vipInputContainer.style.display = 'none'; // Hide input to verify clean look
         isVip = true;
     } else {
         vipStatusBadge.textContent = t('vipFree');
         vipStatusBadge.classList.remove('premium');
         vipStatusText.textContent = t('vipDesc');
-        vipInputRow.style.display = 'flex'; // Show input row
+        vipInputContainer.style.display = 'flex'; // Show input row
         vipCodeInput.disabled = false;
         vipRedeemBtn.disabled = !vipCodeInput.value.trim();
         vipRedeemBtn.textContent = t('redeem');
@@ -794,7 +967,7 @@ async function redeemInviteCode() {
             vipMessage.className = 'vip-message error';
         }
     } catch (e) {
-        vipMessage.textContent = 'Error redeeming code';
+        vipMessage.textContent = t('redeemErrorGeneric');
         vipMessage.className = 'vip-message error';
     } finally {
         vipRedeemBtn.disabled = false;
@@ -809,7 +982,7 @@ async function saveSettings() {
     const saveBtnTarget = document.getElementById('save-settings') || saveBtn;
     if (saveBtnTarget) {
         saveBtnTarget.disabled = true;
-        saveBtnTarget.textContent = 'Saving...';
+        saveBtnTarget.textContent = t('saving');
     }
 
     try {
@@ -857,14 +1030,14 @@ async function saveSettings() {
         if (result.success) {
             closeWindow();
         } else {
-            alert('Save failed: ' + result.message);
+            alert(t('saveFailed').replace('${msg}', result.message));
         }
     } catch (error) {
         alert('Save failed: ' + error.message);
     } finally {
         if (saveBtnTarget) {
             saveBtnTarget.disabled = false;
-            saveBtnTarget.textContent = 'Save Settings';
+            saveBtnTarget.textContent = t('save');
         }
     }
 }
@@ -1179,7 +1352,11 @@ function populateProviders(region) {
     for (const [key, config] of Object.entries(providers)) {
         const option = document.createElement('option');
         option.value = key;
-        option.textContent = config.name;
+        // Support i18n name format: { 'zh-CN': '...', 'en': '...' } or plain string
+        const name = typeof config.name === 'object'
+            ? (config.name[currentLang] || config.name['en'] || Object.values(config.name)[0])
+            : config.name;
+        option.textContent = name;
         providerSelect.appendChild(option);
     }
 }
@@ -1253,7 +1430,7 @@ function toggleKeyVisibility() {
  */
 async function testConnection() {
     testBtn.disabled = true;
-    testResult.textContent = '测试中...';
+    testResult.textContent = t('testing');
     testResult.className = 'test-result loading';
 
     try {
@@ -1267,7 +1444,7 @@ async function testConnection() {
         const result = await window.settingsAPI.testConnection(config);
 
         if (result.success) {
-            testResult.textContent = `✓ 连接成功 (${result.latency}ms)`;
+            testResult.textContent = t('testSuccess').replace('${ms}', result.latency);
             testResult.className = 'test-result success';
         } else {
             testResult.textContent = `✗ ${result.message}`;
@@ -1321,12 +1498,12 @@ async function handleSubmitFeedback() {
     const email = feedbackEmail.value.trim();
 
     if (content.length < 10) {
-        showFeedbackMessage('请至少输入 10 个字符', 'error');
+        showFeedbackMessage(t('feedbackMinLength'), 'error');
         return;
     }
 
     submitFeedbackBtn.disabled = true;
-    submitFeedbackBtn.textContent = '提交中...';
+    submitFeedbackBtn.textContent = t('submittingFeedback');
 
     try {
         const result = await window.settingsAPI.submitFeedback({
@@ -1336,17 +1513,17 @@ async function handleSubmitFeedback() {
         });
 
         if (result.success) {
-            showFeedbackMessage('感谢您的反馈！', 'success');
+            showFeedbackMessage(t('feedbackSuccess'), 'success');
             feedbackContent.value = '';
             feedbackEmail.value = '';
             feedbackCharCount.textContent = '0 / 2000';
         } else {
-            showFeedbackMessage(result.error || '提交失败', 'error');
+            showFeedbackMessage(t('feedbackError').replace('${msg}', result.error || ''), 'error');
         }
     } catch (e) {
-        showFeedbackMessage(e.message, 'error');
+        showFeedbackMessage(t('feedbackError').replace('${msg}', e.message), 'error');
     } finally {
-        submitFeedbackBtn.textContent = '提交反馈';
+        submitFeedbackBtn.textContent = t('submitFeedback');
         submitFeedbackBtn.disabled = feedbackContent.value.length < 10;
     }
 }
