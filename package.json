@@ -11,6 +11,9 @@
     "build:win": "electron-builder --win --x64 --publish never",
     "build:linux": "electron-builder --linux --publish never",
     "build:all": "electron-builder -mwl --publish never",
+    "release:mac": "electron-builder --mac --universal --publish always",
+    "release:win": "electron-builder --win --x64 --publish always",
+    "release:linux": "electron-builder --linux --publish always",
     "pack": "electron-builder --dir"
   },
   "keywords": [

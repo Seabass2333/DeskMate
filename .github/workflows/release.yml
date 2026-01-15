@@ -32,14 +32,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build Electron App
+      - name: Build and Publish Electron App
         run: |
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            npm run build:mac
+            npm run release:mac
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            npm run build:win
+            npm run release:win
           else
-            npm run build:linux
+            npm run release:linux
           fi
         shell: bash
         env:

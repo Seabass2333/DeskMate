@@ -948,11 +948,28 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-downloaded', (info) => {
     console.log('[AutoUpdater] Update downloaded');
+    const store = require('./store');
+    const lang = store.get('language', 'en');
+
+    const messages = {
+      'zh-CN': {
+        title: 'DeskMate 更新',
+        message: '新版本已下载完成，是否立即重启以应用更新？',
+        buttons: ['立即重启', '稍后']
+      },
+      'en': {
+        title: 'DeskMate Update',
+        message: 'A new version has been downloaded. Restart the application to apply the update?',
+        buttons: ['Restart', 'Later']
+      }
+    };
+    const msg = messages[lang] || messages['en'];
+
     dialog.showMessageBox({
       type: 'info',
-      title: 'DeskMate Update',
-      message: 'A new version has been downloaded. Restart the application to apply the update?',
-      buttons: ['Restart', 'Later']
+      title: msg.title,
+      message: msg.message,
+      buttons: msg.buttons
     }).then((returnValue) => {
       if (returnValue.response === 0) {
         autoUpdater.quitAndInstall();
