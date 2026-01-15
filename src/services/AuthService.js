@@ -3,7 +3,7 @@
  * Uses Supabase Auth with OTP flow (no deep links required)
  */
 
-const { supabase, isConfigured, rpc } = require('./SupabaseClient');
+const { supabase, isConfigured, rpc, getUserFriendlyError } = require('./SupabaseClient');
 const { getDeviceId } = require('./DeviceIdService');
 
 class AuthService {
@@ -34,39 +34,57 @@ class AuthService {
     /**
      * Send OTP to email
      * @param {string} email 
+     * @returns {Promise<{success: boolean, error?: string}>}
      */
     async sendOtp(email) {
-        if (!isConfigured()) throw new Error('Supabase not configured');
+        if (!isConfigured()) {
+            return { success: false, error: '服务未配置' };
+        }
 
-        const { error } = await supabase.auth.signInWithOtp({
-            email,
-            options: {
-                shouldCreateUser: true
+        try {
+            const { error } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    shouldCreateUser: true
+                }
+            });
+
+            if (error) {
+                return { success: false, error: getUserFriendlyError(error) };
             }
-        });
-
-        if (error) throw error;
-        return true;
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: getUserFriendlyError(err) };
+        }
     }
 
     /**
      * Verify OTP code
      * @param {string} email 
      * @param {string} token 
+     * @returns {Promise<{success: boolean, error?: string}>}
      */
     async verifyOtp(email, token) {
-        if (!isConfigured()) throw new Error('Supabase not configured');
+        if (!isConfigured()) {
+            return { success: false, error: '服务未配置' };
+        }
 
-        const { data, error } = await supabase.auth.verifyOtp({
-            email,
-            token,
-            type: 'email'
-        });
+        try {
+            const { data, error } = await supabase.auth.verifyOtp({
+                email,
+                token,
+                type: 'email'
+            });
 
-        if (error) throw error;
+            if (error) {
+                return { success: false, error: getUserFriendlyError(error) };
+            }
 
-        // Successful login will trigger onAuthStateChange -> bindDevice
-        return data;
+            // Successful login will trigger onAuthStateChange -> bindDevice
+            return { success: true, user: data.user };
+        } catch (err) {
+            return { success: false, error: getUserFriendlyError(err) };
+        }
     }
 
     /**

@@ -60,5 +60,13 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     sendOtp: (email) => ipcRenderer.invoke('auth:sendOtp', email),
     verifyOtp: (email, token) => ipcRenderer.invoke('auth:verifyOtp', { email, token }),
     getAuthStatus: () => ipcRenderer.invoke('auth:getStatus'),
-    signOut: () => ipcRenderer.invoke('auth:signOut')
+    signOut: () => ipcRenderer.invoke('auth:signOut'),
+
+    // Settings Sync
+    syncToCloud: () => ipcRenderer.invoke('settings:syncToCloud'),
+    applyFromCloud: () => ipcRenderer.invoke('settings:applyFromCloud'),
+
+    // Ops: Announcements & Feedback
+    getAnnouncements: () => ipcRenderer.invoke('ops:getAnnouncements'),
+    submitFeedback: (feedback) => ipcRenderer.invoke('ops:submitFeedback', feedback)
 });

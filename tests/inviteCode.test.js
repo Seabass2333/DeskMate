@@ -15,7 +15,7 @@ describe('InviteCodeService', () => {
         test('should accept valid code "VIP-2024-CAT"', async () => {
             const result = await service.verify('VIP-2024-CAT');
             expect(result.valid).toBe(true);
-            expect(result.vipLevel).toBe('pro');
+            expect(result.tier).toBe('pro');
         });
 
         test('should accept valid code "MOCHI-LOVE"', async () => {

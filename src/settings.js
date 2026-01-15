@@ -1050,7 +1050,7 @@ async function handleSendOtp() {
 
     try {
         const result = await window.settingsAPI.sendOtp(email);
-        if (result && !result.error) {
+        if (result && result.success) {
             showAuthMessage(t('codeSent'), 'success');
             otpContainer.classList.remove('hidden');
             accountUnlinked.querySelector('.input-with-button')?.classList.add('hidden');
@@ -1112,9 +1112,20 @@ async function handleVerifyOtp() {
 
     try {
         const result = await window.settingsAPI.verifyOtp(email, token);
-        if (result && !result.error) {
+        if (result && result.success) {
             showAuthMessage(t('verifySuccess'), 'success');
             await checkAuthStatus();
+
+            // Sync settings to cloud (backup current settings)
+            await window.settingsAPI.syncToCloud();
+            console.log('[Settings] Settings synced to cloud');
+
+            // Apply settings from cloud (restore if any)
+            const syncResult = await window.settingsAPI.applyFromCloud();
+            if (syncResult.applied) {
+                console.log('[Settings] Applied cloud settings:', syncResult.keys);
+            }
+
             // Refresh VIP status too
             const newStatus = await window.settingsAPI.getVipStatus();
             updateVipStatusUI(newStatus);
@@ -1277,5 +1288,84 @@ function closeWindow() {
     window.settingsAPI.close();
 }
 
+// ============================================
+// Feedback Form (v1.3)
+// ============================================
+
+const feedbackCategory = document.getElementById('feedback-category');
+const feedbackContent = document.getElementById('feedback-content');
+const feedbackEmail = document.getElementById('feedback-email');
+const feedbackCharCount = document.getElementById('feedback-char-count');
+const submitFeedbackBtn = document.getElementById('submit-feedback-btn');
+const feedbackMessage = document.getElementById('feedback-message');
+
+function initFeedbackForm() {
+    if (!feedbackContent) return;
+
+    // Character counter
+    feedbackContent.addEventListener('input', () => {
+        const len = feedbackContent.value.length;
+        feedbackCharCount.textContent = `${len} / 2000`;
+
+        // Enable/disable submit button
+        submitFeedbackBtn.disabled = len < 10;
+    });
+
+    // Submit handler
+    submitFeedbackBtn.addEventListener('click', handleSubmitFeedback);
+}
+
+async function handleSubmitFeedback() {
+    const category = feedbackCategory.value;
+    const content = feedbackContent.value.trim();
+    const email = feedbackEmail.value.trim();
+
+    if (content.length < 10) {
+        showFeedbackMessage('请至少输入 10 个字符', 'error');
+        return;
+    }
+
+    submitFeedbackBtn.disabled = true;
+    submitFeedbackBtn.textContent = '提交中...';
+
+    try {
+        const result = await window.settingsAPI.submitFeedback({
+            category,
+            content,
+            email: email || null
+        });
+
+        if (result.success) {
+            showFeedbackMessage('感谢您的反馈！', 'success');
+            feedbackContent.value = '';
+            feedbackEmail.value = '';
+            feedbackCharCount.textContent = '0 / 2000';
+        } else {
+            showFeedbackMessage(result.error || '提交失败', 'error');
+        }
+    } catch (e) {
+        showFeedbackMessage(e.message, 'error');
+    } finally {
+        submitFeedbackBtn.textContent = '提交反馈';
+        submitFeedbackBtn.disabled = feedbackContent.value.length < 10;
+    }
+}
+
+function showFeedbackMessage(msg, type) {
+    if (!feedbackMessage) return;
+    feedbackMessage.textContent = msg;
+    feedbackMessage.className = `vip-message mt-2 ${type}`;
+
+    // Auto-clear after 5 seconds
+    setTimeout(() => {
+        feedbackMessage.textContent = '';
+        feedbackMessage.className = 'vip-message mt-2';
+    }, 5000);
+}
+
+// Initialize feedback form
+initFeedbackForm();
+
 // Initialize on load
 init();
+

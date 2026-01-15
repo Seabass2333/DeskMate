@@ -50,6 +50,9 @@ class InviteCodeService {
                 return await this.verifyRemote(trimmedCode);
             } catch (error) {
                 console.error('[InviteCodeService] Remote verification failed, falling back to local:', error);
+                // Use friendly message for network errors
+                const { getUserFriendlyError } = require('./SupabaseClient');
+                console.warn('[InviteCodeService] User message:', getUserFriendlyError(error));
                 return this.verifyLocal(trimmedCode);
             }
         }

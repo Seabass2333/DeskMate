@@ -787,6 +787,41 @@ ipcMain.handle('auth:signOut', async () => {
   return true;
 });
 
+// ============================================
+// Settings Sync IPC Handlers
+// ============================================
+
+const { settingsSyncService, SYNC_KEYS } = require('./src/services/SettingsSyncService');
+
+ipcMain.handle('settings:syncToCloud', async () => {
+  const store = require('./store');
+  const settings = {
+    [SYNC_KEYS.SKIN]: store.get('skin'),
+    [SYNC_KEYS.LANGUAGE]: store.get('language'),
+    [SYNC_KEYS.POMODORO]: store.get('pomodoro')
+  };
+  return await settingsSyncService.syncToCloud(settings);
+});
+
+ipcMain.handle('settings:applyFromCloud', async () => {
+  const store = require('./store');
+  return await settingsSyncService.applyFromCloud(store);
+});
+
+// ============================================
+// Ops IPC Handlers
+// ============================================
+
+const { opsService } = require('./src/services/OpsService');
+
+ipcMain.handle('ops:getAnnouncements', async () => {
+  return await opsService.getAnnouncements();
+});
+
+ipcMain.handle('ops:submitFeedback', async (_, feedback) => {
+  return await opsService.submitFeedback(feedback);
+});
+
 ipcMain.handle('quietMode:set', (_, enabled) => {
   const success = setQuietMode(enabled);
   if (success && mainWindow) {

@@ -220,6 +220,39 @@
             </div>
         </div>
 
+        <!-- Feedback Section (v1.3) -->
+        <div class="settings-group" id="feedback-section">
+            <h3 class="group-header">
+                💬 <span data-i18n="feedbackSection">Feedback</span>
+            </h3>
+
+            <div class="form-group">
+                <label for="feedback-category" data-i18n="feedbackCategory">Category</label>
+                <select id="feedback-category">
+                    <option value="bug">🐛 Bug Report</option>
+                    <option value="feature">💡 Feature Request</option>
+                    <option value="question">❓ Question</option>
+                    <option value="other">📝 Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="feedback-content" data-i18n="feedbackContent">Your Feedback</label>
+                <textarea id="feedback-content" rows="4" placeholder="Tell us what's on your mind..."
+                    maxlength="2000"></textarea>
+                <small id="feedback-char-count">0 / 2000</small>
+            </div>
+
+            <div class="form-group">
+                <label for="feedback-email" data-i18n="feedbackEmail">Email (optional)</label>
+                <input type="email" id="feedback-email" placeholder="your@email.com">
+                <small data-i18n="feedbackEmailHint">We'll only contact you if we need more info.</small>
+            </div>
+
+            <button id="submit-feedback-btn" class="btn-primary" data-i18n="submitFeedback" disabled>Submit
+                Feedback</button>
+            <div id="feedback-message" class="vip-message mt-2"></div>
+        </div>
 
 
         <!-- Actions -->
