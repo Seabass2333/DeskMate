@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeskMate - 你的桌面萌宠伙伴</title>
+    <meta name="description" content="DeskMate 是一款可爱的桌面宠物应用，集成 AI 对话、番茄钟专注和健康提醒功能。">
+    <meta name="keywords" content="桌面宠物, AI 助手, 番茄钟, 效率工具, desktop pet">
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+        <button id="lang-zh" class="lang-btn active">中文</button>
+        <button id="lang-en" class="lang-btn">EN</button>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="logo">
+                <span class="logo-icon">🐱</span>
+                <span class="logo-text">DeskMate</span>
+            </div>
+            <h1 class="hero-title" data-i18n="heroTitle">你的桌面萌宠伙伴</h1>
+            <p class="hero-subtitle" data-i18n="heroSubtitle">AI 对话 · 番茄专注 · 健康提醒</p>
+
+            <div class="download-buttons">
+                <a href="#" id="download-mac" class="btn btn-primary">
+                    <span class="btn-icon">🍎</span>
+                    <span data-i18n="downloadMac">下载 macOS 版</span>
+                </a>
+                <a href="#" id="download-win" class="btn btn-secondary">
+                    <span class="btn-icon">🪟</span>
+                    <span data-i18n="downloadWin">下载 Windows 版</span>
+                </a>
+            </div>
+            <p class="version-info" id="version-info">v1.3.0 · macOS 10.15+ / Windows 10+</p>
+        </div>
+
+        <div class="hero-preview">
+            <div class="pet-showcase">
+                <div class="pet-sprite" id="pet-sprite"></div>
+                <div class="speech-bubble" data-i18n="speechBubble">喵~ 今天也要加油哦！</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <h2 class="section-title" data-i18n="featuresTitle">为什么选择 DeskMate？</h2>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3 data-i18n="feature1Title">AI 对话陪伴</h3>
+                <p data-i18n="feature1Desc">随时与萌宠聊天，支持多种 AI 模型，缓解工作压力</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🍅</div>
+                <h3 data-i18n="feature2Title">番茄钟专注</h3>
+                <p data-i18n="feature2Desc">25 分钟专注模式，帮助你保持高效工作状态</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💧</div>
+                <h3 data-i18n="feature3Title">健康提醒</h3>
+                <p data-i18n="feature3Desc">定时提醒喝水、休息眼睛、伸展身体</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3 data-i18n="feature4Title">个性皮肤</h3>
+                <p data-i18n="feature4Desc">多款可爱宠物皮肤，VIP 专属皮肤更精彩</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section class="screenshots" id="screenshots">
+        <h2 class="section-title" data-i18n="screenshotsTitle">产品预览</h2>
+
+        <div class="screenshots-carousel">
+            <div class="screenshot-item active">
+                <img src="assets/images/screenshot-chat-1.png" alt="AI Chat" loading="lazy">
+                <p class="screenshot-caption" data-i18n="screenshot1">AI 对话 - 萌宠回复</p>
+            </div>
+            <div class="screenshot-item">
+                <img src="assets/images/screenshot-chat-2.png" alt="Chat Input" loading="lazy">
+                <p class="screenshot-caption" data-i18n="screenshot2">简洁的对话输入</p>
+            </div>
+            <div class="screenshot-item">
+                <img src="assets/images/screenshot-settings.png" alt="Settings" loading="lazy">
+                <p class="screenshot-caption" data-i18n="screenshot3">丰富的设置选项</p>
+            </div>
+            <div class="screenshot-item">
+                <img src="assets/images/screenshot-pet.png" alt="Desktop Pet" loading="lazy">
+                <p class="screenshot-caption" data-i18n="screenshot4">桌面萌宠效果</p>
+            </div>
+        </div>
+
+        <div class="carousel-dots">
+            <button class="dot active" data-index="0"></button>
+            <button class="dot" data-index="1"></button>
+            <button class="dot" data-index="2"></button>
+            <button class="dot" data-index="3"></button>
+        </div>
+    </section>
+
+    <!-- Download CTA Section -->
+    <section class="download-cta" id="download">
+        <h2 class="section-title" data-i18n="ctaTitle">准备好开始了吗？</h2>
+        <p class="cta-subtitle" data-i18n="ctaSubtitle">免费下载，让可爱陪伴你的每一天</p>
+
+        <div class="download-buttons">
+            <a href="#" id="download-mac-2" class="btn btn-primary btn-large">
+                <span class="btn-icon">🍎</span>
+                <span data-i18n="downloadMac">下载 macOS 版</span>
+            </a>
+            <a href="#" id="download-win-2" class="btn btn-secondary btn-large">
+                <span class="btn-icon">🪟</span>
+                <span data-i18n="downloadWin">下载 Windows 版</span>
+            </a>
+        </div>
+
+        <a href="https://github.com/Seabass2333/DeskMate/releases" class="changelog-link" data-i18n="viewChangelog">📋
+            查看更新日志</a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="https://github.com/Seabass2333/DeskMate" target="_blank">GitHub</a>
+            <span class="divider">|</span>
+            <a href="https://github.com/Seabass2333/DeskMate/issues" target="_blank" data-i18n="feedback">反馈建议</a>
+            <span class="divider">|</span>
+            <a href="#" data-i18n="privacy">隐私政策</a>
+        </div>
+        <p class="copyright">Made with ❤️ by Seabass2333</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>

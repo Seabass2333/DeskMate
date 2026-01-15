@@ -187,7 +187,14 @@ const SETTINGS_I18N = {
         redeemErrorGeneric: '兑换失败',
         saveFailed: '保存失败: ${msg}',
         testSuccess: '✓ 连接成功 (${ms}ms)',
-        testFailed: '✗ ${msg}'
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: '计时器与提醒',
+        pomodoroDuration: '专注时长 (分钟)',
+        reminderIntervals: '提醒间隔 (分钟)',
+        reminderWater: '💧 喝水',
+        reminderEyes: '👁️ 护眼',
+        reminderStretch: '🧘‍♀️ 伸展'
     },
     'en': {
         settingsTitle: 'Settings',
@@ -256,7 +263,14 @@ const SETTINGS_I18N = {
         redeemErrorGeneric: 'Error redeeming code',
         saveFailed: 'Save failed: ${msg}',
         testSuccess: '✓ Connected (${ms}ms)',
-        testFailed: '✗ ${msg}'
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'Timers & Reminders',
+        pomodoroDuration: 'Focus Duration (min)',
+        reminderIntervals: 'Reminder Intervals (min)',
+        reminderWater: '💧 Water',
+        reminderEyes: '👁️ Eyes',
+        reminderStretch: '🧘‍♀️ Stretch'
     },
     'ja': {
         settingsTitle: '設定',
@@ -313,7 +327,14 @@ const SETTINGS_I18N = {
         redeemErrorGeneric: '引き換えに失敗しました',
         saveFailed: '保存に失敗: ${msg}',
         testSuccess: '✓ 接続成功 (${ms}ms)',
-        testFailed: '✗ ${msg}'
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'タイマーとリマインダー',
+        pomodoroDuration: '集中時間 (分)',
+        reminderIntervals: 'リマインダー間隔 (分)',
+        reminderWater: '💧 水分',
+        reminderEyes: '👁️ 目の休憩',
+        reminderStretch: '🧘‍♀️ ストレッチ'
     },
     'ko': {
         settingsTitle: '설정',
@@ -370,7 +391,14 @@ const SETTINGS_I18N = {
         redeemErrorGeneric: '코드 사용 실패',
         saveFailed: '저장 실패: ${msg}',
         testSuccess: '✓ 연결 성공 (${ms}ms)',
-        testFailed: '✗ ${msg}'
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: '타이머 & 알림',
+        pomodoroDuration: '집중 시간 (분)',
+        reminderIntervals: '알림 간격 (분)',
+        reminderWater: '💧 물',
+        reminderEyes: '👁️ 눈 휴식',
+        reminderStretch: '🧘‍♀️ 스트레칭'
     },
     'es': {
         settingsTitle: 'Configuración',
@@ -427,7 +455,14 @@ const SETTINGS_I18N = {
         redeemErrorGeneric: 'Error al canjear',
         saveFailed: 'Error al guardar: ${msg}',
         testSuccess: '✓ Conectado (${ms}ms)',
-        testFailed: '✗ ${msg}'
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'Temporizadores',
+        pomodoroDuration: 'Duración (min)',
+        reminderIntervals: 'Intervalo (min)',
+        reminderWater: '💧 Agua',
+        reminderEyes: '👁️ Ojos',
+        reminderStretch: '🧘‍♀️ Estirar'
     },
     'fr': {
         settingsTitle: 'Paramètres',
@@ -484,7 +519,14 @@ const SETTINGS_I18N = {
         redeemErrorGeneric: 'Échec de l\'échange',
         saveFailed: 'Échec de sauvegarde: ${msg}',
         testSuccess: '✓ Connecté (${ms}ms)',
-        testFailed: '✗ ${msg}'
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'Minuteries',
+        pomodoroDuration: 'Durée (min)',
+        reminderIntervals: 'Intervalle (min)',
+        reminderWater: '💧 Eau',
+        reminderEyes: '👁️ Yeux',
+        reminderStretch: '🧘‍♀️ Étirement'
     },
     'de': {
         settingsTitle: 'Einstellungen',
@@ -541,7 +583,14 @@ const SETTINGS_I18N = {
         redeemErrorGeneric: 'Einlösen fehlgeschlagen',
         saveFailed: 'Speichern fehlgeschlagen: ${msg}',
         testSuccess: '✓ Verbunden (${ms}ms)',
-        testFailed: '✗ ${msg}'
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'Timer & Erinnerungen',
+        pomodoroDuration: 'Fokuszeit (Min)',
+        reminderIntervals: 'Intervall (Min)',
+        reminderWater: '💧 Wasser',
+        reminderEyes: '👁️ Augen',
+        reminderStretch: '🧘‍♀️ Dehnen'
     }
 };
 

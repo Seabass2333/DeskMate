@@ -51,8 +51,8 @@ body {
  */
 
 .pet-sprite {
-  width: 128px;
-  height: 128px;
+  width: 156px;
+  height: 156px;
 
   /* Background image set dynamically by JS */
   background-repeat: no-repeat;

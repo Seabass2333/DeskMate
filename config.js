@@ -548,7 +548,6 @@ module.exports = {
     getAvailableSkins,
     isVipFeatureEnabled,
     isUserVip,
-    isUserVip,
     redeemInviteCode,
     getVipStatus,
     syncVipStatus,
