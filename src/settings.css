@@ -746,3 +746,17 @@ textarea::placeholder {
 #feedback-message.error {
     color: #fc8181;
 }
+
+/* Version Info */
+.version-info {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#app-version {
+    font-size: 12px;
+    color: #666;
+    font-family: 'SF Mono', 'Menlo', monospace;
+}

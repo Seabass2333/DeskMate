@@ -174,6 +174,35 @@ async function init() {
         }
     });
 
+    // 11. Random Idle Bubble System
+    let idleBubbleTimer = null;
+
+    function scheduleIdleBubble() {
+        // Clear existing timer
+        if (idleBubbleTimer) clearTimeout(idleBubbleTimer);
+
+        // Only show bubbles when in IDLE state and not in quiet mode
+        if (stateMachine.state !== STATES.IDLE || stateMachine.quietMode) {
+            // Retry check in 30 seconds
+            idleBubbleTimer = setTimeout(scheduleIdleBubble, 30000);
+            return;
+        }
+
+        // Random delay between 45-120 seconds
+        const delay = Math.random() * 75000 + 45000;
+        idleBubbleTimer = setTimeout(async () => {
+            // Double-check still in idle
+            if (stateMachine.state === STATES.IDLE && !stateMachine.quietMode) {
+                const msg = await window.deskmate.getRandomIdleMessage();
+                showBubble(msg, 4000);
+            }
+            scheduleIdleBubble(); // Schedule next
+        }, delay);
+    }
+
+    // Start idle bubble system
+    scheduleIdleBubble();
+
     console.log('[Renderer] Phase 2 Ready!');
 }
 

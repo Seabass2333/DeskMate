@@ -68,5 +68,8 @@ contextBridge.exposeInMainWorld('settingsAPI', {
 
     // Ops: Announcements & Feedback
     getAnnouncements: () => ipcRenderer.invoke('ops:getAnnouncements'),
-    submitFeedback: (feedback) => ipcRenderer.invoke('ops:submitFeedback', feedback)
+    submitFeedback: (feedback) => ipcRenderer.invoke('ops:submitFeedback', feedback),
+
+    // App Info
+    getAppVersion: () => ipcRenderer.invoke('app:getVersion')
 });

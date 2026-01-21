@@ -102,7 +102,20 @@ class EnergyManager {
     }
 
     updateUI() {
-        // Placeholder for future UI
+        const bar = document.getElementById('energy-bar');
+        if (!bar) return;
+
+        // Update width
+        bar.style.width = `${this.energy}%`;
+
+        // Update color based on tier
+        bar.classList.remove('tired', 'energetic');
+        const tier = this.getTier();
+        if (tier === 'exhausted' || tier === 'tired') {
+            bar.classList.add('tired');
+        } else if (tier === 'energetic' || tier === 'hyper') {
+            bar.classList.add('energetic');
+        }
     }
 }
 

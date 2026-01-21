@@ -696,6 +696,15 @@ function getTranslations() {
     return translations[currentLanguage] || translations['en'];
 }
 
+/**
+ * Get a random idle message
+ */
+function getRandomIdleMessage() {
+    const langStrings = translations[currentLanguage] || translations['en'];
+    const messages = langStrings.randomMessages || translations['en'].randomMessages;
+    return messages[Math.floor(Math.random() * messages.length)];
+}
+
 module.exports = {
     SUPPORTED_LANGUAGES,
     translations,
@@ -704,5 +713,6 @@ module.exports = {
     setLanguage,
     getLanguage,
     t,
-    getTranslations
+    getTranslations,
+    getRandomIdleMessage
 };

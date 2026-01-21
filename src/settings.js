@@ -733,6 +733,13 @@ async function init() {
             applyI18n(lang || 'zh-CN');
         }
 
+        // Display app version
+        if (window.settingsAPI.getAppVersion) {
+            const version = await window.settingsAPI.getAppVersion();
+            const versionEl = document.getElementById('app-version');
+            if (versionEl) versionEl.textContent = `v${version}`;
+        }
+
         // Event listeners
         regionSelect.addEventListener('change', onRegionChange);
         providerSelect.addEventListener('change', onProviderChange);

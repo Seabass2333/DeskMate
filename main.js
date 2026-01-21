@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
 const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetState, savePetState, getSkin, setSkin, getAvailableSkins, isVipFeatureEnabled, redeemInviteCode, getVipStatus, syncVipStatus, getQuietMode, setQuietMode, isUserVip } = require('./config');
-const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES } = require('./i18n');
+const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES, getRandomIdleMessage } = require('./i18n');
 const { trackAppLaunched, trackSkinChanged, trackVipActivated } = require('./src/services/AnalyticsService');
 const { authService } = require('./src/services/AuthService');
 
@@ -909,6 +909,12 @@ ipcMain.handle('i18n:setLanguage', (_, lang) => {
 ipcMain.handle('i18n:getSupported', () => SUPPORTED_LANGUAGES);
 
 ipcMain.handle('i18n:translate', (_, key) => t(key));
+
+// App Info
+ipcMain.handle('app:getVersion', () => app.getVersion());
+
+// Random Idle Message
+ipcMain.handle('i18n:getRandomIdleMessage', () => getRandomIdleMessage());
 
 // ============================================
 // App Lifecycle
