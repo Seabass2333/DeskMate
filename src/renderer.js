@@ -7,6 +7,28 @@
  * - UI: BubbleManager, NotificationManager
  */
 
+// ============================================
+// Global Error Handling
+// ============================================
+
+window.onerror = function (message, source, lineno, colno, error) {
+    console.error('[Renderer Error]', message, '\n  Source:', source, '\n  Line:', lineno);
+    // Optionally track errors via analytics
+    if (window.deskmate?.trackEvent) {
+        window.deskmate.trackEvent('js_error', { message, source, lineno });
+    }
+    return false; // Allow default handling
+};
+
+window.onunhandledrejection = function (event) {
+    console.error('[Unhandled Promise Rejection]', event.reason);
+    if (window.deskmate?.trackEvent) {
+        window.deskmate.trackEvent('promise_rejection', {
+            message: event.reason?.message || String(event.reason)
+        });
+    }
+};
+
 // Global instances
 let energyManager = null;
 const notificationManager = new NotificationManager();
