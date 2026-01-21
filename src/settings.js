@@ -760,32 +760,28 @@ async function init() {
 
                     const messageEl = document.getElementById('update-message');
 
-                    // Helper to safely set message with link
-                    const setUpdateMessage = (text, type, linkUrl, linkText) => {
+                    // Helper to safely set message with multiple links
+                    const setUpdateMessage = (html, type) => {
                         if (!messageEl) return;
-                        messageEl.innerHTML = '';
-                        const span = document.createElement('span');
-                        span.textContent = text + ' ';
-                        messageEl.appendChild(span);
-                        if (linkUrl && linkText) {
-                            const link = document.createElement('a');
-                            link.href = '#';
-                            link.textContent = linkText;
-                            link.style.cursor = 'pointer';
-                            link.style.textDecoration = 'underline';
+                        messageEl.innerHTML = html;
+                        messageEl.className = `update-message ${type}`;
+
+                        // Attach click handlers to any links we just added
+                        const links = messageEl.querySelectorAll('a[data-url]');
+                        links.forEach(link => {
                             link.onclick = (e) => {
                                 e.preventDefault();
-                                window.settingsAPI.openExternal(linkUrl);
+                                window.settingsAPI.openExternal(link.dataset.url);
                             };
-                            messageEl.appendChild(link);
-                        }
-                        messageEl.className = `update-message ${type}`;
+                        });
                     };
 
+                    // Check Update Handler
                     // Check Update Handler
                     checkBtn.onclick = async () => {
                         checkBtn.disabled = true;
                         checkBtn.textContent = 'Checking...';
+                        isUpdateFound = false;
                         if (messageEl) {
                             messageEl.textContent = '';
                             messageEl.className = 'update-message';
@@ -803,11 +799,17 @@ async function init() {
                             case 'available':
                                 checkBtn.textContent = 'Update Available';
                                 checkBtn.disabled = true;
+                                isUpdateFound = true;
+
+                                const githubUrl = 'https://github.com/Seabass2333/DeskMate/releases/latest';
+                                // Using the GitHub project page as landing page for now since docs/index.html suggests it
+                                const landingUrl = 'https://seabass2333.github.io/DeskMate/';
+
                                 setUpdateMessage(
-                                    `Found v${data.version}.`,
-                                    'success',
-                                    'https://github.com/Seabass2333/DeskMate/releases/latest',
-                                    'Download manually'
+                                    `Found v${data.version}. <br/>` +
+                                    `Download: <a href="#" data-url="${githubUrl}">GitHub</a> | ` +
+                                    `<a href="#" data-url="${landingUrl}">Landing Page</a>`,
+                                    'success'
                                 );
                                 break;
                             case 'not-available':
@@ -824,14 +826,29 @@ async function init() {
                                 checkBtn.textContent = `Downloading ${Math.round(data.percent)}%`;
                                 break;
                             case 'error':
-                                checkBtn.disabled = false;
-                                checkBtn.textContent = 'Retry';
-                                setUpdateMessage(
-                                    'Check failed.',
-                                    'error',
-                                    'https://github.com/Seabass2333/DeskMate/releases',
-                                    'Download from GitHub'
-                                );
+                                // If update was found but download failed, show manual links instead of generic failure
+                                if (isUpdateFound) {
+                                    checkBtn.textContent = 'Download Manually';
+                                    // Keep disabled or enable to retry check? Let's keep disabled to suggest manual download
+                                    checkBtn.disabled = true;
+
+                                    const githubUrl = 'https://github.com/Seabass2333/DeskMate/releases/latest';
+                                    const landingUrl = 'https://seabass2333.github.io/DeskMate/';
+
+                                    setUpdateMessage(
+                                        `Auto-update failed. Please download manually: <br/>` +
+                                        `<a href="#" data-url="${githubUrl}">GitHub</a> | ` +
+                                        `<a href="#" data-url="${landingUrl}">Landing Page</a>`,
+                                        'error'
+                                    );
+                                } else {
+                                    checkBtn.disabled = false;
+                                    checkBtn.textContent = 'Retry';
+                                    setUpdateMessage(
+                                        'Check failed. Network error.',
+                                        'error'
+                                    );
+                                }
                                 break;
                         }
                     });

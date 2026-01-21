@@ -789,6 +789,8 @@ textarea::placeholder {
     min-height: 16px;
     transition: all 0.3s ease;
     margin-top: 8px;
+    line-height: 1.5;
+    /* Better spacing for multi-line */
 }
 
 .update-message.success {
@@ -803,6 +805,9 @@ textarea::placeholder {
     color: inherit;
     text-decoration: underline;
     opacity: 0.9;
+    margin: 0 2px;
+    /* Add spacing around links */
+    font-weight: 600;
 }
 
 .update-message a:hover {

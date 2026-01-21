@@ -925,9 +925,24 @@ const { autoUpdater } = require('electron-updater');
 function setupAutoUpdater() {
   // Check for updates every hour
   const CHECK_INTERVAL = 60 * 60 * 1000;
+  setInterval(() => {
+    autoUpdater.checkForUpdates().catch(err => console.error('[AutoUpdater] Interval check failed:', err));
+  }, CHECK_INTERVAL);
 
   autoUpdater.logger = console;
   autoUpdater.autoDownload = true;
+
+  // Force dev update config if not packaged
+  if (!app.isPackaged) {
+    autoUpdater.forceDevUpdateConfig = true;
+    console.log('[AutoUpdater] Running in dev mode, forced dev update config');
+  }
+
+  // Initial Check on Startup
+  // Delay slightly to allow window to load if needed, though not strictly necessary for headless check
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(err => console.error('[AutoUpdater] Initial check failed:', err));
+  }, 3000);
 
   // Manual check handler
   ipcMain.handle('app:checkUpdate', async () => {
@@ -945,6 +960,9 @@ function setupAutoUpdater() {
     }
   }
 
+  // Track if current update is critical
+  let isCriticalUpdate = false;
+
   autoUpdater.on('checking-for-update', () => {
     console.log('[AutoUpdater] Checking for updates...');
     sendStatusToSettings('checking');
@@ -953,6 +971,26 @@ function setupAutoUpdater() {
   autoUpdater.on('update-available', (info) => {
     console.log('[AutoUpdater] Update available:', info);
     sendStatusToSettings('available', info);
+
+    // Check for critical update flag
+    // Keyword: [FORCE_UPDATE] in release notes
+    if (info.releaseNotes && (
+      info.releaseNotes.includes('[FORCE_UPDATE]') ||
+      info.releaseNotes.includes('[CRITICAL]')
+    )) {
+      isCriticalUpdate = true;
+      console.log('[AutoUpdater] Critical update detected!');
+
+      dialog.showMessageBox({
+        type: 'warning',
+        title: 'Critical Update Required',
+        message: `A critical update (${info.version}) is available.`,
+        detail: 'This update includes important security fixes or major improvements. The app will download it automatically.',
+        buttons: ['OK']
+      });
+    } else {
+      isCriticalUpdate = false;
+    }
   });
 
   autoUpdater.on('update-not-available', (info) => {
@@ -963,6 +1001,24 @@ function setupAutoUpdater() {
   autoUpdater.on('error', (err) => {
     console.error('[AutoUpdater] Error:', err);
     sendStatusToSettings('error', err.message);
+
+    if (isCriticalUpdate) {
+      dialog.showMessageBox({
+        type: 'error',
+        title: 'Update Failed',
+        message: 'Critical update failed to download.',
+        detail: 'Please download the latest version manually to continue using DeskMate safely.',
+        buttons: ['Download Manually', 'Quit'],
+        cancelId: 1
+      }).then(({ response }) => {
+        if (response === 0) {
+          require('electron').shell.openExternal('https://github.com/Seabass2333/DeskMate/releases/latest');
+          app.quit();
+        } else {
+          app.quit();
+        }
+      });
+    }
   });
 
   autoUpdater.on('download-progress', (progressObj) => {
@@ -975,6 +1031,22 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-downloaded', (info) => {
     console.log('[AutoUpdater] Update downloaded');
+
+    if (isCriticalUpdate) {
+      dialog.showMessageBox({
+        type: 'warning',
+        title: 'Update Ready',
+        message: 'Critical update downloaded.',
+        detail: 'The application must restart now to apply the critical update.',
+        buttons: ['Restart Now'],
+        defaultId: 0,
+        cancelId: 0 // Prevent closing without action (though on Mac Esc might still work, logic is sound for enforcement)
+      }).then(() => {
+        autoUpdater.quitAndInstall();
+      });
+      return; // Skip normal notification
+    }
+
     const store = require('./store');
     const lang = store.get('language', 'en');
 

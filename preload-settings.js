@@ -3,7 +3,7 @@
  * Exposes settings-specific IPC methods
  */
 
-const { contextBridge, ipcRenderer, shell } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('settingsAPI', {
     /**
@@ -73,6 +73,5 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     // App Info
     getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
     checkUpdate: () => ipcRenderer.invoke('app:checkUpdate'),
-    onUpdateStatus: (callback) => ipcRenderer.on('app:updateStatus', (_, data) => callback(data)),
-    openExternal: (url) => shell.openExternal(url)
+    onUpdateStatus: (callback) => ipcRenderer.on('app:updateStatus', (_, data) => callback(data))
 });
