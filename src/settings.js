@@ -735,75 +735,111 @@ async function init() {
 
         // Display app version
         // Display app version and update check
+        // Display app version and update check
         if (window.settingsAPI.getAppVersion) {
             const version = await window.settingsAPI.getAppVersion();
-            const versionEl = document.getElementById('app-version');
-            if (versionEl) {
-                // Create container for version and button
-                const container = document.createElement('div');
-                container.style.display = 'flex';
-                container.style.alignItems = 'center';
-                container.style.justifyContent = 'center';
-                container.style.gap = '10px';
+            const versionText = document.getElementById('app-version-text');
+            const versionContainer = document.getElementById('version-container');
 
-                // Clear existing content
-                versionEl.innerHTML = '';
-                versionEl.appendChild(container);
+            if (versionText) {
+                versionText.textContent = `v${version}`;
 
-                const verText = document.createElement('span');
-                verText.textContent = `v${version}`;
-                container.appendChild(verText);
+                // Add Check Update Button if container exists
+                if (versionContainer && !versionContainer.querySelector('.check-update-btn')) {
+                    const checkBtn = document.createElement('button');
+                    checkBtn.textContent = 'Check Updates';
+                    checkBtn.className = 'btn-secondary btn-sm check-update-btn';
+                    checkBtn.style.marginLeft = '10px';
+                    checkBtn.style.padding = '2px 8px';
+                    checkBtn.style.fontSize = '11px';
 
-                // Add Check Update Button
-                const checkBtn = document.createElement('button');
-                checkBtn.textContent = 'Check for Updates';
-                checkBtn.className = 'btn-secondary';
-                checkBtn.style.padding = '2px 8px';
-                checkBtn.style.fontSize = '11px';
-                container.appendChild(checkBtn);
+                    // Find insertion point (row)
+                    const row = versionContainer.querySelector('.version-row');
+                    if (row) row.appendChild(checkBtn);
+                    else versionContainer.appendChild(checkBtn);
 
-                const statusText = document.createElement('span');
-                statusText.style.fontSize = '11px';
-                statusText.style.color = '#888';
-                container.appendChild(statusText);
+                    const messageEl = document.getElementById('update-message');
 
-                // Check Update Handler
-                checkBtn.onclick = async () => {
-                    checkBtn.disabled = true;
-                    checkBtn.textContent = 'Checking...';
-                    statusText.textContent = '';
-                    await window.settingsAPI.checkUpdate();
-                };
+                    // Helper to safely set message with link
+                    const setUpdateMessage = (text, type, linkUrl, linkText) => {
+                        if (!messageEl) return;
+                        messageEl.innerHTML = '';
+                        const span = document.createElement('span');
+                        span.textContent = text + ' ';
+                        messageEl.appendChild(span);
+                        if (linkUrl && linkText) {
+                            const link = document.createElement('a');
+                            link.href = '#';
+                            link.textContent = linkText;
+                            link.style.cursor = 'pointer';
+                            link.style.textDecoration = 'underline';
+                            link.onclick = (e) => {
+                                e.preventDefault();
+                                window.settingsAPI.openExternal(linkUrl);
+                            };
+                            messageEl.appendChild(link);
+                        }
+                        messageEl.className = `update-message ${type}`;
+                    };
 
-                // Update Status Listener
-                window.settingsAPI.onUpdateStatus(({ status, data }) => {
-                    console.log('Update Status:', status, data);
-                    switch (status) {
-                        case 'checking':
-                            checkBtn.textContent = 'Checking...';
-                            break;
-                        case 'available':
-                            checkBtn.textContent = 'Update Available';
-                            statusText.textContent = `v${data.version}`;
-                            statusText.style.color = '#4caf50';
-                            break;
-                        case 'not-available':
-                            checkBtn.disabled = false;
-                            checkBtn.textContent = 'Check for Updates';
-                            statusText.textContent = 'Up to date';
-                            statusText.style.color = '#888';
-                            break;
-                        case 'downloading':
-                            checkBtn.textContent = `Downloading ${Math.round(data.percent)}%`;
-                            break;
-                        case 'error':
-                            checkBtn.disabled = false;
-                            checkBtn.textContent = 'Retry';
-                            statusText.textContent = 'Check failed';
-                            statusText.style.color = '#f44336';
-                            break;
-                    }
-                });
+                    // Check Update Handler
+                    checkBtn.onclick = async () => {
+                        checkBtn.disabled = true;
+                        checkBtn.textContent = 'Checking...';
+                        if (messageEl) {
+                            messageEl.textContent = '';
+                            messageEl.className = 'update-message';
+                        }
+                        await window.settingsAPI.checkUpdate();
+                    };
+
+                    // Update Status Listener
+                    window.settingsAPI.onUpdateStatus(({ status, data }) => {
+                        console.log('Update Status:', status, data);
+                        switch (status) {
+                            case 'checking':
+                                checkBtn.textContent = 'Checking...';
+                                break;
+                            case 'available':
+                                checkBtn.textContent = 'Update Available';
+                                checkBtn.disabled = true;
+                                setUpdateMessage(
+                                    `Found v${data.version}.`,
+                                    'success',
+                                    'https://github.com/Seabass2333/DeskMate/releases/latest',
+                                    'Download manually'
+                                );
+                                break;
+                            case 'not-available':
+                                checkBtn.disabled = false;
+                                checkBtn.textContent = 'Check Updates';
+                                setUpdateMessage('You are using the latest version.', '');
+                                setTimeout(() => {
+                                    if (messageEl && messageEl.textContent.includes('You are using')) {
+                                        messageEl.textContent = '';
+                                    }
+                                }, 5000);
+                                break;
+                            case 'downloading':
+                                checkBtn.textContent = `Downloading ${Math.round(data.percent)}%`;
+                                break;
+                            case 'error':
+                                checkBtn.disabled = false;
+                                checkBtn.textContent = 'Retry';
+                                setUpdateMessage(
+                                    'Check failed.',
+                                    'error',
+                                    'https://github.com/Seabass2333/DeskMate/releases',
+                                    'Download from GitHub'
+                                );
+                                break;
+                        }
+                    });
+                }
+            } else {
+                // Fallback for old footer logic (if HTML revert happens or partial load)
+                const versionEl = document.getElementById('app-version');
+                if (versionEl) versionEl.textContent = `v${version}`;
             }
         }
 
