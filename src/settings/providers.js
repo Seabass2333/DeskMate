@@ -116,7 +116,12 @@ const PROVIDERS = {
     }
 };
 
-// Export for CommonJS
+// Expose for browser environment
+if (typeof window !== 'undefined') {
+    window.PROVIDERS = PROVIDERS;
+}
+
+// Keep export for tests/Node environment
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { PROVIDERS };
 }

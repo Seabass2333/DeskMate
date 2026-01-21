@@ -4,12 +4,595 @@
  */
 
 // Provider definitions matching config.js structure
-// Provider definitions matching config.js structure
-const { PROVIDERS } = require('./settings/providers');
+const PROVIDERS = {
+    china: {
+        deepseek: {
+            name: 'DeepSeek',
+            model: 'deepseek-chat',
+            apiKeyUrl: 'https://platform.deepseek.com/api_keys',
+            getKeyText: { 'zh-CN': '获取 DeepSeek API Key', 'en': 'Get DeepSeek API Key' }
+        },
+        moonshot: {
+            name: 'Moonshot (Kimi)',
+            model: 'moonshot-v1-8k',
+            apiKeyUrl: 'https://platform.moonshot.cn/console/api-keys',
+            getKeyText: { 'zh-CN': '获取 Moonshot API Key', 'en': 'Get Moonshot API Key' }
+        },
+        zhipu: {
+            name: { 'zh-CN': '智谱 AI (GLM)', 'en': 'Zhipu AI (GLM)' },
+            model: 'glm-4-flash',
+            apiKeyUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
+            getKeyText: { 'zh-CN': '获取智谱 API Key', 'en': 'Get Zhipu API Key' }
+        },
+        qwen: {
+            name: { 'zh-CN': '通义千问 (Qwen)', 'en': 'Qwen (Alibaba)' },
+            model: 'qwen-turbo',
+            apiKeyUrl: 'https://dashscope.console.aliyun.com/apiKey',
+            getKeyText: { 'zh-CN': '获取通义千问 API Key', 'en': 'Get Qwen API Key' }
+        },
+        baichuan: {
+            name: { 'zh-CN': '百川 AI', 'en': 'Baichuan AI' },
+            model: 'Baichuan2-Turbo',
+            apiKeyUrl: 'https://platform.baichuan-ai.com/console/apikey',
+            getKeyText: { 'zh-CN': '获取百川 API Key', 'en': 'Get Baichuan API Key' }
+        },
+        doubao: {
+            name: { 'zh-CN': '豆包 (ByteDance)', 'en': 'Doubao (ByteDance)' },
+            model: 'doubao-pro-4k',
+            apiKeyUrl: 'https://console.volcengine.com/ark',
+            getKeyText: { 'zh-CN': '获取豆包 API Key', 'en': 'Get Doubao API Key' }
+        }
+    },
+    global: {
+        openrouter: {
+            name: { 'zh-CN': 'OpenRouter (推荐)', 'en': 'OpenRouter (Recommended)' },
+            model: 'deepseek/deepseek-chat',
+            apiKeyUrl: 'https://openrouter.ai/keys',
+            getKeyText: { 'zh-CN': '获取 OpenRouter API Key', 'en': 'Get OpenRouter API Key' }
+        },
+        openai: {
+            name: 'OpenAI',
+            model: 'gpt-4o-mini',
+            apiKeyUrl: 'https://platform.openai.com/api-keys',
+            getKeyText: { 'zh-CN': '获取 OpenAI API Key', 'en': 'Get OpenAI API Key' }
+        },
+        anthropic: {
+            name: 'Anthropic Claude',
+            model: 'claude-3-haiku-20240307',
+            apiKeyUrl: 'https://console.anthropic.com/settings/keys',
+            getKeyText: { 'zh-CN': '获取 Claude API Key', 'en': 'Get Claude API Key' }
+        },
+        gemini: {
+            name: 'Google Gemini',
+            model: 'gemini-1.5-flash',
+            apiKeyUrl: 'https://aistudio.google.com/app/apikey',
+            getKeyText: { 'zh-CN': '获取 Gemini API Key', 'en': 'Get Gemini API Key' }
+        },
+        groq: {
+            name: { 'zh-CN': 'Groq (超快)', 'en': 'Groq (Fast)' },
+            model: 'llama-3.1-8b-instant',
+            apiKeyUrl: 'https://console.groq.com/keys',
+            getKeyText: { 'zh-CN': '获取 Groq API Key', 'en': 'Get Groq API Key' }
+        },
+        together: {
+            name: 'Together AI',
+            model: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
+            apiKeyUrl: 'https://api.together.xyz/settings/api-keys',
+            getKeyText: { 'zh-CN': '获取 Together API Key', 'en': 'Get Together API Key' }
+        },
+        mistral: {
+            name: 'Mistral AI',
+            model: 'mistral-small-latest',
+            apiKeyUrl: 'https://console.mistral.ai/api-keys',
+            getKeyText: { 'zh-CN': '获取 Mistral API Key', 'en': 'Get Mistral API Key' }
+        },
+        custom: {
+            name: { 'zh-CN': '自定义 API', 'en': 'Custom API' },
+            model: '',
+            apiKeyUrl: '',
+            getKeyText: { 'zh-CN': '使用任意 OpenAI 兼容 API', 'en': 'Use any OpenAI-compatible API' },
+            isCustom: true
+        }
+    },
+    local: {
+        ollama: {
+            name: { 'zh-CN': 'Ollama (本地)', 'en': 'Ollama (Local)' },
+            model: 'llama3.2',
+            apiKeyUrl: 'https://ollama.ai/download',
+            getKeyText: { 'zh-CN': '下载 Ollama', 'en': 'Download Ollama' }
+        },
+        lmstudio: {
+            name: 'LM Studio',
+            model: 'local-model',
+            apiKeyUrl: 'https://lmstudio.ai/',
+            getKeyText: { 'zh-CN': '下载 LM Studio', 'en': 'Download LM Studio' }
+        },
+        custom_local: {
+            name: '自定义本地 API',
+            model: '',
+            apiKeyUrl: '',
+            getKeyText: { 'zh-CN': '使用自定义本地服务', 'en': 'Use custom local server' },
+            isCustom: true
+        }
+    }
+};
 
 // Settings page translations
-const { validateApiKey, validateEmail, validateFeedback, validateInterval, validateInviteCode } = require('./settings/validators');
-const { applyI18n: applyI18nBase, t: tBase, getCurrentLang } = require('./settings/i18n');
+const SETTINGS_I18N = {
+    'zh-CN': {
+        settingsTitle: '设置',
+        providerSection: 'API 供应商',
+        region: '区域',
+        regionChina: '🇨🇳 中国大陆',
+        regionGlobal: '🌍 国际',
+        regionLocal: '💻 本地',
+        provider: '供应商',
+        apiKeySection: 'API 密钥',
+        apiKey: 'API Key',
+        model: '模型',
+        testConnection: '测试连接',
+        language: '语言',
+        interfaceLanguage: '界面语言',
+        soundSection: '音效',
+        soundEffects: '启用音效',
+        cancel: '取消',
+        save: '保存设置',
+        testing: '测试中...',
+        sending: '发送中...',
+        connectionSuccess: '✓ 连接成功',
+        saving: '保存中...',
+        vipSection: '👑 VIP 会员',
+        skinSection: '🎨 皮肤',
+        vipPro: '专业版',
+        vipFree: '免费版',
+        vipUnlocked: '已通过邀请码解锁: ${code}',
+        vipDesc: '输入邀请码解锁高级功能（Pochi 皮肤、无限专注时常等）',
+        redeem: '兑换',
+        redeeming: '验证中...',
+        redeemSuccess: '✅ 成功！已解锁高级功能。',
+        redeemInvalid: '❌ 无效的邀请码。',
+        redeemEmpty: '⚠️ 请输入邀请码。',
+        redeemError: '❌ 错误: ${msg}',
+        vipRequired: '此皮肤需要 VIP 会员。',
+        vipRequired: '此皮肤需要 VIP 会员。',
+        getKeyHelp: '获取 API Key',
+        accountSection: '账户',
+        accountLinkDesc: '绑定邮箱以跨设备同步 VIP 状态。',
+        sendCode: '发送验证码',
+        verify: '验证',
+        enterCodeDesc: '输入邮箱收到的 6 位验证码。',
+        signOut: '退出登录',
+        codeSent: '验证码已发送！',
+        verifySuccess: '✅ 绑定成功！',
+        verifyError: '❌ 验证失败: ${msg}',
+        // Feedback Form (v1.3)
+        feedbackSection: '意见反馈',
+        feedbackCategory: '分类',
+        feedbackCategoryBug: '🐛 Bug 反馈',
+        feedbackCategoryFeature: '💡 功能建议',
+        feedbackCategoryQuestion: '❓ 问题咨询',
+        feedbackCategoryOther: '📝 其他',
+        feedbackContent: '您的反馈',
+        feedbackContentPlaceholder: '请详细描述您的问题或建议...',
+        feedbackEmail: '邮箱（可选）',
+        feedbackEmailHint: '如需进一步沟通，我们会通过此邮箱联系您。',
+        submitFeedback: '提交反馈',
+        submittingFeedback: '提交中...',
+        feedbackSuccess: '感谢您的反馈！',
+        feedbackMinLength: '请至少输入 10 个字符',
+        feedbackError: '提交失败: ${msg}',
+        // VIP Expiration
+        vipExpires: '有效期至: ${date}',
+        activated: '已激活',
+        redeemErrorGeneric: '兑换失败',
+        saveFailed: '保存失败: ${msg}',
+        testSuccess: '✓ 连接成功 (${ms}ms)',
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: '计时器与提醒',
+        pomodoroDuration: '专注时长 (分钟)',
+        reminderIntervals: '提醒间隔 (分钟)',
+        reminderWater: '💧 喝水',
+        reminderEyes: '👁️ 护眼',
+        reminderStretch: '🧘‍♀️ 伸展'
+    },
+    'en': {
+        settingsTitle: 'Settings',
+        providerSection: 'API Provider',
+        region: 'Region',
+        regionChina: '🇨🇳 China',
+        regionGlobal: '🌍 Global',
+        regionLocal: '💻 Local',
+        provider: 'Provider',
+        apiKeySection: 'API Key',
+        apiKey: 'API Key',
+        model: 'Model',
+        testConnection: 'Test Connection',
+        language: 'Language',
+        interfaceLanguage: 'Interface Language',
+        soundSection: 'Sound',
+        soundEffects: 'Enable Sound Effects',
+        cancel: 'Cancel',
+        save: 'Save Settings',
+        testing: 'Testing...',
+        sending: 'Sending...',
+        connectionSuccess: '✓ Connected',
+        saving: 'Saving...',
+        vipSection: '👑 VIP Membership',
+        skinSection: '🎨 Skin',
+        vipPro: 'PRO MEMBER',
+        vipFree: 'FREE',
+        vipUnlocked: 'Unlocked via code: ${code}',
+        vipDesc: 'Enter invite code for premium features (Pochi skin, unlimited Pomodoro, etc.)',
+        redeem: 'Redeem',
+        redeeming: 'Checking...',
+        redeemSuccess: '✅ Success! Features unlocked.',
+        redeemInvalid: '❌ Invalid code.',
+        redeemEmpty: '⚠️ Please enter a code.',
+        redeemError: '❌ Error: ${msg}',
+        vipRequired: 'This skin requires VIP membership.',
+        getKeyHelp: 'Get API Key',
+        accountSection: 'Account',
+        accountLinkDesc: 'Link email to sync VIP status across devices.',
+        sendCode: 'Send Code',
+        verify: 'Verify',
+        enterCodeDesc: 'Enter the 6-digit code sent to your email.',
+        signOut: 'Sign Out',
+        codeSent: 'Code sent!',
+        verifySuccess: '✅ Details linked!',
+        verifyError: '❌ Verification failed: ${msg}',
+        // Feedback Form (v1.3)
+        feedbackSection: 'Feedback',
+        feedbackCategory: 'Category',
+        feedbackCategoryBug: '🐛 Bug Report',
+        feedbackCategoryFeature: '💡 Feature Request',
+        feedbackCategoryQuestion: '❓ Question',
+        feedbackCategoryOther: '📝 Other',
+        feedbackContent: 'Your Feedback',
+        feedbackContentPlaceholder: 'Tell us what\'s on your mind...',
+        feedbackEmail: 'Email (optional)',
+        feedbackEmailHint: 'We\'ll only contact you if we need more info.',
+        submitFeedback: 'Submit Feedback',
+        submittingFeedback: 'Submitting...',
+        feedbackSuccess: 'Thank you for your feedback!',
+        feedbackMinLength: 'Please enter at least 10 characters',
+        feedbackError: 'Failed to submit: ${msg}',
+        // VIP Expiration
+        vipExpires: 'Valid until: ${date}',
+        activated: 'Activated',
+        redeemErrorGeneric: 'Error redeeming code',
+        saveFailed: 'Save failed: ${msg}',
+        testSuccess: '✓ Connected (${ms}ms)',
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'Timers & Reminders',
+        pomodoroDuration: 'Focus Duration (min)',
+        reminderIntervals: 'Reminder Intervals (min)',
+        reminderWater: '💧 Water',
+        reminderEyes: '👁️ Eyes',
+        reminderStretch: '🧘‍♀️ Stretch'
+    },
+    'ja': {
+        settingsTitle: '設定',
+        providerSection: 'APIプロバイダー',
+        region: '地域',
+        regionChina: '🇨🇳 中国',
+        regionGlobal: '🌍 グローバル',
+        regionLocal: '💻 ローカル',
+        provider: 'プロバイダー',
+        apiKeySection: 'APIキー',
+        apiKey: 'APIキー',
+        model: 'モデル',
+        testConnection: '接続テスト',
+        language: '言語',
+        interfaceLanguage: 'インターフェース言語',
+        cancel: 'キャンセル',
+        save: '保存',
+        testing: 'テスト中...',
+        sending: '送信中...',
+        connectionSuccess: '✓ 接続成功',
+        saving: '保存中...',
+        vipSection: '👑 VIP メンバーシップ',
+        skinSection: '🎨 スキン',
+        vipPro: 'プロ会員',
+        vipFree: '無料',
+        vipUnlocked: 'コードでロック解除済み: ${code}',
+        vipDesc: '招待コードを入力してプレミアム機能をロック解除',
+        redeem: '引き換える',
+        redeeming: '確認中...',
+        redeemSuccess: '✅ 成功！機能がロック解除されました。',
+        redeemInvalid: '❌ 無効なコードです。',
+        redeemEmpty: '⚠️ コードを入力してください。',
+        redeemError: '❌ エラー: ${msg}',
+        vipRequired: 'このスキンにはVIPメンバーシップが必要です。',
+        getKeyHelp: 'API Keyを取得',
+        // Feedback (v1.3)
+        feedbackSection: 'フィードバック',
+        feedbackCategory: 'カテゴリ',
+        feedbackCategoryBug: '🐛 バグ報告',
+        feedbackCategoryFeature: '💡 機能リクエスト',
+        feedbackCategoryQuestion: '❓ 質問',
+        feedbackCategoryOther: '📝 その他',
+        feedbackContent: 'ご意見',
+        feedbackContentPlaceholder: 'ご意見をお聞かせください...',
+        feedbackEmail: 'メール（任意）',
+        feedbackEmailHint: '必要に応じてご連絡します',
+        submitFeedback: '送信',
+        submittingFeedback: '送信中...',
+        feedbackSuccess: 'ご意見ありがとうございます！',
+        feedbackMinLength: '10文字以上を入力してください',
+        feedbackError: '送信失敗: ${msg}',
+        vipExpires: '有効期限: ${date}',
+        activated: '有効化済み',
+        redeemErrorGeneric: '引き換えに失敗しました',
+        saveFailed: '保存に失敗: ${msg}',
+        testSuccess: '✓ 接続成功 (${ms}ms)',
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'タイマーとリマインダー',
+        pomodoroDuration: '集中時間 (分)',
+        reminderIntervals: 'リマインダー間隔 (分)',
+        reminderWater: '💧 水分',
+        reminderEyes: '👁️ 目の休憩',
+        reminderStretch: '🧘‍♀️ ストレッチ'
+    },
+    'ko': {
+        settingsTitle: '설정',
+        providerSection: 'API 제공자',
+        region: '지역',
+        regionChina: '🇨🇳 중국',
+        regionGlobal: '🌍 글로벌',
+        regionLocal: '💻 로컬',
+        provider: '제공자',
+        apiKeySection: 'API 키',
+        apiKey: 'API 키',
+        model: '모델',
+        testConnection: '연결 테스트',
+        language: '언어',
+        interfaceLanguage: '인터페이스 언어',
+        cancel: '취소',
+        save: '저장',
+        testing: '테스트 중...',
+        sending: '전송 중...',
+        connectionSuccess: '✓ 연결 성공',
+        saving: '저장 중...',
+        vipSection: '👑 VIP 멤버십',
+        skinSection: '🎨 스킨',
+        vipPro: '프로 회원',
+        vipFree: '무료',
+        vipUnlocked: '코드 ${code}로 잠금 해제됨',
+        vipDesc: '초대 코드를 입력하여 프리미엄 기능을 잠금 해제하세요',
+        redeem: '사용하기',
+        redeeming: '확인 중...',
+        redeemSuccess: '✅ 성공! 기능이 잠금 해제되었습니다.',
+        redeemInvalid: '❌ 유효하지 않은 코드입니다.',
+        redeemEmpty: '⚠️ 코드를 입력해주세요.',
+        redeemError: '❌ 오류: ${msg}',
+        vipRequired: '이 스킨은 VIP 멤버십이 필요합니다.',
+        getKeyHelp: 'API Key 받기',
+        // Feedback (v1.3)
+        feedbackSection: '피드백',
+        feedbackCategory: '카테고리',
+        feedbackCategoryBug: '🐛 버그 신고',
+        feedbackCategoryFeature: '💡 기능 요청',
+        feedbackCategoryQuestion: '❓ 질문',
+        feedbackCategoryOther: '📝 기타',
+        feedbackContent: '피드백 내용',
+        feedbackContentPlaceholder: '의견을 남겨주세요...',
+        feedbackEmail: '이메일 (선택)',
+        feedbackEmailHint: '필요시 연락드립니다',
+        submitFeedback: '제출',
+        submittingFeedback: '제출 중...',
+        feedbackSuccess: '피드백 감사합니다!',
+        feedbackMinLength: '10자 이상 입력하세요',
+        feedbackError: '제출 실패: ${msg}',
+        vipExpires: '만료일: ${date}',
+        activated: '활성화됨',
+        redeemErrorGeneric: '코드 사용 실패',
+        saveFailed: '저장 실패: ${msg}',
+        testSuccess: '✓ 연결 성공 (${ms}ms)',
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: '타이머 & 알림',
+        pomodoroDuration: '집중 시간 (분)',
+        reminderIntervals: '알림 간격 (분)',
+        reminderWater: '💧 물',
+        reminderEyes: '👁️ 눈 휴식',
+        reminderStretch: '🧘‍♀️ 스트레칭'
+    },
+    'es': {
+        settingsTitle: 'Configuración',
+        providerSection: 'Proveedor API',
+        region: 'Región',
+        regionChina: '🇨🇳 China',
+        regionGlobal: '🌍 Global',
+        regionLocal: '💻 Local',
+        provider: 'Proveedor',
+        apiKeySection: 'Clave API',
+        apiKey: 'Clave API',
+        model: 'Modelo',
+        testConnection: 'Probar Conexión',
+        language: 'Idioma',
+        interfaceLanguage: 'Idioma de Interfaz',
+        cancel: 'Cancelar',
+        save: 'Guardar',
+        testing: 'Probando...',
+        sending: 'Enviando...',
+        connectionSuccess: '✓ Conectado',
+        saving: 'Guardando...',
+        vipSection: '👑 Membresía VIP',
+        skinSection: '🎨 Skin',
+        vipPro: 'MIEMBRO PRO',
+        vipFree: 'GRATIS',
+        vipUnlocked: 'Desbloqueado vía código: ${code}',
+        vipDesc: 'Ingresa código de invitación para funciones premium',
+        redeem: 'Canjear',
+        redeeming: 'Comprobando...',
+        redeemSuccess: '✅ ¡Éxito! Funciones desbloqueadas.',
+        redeemInvalid: '❌ Código inválido.',
+        redeemEmpty: '⚠️ Ingresa un código.',
+        redeemError: '❌ Error: ${msg}',
+        vipRequired: 'Este skin requiere membresía VIP.',
+        getKeyHelp: 'Obtener API Key',
+        // Feedback (v1.3)
+        feedbackSection: 'Comentarios',
+        feedbackCategory: 'Categoría',
+        feedbackCategoryBug: '🐛 Error',
+        feedbackCategoryFeature: '💡 Sugerencia',
+        feedbackCategoryQuestion: '❓ Pregunta',
+        feedbackCategoryOther: '📝 Otro',
+        feedbackContent: 'Tu comentario',
+        feedbackContentPlaceholder: 'Cuéntanos tu opinión...',
+        feedbackEmail: 'Email (opcional)',
+        feedbackEmailHint: 'Solo te contactaremos si es necesario',
+        submitFeedback: 'Enviar',
+        submittingFeedback: 'Enviando...',
+        feedbackSuccess: '¡Gracias por tu comentario!',
+        feedbackMinLength: 'Mínimo 10 caracteres',
+        feedbackError: 'Error: ${msg}',
+        vipExpires: 'Válido hasta: ${date}',
+        activated: 'Activado',
+        redeemErrorGeneric: 'Error al canjear',
+        saveFailed: 'Error al guardar: ${msg}',
+        testSuccess: '✓ Conectado (${ms}ms)',
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'Temporizadores',
+        pomodoroDuration: 'Duración (min)',
+        reminderIntervals: 'Intervalo (min)',
+        reminderWater: '💧 Agua',
+        reminderEyes: '👁️ Ojos',
+        reminderStretch: '🧘‍♀️ Estirar'
+    },
+    'fr': {
+        settingsTitle: 'Paramètres',
+        providerSection: 'Fournisseur API',
+        region: 'Région',
+        regionChina: '🇨🇳 Chine',
+        regionGlobal: '🌍 Global',
+        regionLocal: '💻 Local',
+        provider: 'Fournisseur',
+        apiKeySection: 'Clé API',
+        apiKey: 'Clé API',
+        model: 'Modèle',
+        testConnection: 'Tester Connexion',
+        language: 'Langue',
+        interfaceLanguage: 'Langue d\'interface',
+        cancel: 'Annuler',
+        save: 'Enregistrer',
+        testing: 'Test...',
+        sending: 'Envoi...',
+        connectionSuccess: '✓ Connecté',
+        saving: 'Enregistrement...',
+        vipSection: '👑 Membre VIP',
+        skinSection: '🎨 Thème',
+        vipPro: 'MEMBRE PRO',
+        vipFree: 'GRATUIT',
+        vipUnlocked: 'Débloqué via code: ${code}',
+        vipDesc: 'Entrez le code d\'invitation pour les fonctions premium',
+        redeem: 'Échanger',
+        redeeming: 'Vérification...',
+        redeemSuccess: '✅ Succès! Fonctions débloquées.',
+        redeemInvalid: '❌ Code invalide.',
+        redeemEmpty: '⚠️ Veuillez entrer un code.',
+        redeemError: '❌ Erreur: ${msg}',
+        vipRequired: 'Ce thème nécessite un membre VIP.',
+        getKeyHelp: 'Obtenir Clé API',
+        // Feedback (v1.3)
+        feedbackSection: 'Avis',
+        feedbackCategory: 'Catégorie',
+        feedbackCategoryBug: '🐛 Bug',
+        feedbackCategoryFeature: '💡 Idée',
+        feedbackCategoryQuestion: '❓ Question',
+        feedbackCategoryOther: '📝 Autre',
+        feedbackContent: 'Votre avis',
+        feedbackContentPlaceholder: 'Dites-nous ce que vous pensez...',
+        feedbackEmail: 'Email (optionnel)',
+        feedbackEmailHint: 'Nous vous contacterons si nécessaire',
+        submitFeedback: 'Envoyer',
+        submittingFeedback: 'Envoi...',
+        feedbackSuccess: 'Merci pour votre avis!',
+        feedbackMinLength: 'Minimum 10 caractères',
+        feedbackError: 'Erreur: ${msg}',
+        vipExpires: 'Valide jusqu\'au: ${date}',
+        activated: 'Activé',
+        redeemErrorGeneric: 'Échec de l\'échange',
+        saveFailed: 'Échec de sauvegarde: ${msg}',
+        testSuccess: '✓ Connecté (${ms}ms)',
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'Minuteries',
+        pomodoroDuration: 'Durée (min)',
+        reminderIntervals: 'Intervalle (min)',
+        reminderWater: '💧 Eau',
+        reminderEyes: '👁️ Yeux',
+        reminderStretch: '🧘‍♀️ Étirement'
+    },
+    'de': {
+        settingsTitle: 'Einstellungen',
+        providerSection: 'API Anbieter',
+        region: 'Region',
+        regionChina: '🇨🇳 China',
+        regionGlobal: '🌍 Global',
+        regionLocal: '💻 Lokal',
+        provider: 'Anbieter',
+        apiKeySection: 'API Key',
+        apiKey: 'API Key',
+        model: 'Modell',
+        testConnection: 'Verbindung testen',
+        language: 'Sprache',
+        interfaceLanguage: 'Interface Sprache',
+        cancel: 'Abbrechen',
+        save: 'Speichern',
+        testing: 'Testen...',
+        sending: 'Senden...',
+        connectionSuccess: '✓ Verbunden',
+        saving: 'Speichern...',
+        vipSection: '👑 VIP Mitgliedschaft',
+        skinSection: '🎨 Skin',
+        vipPro: 'PRO MITGLIED',
+        vipFree: 'KOSTENLOS',
+        vipUnlocked: 'Freigeschaltet mit Code: ${code}',
+        vipDesc: 'Einladungscode eingeben für Premium-Funktionen',
+        redeem: 'Einlösen',
+        redeeming: 'Prüfen...',
+        redeemSuccess: '✅ Erfolg! Funktionen freigeschaltet.',
+        redeemInvalid: '❌ Ungültiger Code.',
+        redeemEmpty: '⚠️ Bitte Code eingeben.',
+        redeemError: '❌ Fehler: ${msg}',
+        vipRequired: 'Dieser Skin benötigt VIP-Mitgliedschaft.',
+        getKeyHelp: 'API Key erhalten',
+        // Feedback (v1.3)
+        feedbackSection: 'Feedback',
+        feedbackCategory: 'Kategorie',
+        feedbackCategoryBug: '🐛 Bug',
+        feedbackCategoryFeature: '💡 Vorschlag',
+        feedbackCategoryQuestion: '❓ Frage',
+        feedbackCategoryOther: '📝 Andere',
+        feedbackContent: 'Ihr Feedback',
+        feedbackContentPlaceholder: 'Teilen Sie uns Ihre Meinung mit...',
+        feedbackEmail: 'Email (optional)',
+        feedbackEmailHint: 'Wir kontaktieren Sie nur bei Bedarf',
+        submitFeedback: 'Senden',
+        submittingFeedback: 'Senden...',
+        feedbackSuccess: 'Danke für Ihr Feedback!',
+        feedbackMinLength: 'Mindestens 10 Zeichen',
+        feedbackError: 'Fehler: ${msg}',
+        vipExpires: 'Gültig bis: ${date}',
+        activated: 'Aktiviert',
+        redeemErrorGeneric: 'Einlösen fehlgeschlagen',
+        saveFailed: 'Speichern fehlgeschlagen: ${msg}',
+        testSuccess: '✓ Verbunden (${ms}ms)',
+        testFailed: '✗ ${msg}',
+        // Timer Section
+        timerSection: 'Timer & Erinnerungen',
+        pomodoroDuration: 'Fokuszeit (Min)',
+        reminderIntervals: 'Intervall (Min)',
+        reminderWater: '💧 Wasser',
+        reminderEyes: '👁️ Augen',
+        reminderStretch: '🧘‍♀️ Dehnen'
+    }
+};
 
 let currentLang = 'zh-CN';
 
@@ -18,31 +601,40 @@ let currentLang = 'zh-CN';
  */
 function applyI18n(lang) {
     currentLang = lang;
-    applyI18nBase(lang, {
-        onApplied: (l) => {
-            // Refresh provider dropdown with new language
-            if (typeof regionSelect !== 'undefined' && typeof providerSelect !== 'undefined') {
-                const currentProvider = providerSelect.value;
-                populateProviders(typeof regionSelect !== 'undefined' ? regionSelect.value : 'china');
-                // Restore selection if it still exists
-                if (currentProvider && [...providerSelect.options].some(o => o.value === currentProvider)) {
-                    providerSelect.value = currentProvider;
-                }
-            }
+    const translations = SETTINGS_I18N[lang] || SETTINGS_I18N['en'];
 
-            // Refresh VIP status UI with new language
-            if (typeof cachedVipStatus !== 'undefined' && cachedVipStatus) {
-                updateVipStatusUI(cachedVipStatus);
-            }
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[key]) {
+            el.textContent = translations[key];
         }
     });
+
+    // Update document title
+    document.title = `DeskMate ${translations.settingsTitle}`;
+
+    // Refresh provider dropdown with new language
+    if (regionSelect && providerSelect) {
+        const currentProvider = providerSelect.value;
+        populateProviders(regionSelect.value);
+        // Restore selection if it still exists
+        if ([...providerSelect.options].some(o => o.value === currentProvider)) {
+            providerSelect.value = currentProvider;
+        }
+    }
+
+    // Refresh VIP status UI with new language
+    if (typeof cachedVipStatus !== 'undefined' && cachedVipStatus) {
+        updateVipStatusUI(cachedVipStatus);
+    }
 }
 
 /**
  * Get translation for current language
  */
 function t(key) {
-    return tBase(key);
+    const translations = SETTINGS_I18N[currentLang] || SETTINGS_I18N['en'];
+    return translations[key] || key;
 }
 
 // DOM Elements (Existing)
@@ -610,7 +1202,7 @@ function checkOtpComplete() {
     const code = getOtpCode();
     // Safety check for button
     if (verifyOtpBtn) {
-        if (validateInviteCode(code)) {
+        if (code.length === 6) {
             verifyOtpBtn.disabled = false;
             // Removed classList check that was causing error as we now style via attribute or simple disable
         } else {
@@ -942,7 +1534,7 @@ function initFeedbackForm() {
         feedbackCharCount.textContent = `${len} / 2000`;
 
         // Enable/disable submit button
-        submitFeedbackBtn.disabled = !validateFeedback(feedbackContent.value);
+        submitFeedbackBtn.disabled = len < 10;
     });
 
     // Submit handler
@@ -954,7 +1546,7 @@ async function handleSubmitFeedback() {
     const content = feedbackContent.value.trim();
     const email = feedbackEmail.value.trim();
 
-    if (!validateFeedback(content)) {
+    if (content.length < 10) {
         showFeedbackMessage(t('feedbackMinLength'), 'error');
         return;
     }
@@ -981,7 +1573,7 @@ async function handleSubmitFeedback() {
         showFeedbackMessage(t('feedbackError').replace('${msg}', e.message), 'error');
     } finally {
         submitFeedbackBtn.textContent = t('submitFeedback');
-        submitFeedbackBtn.disabled = !validateFeedback(feedbackContent.value);
+        submitFeedbackBtn.disabled = feedbackContent.value.length < 10;
     }
 }
 

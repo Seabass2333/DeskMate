@@ -65,6 +65,17 @@ function validateInviteCode(code) {
     return /^\d{6}$/.test(code.trim());
 }
 
+// Expose for browser environment
+if (typeof window !== 'undefined') {
+    window.SettingsValidators = {
+        validateApiKey,
+        validateEmail,
+        validateFeedback,
+        validateInterval,
+        validateInviteCode
+    };
+}
+
 // Export for CommonJS (Node/Jest/Electron)
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {

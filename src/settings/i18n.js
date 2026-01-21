@@ -516,7 +516,17 @@ function t(key) {
 
 function getCurrentLang() { return currentLang; }
 
-// Export for CommonJS
+// Expose for browser environment
+if (typeof window !== 'undefined') {
+    window.SettingsI18n = {
+        SETTINGS_I18N,
+        applyI18n,
+        t,
+        getCurrentLang
+    };
+}
+
+// Keep export for tests/Node environment
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { SETTINGS_I18N, applyI18n, t, getCurrentLang };
 }
