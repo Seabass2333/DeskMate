@@ -734,10 +734,77 @@ async function init() {
         }
 
         // Display app version
+        // Display app version and update check
         if (window.settingsAPI.getAppVersion) {
             const version = await window.settingsAPI.getAppVersion();
             const versionEl = document.getElementById('app-version');
-            if (versionEl) versionEl.textContent = `v${version}`;
+            if (versionEl) {
+                // Create container for version and button
+                const container = document.createElement('div');
+                container.style.display = 'flex';
+                container.style.alignItems = 'center';
+                container.style.justifyContent = 'center';
+                container.style.gap = '10px';
+
+                // Clear existing content
+                versionEl.innerHTML = '';
+                versionEl.appendChild(container);
+
+                const verText = document.createElement('span');
+                verText.textContent = `v${version}`;
+                container.appendChild(verText);
+
+                // Add Check Update Button
+                const checkBtn = document.createElement('button');
+                checkBtn.textContent = 'Check for Updates';
+                checkBtn.className = 'btn-secondary';
+                checkBtn.style.padding = '2px 8px';
+                checkBtn.style.fontSize = '11px';
+                container.appendChild(checkBtn);
+
+                const statusText = document.createElement('span');
+                statusText.style.fontSize = '11px';
+                statusText.style.color = '#888';
+                container.appendChild(statusText);
+
+                // Check Update Handler
+                checkBtn.onclick = async () => {
+                    checkBtn.disabled = true;
+                    checkBtn.textContent = 'Checking...';
+                    statusText.textContent = '';
+                    await window.settingsAPI.checkUpdate();
+                };
+
+                // Update Status Listener
+                window.settingsAPI.onUpdateStatus(({ status, data }) => {
+                    console.log('Update Status:', status, data);
+                    switch (status) {
+                        case 'checking':
+                            checkBtn.textContent = 'Checking...';
+                            break;
+                        case 'available':
+                            checkBtn.textContent = 'Update Available';
+                            statusText.textContent = `v${data.version}`;
+                            statusText.style.color = '#4caf50';
+                            break;
+                        case 'not-available':
+                            checkBtn.disabled = false;
+                            checkBtn.textContent = 'Check for Updates';
+                            statusText.textContent = 'Up to date';
+                            statusText.style.color = '#888';
+                            break;
+                        case 'downloading':
+                            checkBtn.textContent = `Downloading ${Math.round(data.percent)}%`;
+                            break;
+                        case 'error':
+                            checkBtn.disabled = false;
+                            checkBtn.textContent = 'Retry';
+                            statusText.textContent = 'Check failed';
+                            statusText.style.color = '#f44336';
+                            break;
+                    }
+                });
+            }
         }
 
         // Event listeners

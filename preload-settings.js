@@ -71,5 +71,7 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     submitFeedback: (feedback) => ipcRenderer.invoke('ops:submitFeedback', feedback),
 
     // App Info
-    getAppVersion: () => ipcRenderer.invoke('app:getVersion')
+    getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
+    checkUpdate: () => ipcRenderer.invoke('app:checkUpdate'),
+    onUpdateStatus: (callback) => ipcRenderer.on('app:updateStatus', (_, data) => callback(data))
 });

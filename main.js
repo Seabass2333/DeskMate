@@ -929,20 +929,40 @@ function setupAutoUpdater() {
   autoUpdater.logger = console;
   autoUpdater.autoDownload = true;
 
+  // Manual check handler
+  ipcMain.handle('app:checkUpdate', async () => {
+    try {
+      return await autoUpdater.checkForUpdates();
+    } catch (e) {
+      console.error('[AutoUpdater] Manual check failed:', e);
+      return { error: e.message };
+    }
+  });
+
+  function sendStatusToSettings(status, data = null) {
+    if (settingsWindow && !settingsWindow.isDestroyed()) {
+      settingsWindow.webContents.send('app:updateStatus', { status, data });
+    }
+  }
+
   autoUpdater.on('checking-for-update', () => {
     console.log('[AutoUpdater] Checking for updates...');
+    sendStatusToSettings('checking');
   });
 
   autoUpdater.on('update-available', (info) => {
     console.log('[AutoUpdater] Update available:', info);
+    sendStatusToSettings('available', info);
   });
 
   autoUpdater.on('update-not-available', (info) => {
     console.log('[AutoUpdater] Update not available.');
+    sendStatusToSettings('not-available', info);
   });
 
   autoUpdater.on('error', (err) => {
     console.error('[AutoUpdater] Error:', err);
+    sendStatusToSettings('error', err.message);
   });
 
   autoUpdater.on('download-progress', (progressObj) => {
@@ -950,6 +970,7 @@ function setupAutoUpdater() {
     log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
     log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
     console.log('[AutoUpdater] ' + log_message);
+    sendStatusToSettings('downloading', progressObj);
   });
 
   autoUpdater.on('update-downloaded', (info) => {
