@@ -3,11 +3,12 @@
  * Handles operational tools for user communication
  */
 
+const { app } = require('electron');
 const { isConfigured, rpc } = require('./SupabaseClient');
 const { getDeviceId } = require('./DeviceIdService');
 
-// App version (should be read from package.json in production)
-const APP_VERSION = process.env.npm_package_version || '1.3.0';
+// App version
+const APP_VERSION = app ? app.getVersion() : '1.4.0';
 
 class OpsService {
     constructor() {

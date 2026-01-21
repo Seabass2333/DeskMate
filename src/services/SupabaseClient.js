@@ -5,8 +5,9 @@
 const { createClient } = require('@supabase/supabase-js');
 
 // Supabase configuration
+// ANON_KEY is designed to be public - it's used with RLS policies for security
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://isgmlrcfgunisziinhfb.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzZ21scmNmZ3VuaXN6aWluaGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzNTMyNzMsImV4cCI6MjA4MzkyOTI3M30.OM5q2oMR9U6QpbsOCHhnWs6gSz5eaAqkMj2osBHV40Q';
 
 // Resilience Config
 const RETRY_CONFIG = {
