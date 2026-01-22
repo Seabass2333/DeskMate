@@ -14,6 +14,7 @@
         "noImplicitAny": true,
         "strictNullChecks": true,
         "strictFunctionTypes": true,
+        "downlevelIteration": true,
         // 兼容性 - 允许 JS 文件共存
         "allowJs": true,
         "checkJs": false,

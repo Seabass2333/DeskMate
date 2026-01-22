@@ -656,6 +656,35 @@ ipcMain.handle('skin:load', async (_, skinId) => {
   }
 });
 
+// Get current skin configuration with basePath for TypeScript modules
+ipcMain.handle('skin:getCurrent', async () => {
+  try {
+    const userSettings = loadUserSettings();
+    const skinId = userSettings?.skin || 'mochi-v1';
+    const skinPath = path.join(__dirname, 'assets', 'skins', skinId);
+    const configPath = path.join(skinPath, 'config.json');
+
+    console.log('[Main] Getting current skin:', skinId);
+
+    if (!fs.existsSync(configPath)) {
+      console.error('[Main] Current skin config not found:', configPath);
+      return null;
+    }
+
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+    // Return config with basePath for asset loading
+    return {
+      ...config,
+      id: skinId,
+      basePath: skinPath,
+    };
+  } catch (error) {
+    console.error('[Main] Failed to get current skin:', error);
+    return null;
+  }
+});
+
 // Get current window position for dragging
 ipcMain.handle('get-window-position', () => {
   if (mainWindow) {

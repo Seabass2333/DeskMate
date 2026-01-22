@@ -4,3 +4,4 @@
 
 export * from './sound';
 export * from './skin';
+export * from './behavior';

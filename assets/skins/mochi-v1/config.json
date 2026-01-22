@@ -77,5 +77,47 @@
             "frames": 4,
             "speed": 600
         }
+    },
+    "sounds": {},
+    "behaviors": {
+        "states": [
+            "idle",
+            "sleep",
+            "drag",
+            "working",
+            "thinking",
+            "interact",
+            "dance"
+        ],
+        "idleActions": [
+            {
+                "state": "sleep",
+                "weight": 30,
+                "duration": 4000,
+                "sound": "sleep"
+            },
+            {
+                "state": "dance",
+                "weight": 20,
+                "duration": 4000
+            },
+            {
+                "state": "interact",
+                "weight": 20,
+                "duration": 4000
+            }
+        ],
+        "idleTimeout": {
+            "min": 15000,
+            "max": 45000
+        },
+        "interactions": {
+            "click": {
+                "sound": "click"
+            },
+            "drag": {
+                "state": "drag"
+            }
+        }
     }
 }

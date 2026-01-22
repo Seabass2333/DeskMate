@@ -198,6 +198,12 @@ contextBridge.exposeInMainWorld('deskmate', {
     loadSkin: (skinId) => ipcRenderer.invoke('skin:load', skinId),
 
     /**
+     * Get current skin configuration with basePath for asset loading
+     * Used by TypeScript modules (SoundManager, BehaviorEngine)
+     */
+    getCurrentSkin: () => ipcRenderer.invoke('skin:getCurrent'),
+
+    /**
      * Listen for language change event
      */
 

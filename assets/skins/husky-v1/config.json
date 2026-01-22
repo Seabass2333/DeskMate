@@ -42,5 +42,41 @@
             "frames": 15,
             "speed": 800
         }
+    },
+    "sounds": {},
+    "behaviors": {
+        "states": [
+            "idle",
+            "sleep",
+            "drag",
+            "working",
+            "thinking",
+            "interact"
+        ],
+        "idleActions": [
+            {
+                "state": "sleep",
+                "weight": 40,
+                "duration": 5000
+            },
+            {
+                "state": "interact",
+                "weight": 30,
+                "duration": 3000,
+                "sound": "bark"
+            }
+        ],
+        "idleTimeout": {
+            "min": 20000,
+            "max": 60000
+        },
+        "interactions": {
+            "click": {
+                "sound": "click"
+            },
+            "drag": {
+                "state": "drag"
+            }
+        }
     }
 }
