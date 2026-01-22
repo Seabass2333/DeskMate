@@ -11,6 +11,7 @@
 import { BehaviorEngine } from './core/BehaviorEngine';
 import { TriggerScheduler } from './core/TriggerScheduler';
 import { SoundManager } from './audio/SoundManager';
+import { EnergyManager } from './core/EnergyManager';
 
 // Re-export for window global access (legacy compatibility)
 declare global {
@@ -18,12 +19,16 @@ declare global {
         BehaviorEngine: typeof BehaviorEngine;
         TriggerScheduler: typeof TriggerScheduler;
         SoundManager: typeof SoundManager;
+        EnergyManager: typeof EnergyManager;
         deskmate: {
             getSettings: () => Promise<any>;
             getQuietMode: () => Promise<boolean>;
             onQuietModeChanged: (callback: (enabled: boolean) => void) => void;
             trackEvent: (name: string, data?: any) => void;
             getCurrentSkin: () => Promise<any>;
+            getPetState: () => Promise<any>;
+            savePetState: (state: any) => Promise<any>;
+            t: (key: string) => Promise<string>;
             [key: string]: any;
         };
     }
@@ -33,6 +38,7 @@ declare global {
 window.BehaviorEngine = BehaviorEngine;
 window.TriggerScheduler = TriggerScheduler;
 window.SoundManager = SoundManager;
+window.EnergyManager = EnergyManager;
 
 // ============================================
 // Global Error Handling (migrated from renderer.js)
@@ -80,11 +86,36 @@ async function initModernSystem(): Promise<void> {
     const behaviorEngine = new BehaviorEngine(skinConfig?.behaviors);
     console.log('[Renderer.ts] BehaviorEngine initialized with states:', behaviorEngine.getValidStates());
 
-    // Initialize TriggerScheduler if triggers defined
+    // Initialize TriggerScheduler if triggers defined or for system triggers
+    let scheduler: TriggerScheduler | null = null;
+
     if (skinConfig?.behaviors?.triggers) {
-        const scheduler = new TriggerScheduler(behaviorEngine, skinConfig.behaviors.triggers);
+        scheduler = new TriggerScheduler(behaviorEngine, skinConfig.behaviors.triggers);
+        console.log('[Renderer.ts] TriggerScheduler started with skin triggers');
+    } else {
+        // Start scheduler even without skin triggers to support system triggers (Phase 17)
+        scheduler = new TriggerScheduler(behaviorEngine, []);
+        console.log('[Renderer.ts] TriggerScheduler started (system triggers only)');
+    }
+
+    if (scheduler) {
         scheduler.start();
-        console.log('[Renderer.ts] TriggerScheduler started');
+    }
+
+    // Initialize EnergyManager (Phase 17)
+    const energyManager = new EnergyManager();
+    await energyManager.init();
+
+    // Connect EnergyManager to TriggerScheduler
+    if (scheduler) {
+        // Set initial energy context
+        scheduler.setContext({ energy: energyManager.getEnergy() });
+
+        // Update context on change
+        energyManager.on('energyChange', (energy: number) => {
+            scheduler!.setContext({ energy });
+            // console.log('[Renderer.ts] Energy context updated:', energy);
+        });
     }
 
     // Listen for stateChange events to play sounds
@@ -105,6 +136,8 @@ async function initModernSystem(): Promise<void> {
     (window as any).__modernSystem = {
         soundManager,
         behaviorEngine,
+        energyManager,
+        scheduler,
     };
 
     console.log('[Renderer.ts] Modern system ready (legacy system still active)');

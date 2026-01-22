@@ -56,8 +56,38 @@ export class TriggerScheduler {
      */
     constructor(engine: BehaviorEngine, triggers: BehaviorTrigger[]) {
         this.engine = engine;
-        this.triggers = triggers;
+        this.triggers = this.mergeWithDefaults(triggers);
         this.resetIdleTime();
+    }
+
+    /**
+     * Merge user triggers with system defaults
+     */
+    private mergeWithDefaults(userTriggers: BehaviorTrigger[]): BehaviorTrigger[] {
+        // Default System Triggers (Phase 17)
+        const defaults: BehaviorTrigger[] = [
+            // Night Mode: 23:00 - 06:00 -> Force Sleep
+            {
+                condition: "hour >= 23 || hour < 6",
+                action: { state: "sleep", duration: 600000 } // 10 min sleep blocks
+            },
+            // Low Energy: < 10 -> Force Sleep
+            {
+                condition: "energy < 10",
+                action: { state: "sleep", duration: 60000 }
+            },
+            // Tired: < 30 -> Force Tired/Sleep
+            {
+                condition: "energy < 30",
+                action: { state: "sleep", duration: 30000 }
+            }
+        ];
+
+        // User triggers take precedence if we want to allow override, 
+        // but for now we append defaults to ensure basic needs are met.
+        // Triggers are evaluated in order, so we put system triggers LAST 
+        // to let specific skin behaviors override them if defined first.
+        return [...userTriggers, ...defaults];
     }
 
     // ========== Lifecycle ==========

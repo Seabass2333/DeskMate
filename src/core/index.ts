@@ -8,6 +8,7 @@
 // Export classes for ES module usage
 export { BehaviorEngine } from './BehaviorEngine';
 export { TriggerScheduler } from './TriggerScheduler';
+export { EnergyManager } from './EnergyManager';
 
 // Export types
 export type {
@@ -28,5 +29,9 @@ if (typeof window !== 'undefined') {
 
     import('./TriggerScheduler').then(({ TriggerScheduler }) => {
         (window as any).TriggerScheduler = TriggerScheduler;
+    });
+
+    import('./EnergyManager').then(({ EnergyManager }) => {
+        (window as any).EnergyManager = EnergyManager;
     });
 }
