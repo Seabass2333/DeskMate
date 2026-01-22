@@ -94,6 +94,13 @@ async function init() {
 
     // 6. Click Interaction
     charEl.addEventListener('click', async () => {
+        // Play skin sound if available
+        const sound = animManager.skinManager.currentSkin?.sound;
+        if (sound) {
+            sound.currentTime = 0;
+            sound.play().catch(e => console.warn('[Renderer] Play sound failed:', e));
+        }
+
         // Close chat, bubble, and dismiss notification sound
         chatManager.hide();
         hideBubble();
@@ -203,7 +210,134 @@ async function init() {
     // Start idle bubble system
     scheduleIdleBubble();
 
+    // 12. Holiday Easter Eggs
+    checkHoliday();
+
     console.log('[Renderer] Phase 2 Ready!');
+}
+
+function checkHoliday() {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    const appEl = document.getElementById('app');
+
+    // Remove existing holiday classes/elements first
+    appEl.classList.remove('holiday-xmas', 'holiday-cny');
+    const existingSnow = document.getElementById('snow-container');
+    if (existingSnow) existingSnow.remove();
+
+    // Christmas (Dec 24-26)
+    if (month === 12 && (day >= 24 && day <= 26)) {
+        console.log('[Renderer] Holiday: Christmas (Active)');
+        appEl.classList.add('holiday-xmas');
+        spawnSnowflakes();
+    }
+
+    // Spring Festival
+    if (today.getFullYear() === 2026 && month === 2 && (day >= 15 && day <= 20)) {
+        appEl.classList.add('holiday-cny');
+        console.log('[Renderer] Holiday: Lunar New Year');
+        spawnLanterns();
+    }
+}
+
+function spawnLanterns() {
+    const cnyContainer = document.createElement('div');
+    cnyContainer.id = 'cny-container';
+    cnyContainer.style.position = 'absolute';
+    cnyContainer.style.top = '0';
+    cnyContainer.style.left = '0';
+    cnyContainer.style.width = '100%';
+    cnyContainer.style.height = '100%';
+    cnyContainer.style.pointerEvents = 'none';
+    cnyContainer.style.zIndex = '10';
+    cnyContainer.style.overflow = 'hidden';
+
+    // 1. Dual Lanterns
+    const lanternLeft = document.createElement('div');
+    lanternLeft.className = 'lantern lantern-left';
+    lanternLeft.innerHTML = '🏮';
+    cnyContainer.appendChild(lanternLeft);
+
+    const lanternRight = document.createElement('div');
+    lanternRight.className = 'lantern lantern-right';
+    lanternRight.innerHTML = '🏮';
+    cnyContainer.appendChild(lanternRight);
+
+    // 2. Rising Gold Internal Sparkles
+    const particleCount = 12;
+    for (let i = 0; i < particleCount; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.innerHTML = '✨';
+        sparkle.className = 'gold-sparkle';
+
+        const left = Math.random() * 100;
+        const duration = Math.random() * 2 + 3; // 3-5s
+        const delay = Math.random() * 5;
+        const size = Math.random() * 10 + 5;
+
+        sparkle.style.left = `${left}%`;
+        sparkle.style.animationDuration = `${duration}s`;
+        sparkle.style.animationDelay = `-${delay}s`;
+        sparkle.style.fontSize = `${size}px`;
+
+        cnyContainer.appendChild(sparkle);
+    }
+
+    document.getElementById('app').appendChild(cnyContainer);
+}
+
+function spawnSnowflakes() {
+    const snowContainer = document.createElement('div');
+    snowContainer.id = 'snow-container';
+    snowContainer.style.position = 'absolute';
+    snowContainer.style.top = '0';
+    snowContainer.style.left = '0';
+    snowContainer.style.width = '100%';
+    snowContainer.style.height = '100%';
+    snowContainer.style.pointerEvents = 'none';
+    snowContainer.style.zIndex = '10';
+    snowContainer.style.overflow = 'hidden';
+
+    const particleCount = 25;
+
+    for (let i = 0; i < particleCount; i++) {
+        const flake = document.createElement('div');
+        flake.className = 'snowflake';
+
+        const inner = document.createElement('div');
+        inner.className = 'snowflake-inner';
+        inner.innerHTML = '❄️';
+
+        // Random properties for organic movement
+        const left = Math.random() * 100;
+        const duration = Math.random() * 3 + 4; // 4-7s (slower fall)
+        const delay = Math.random() * -10; // Negative delay for instant start
+        const size = Math.random() * 12 + 8; // 8-20px
+        const opacity = Math.random() * 0.6 + 0.2;
+
+        // Sway parameters
+        const swayDuration = Math.random() * 2 + 3; // 3-5s side to side
+        const swayAmplitude = Math.random() * 30 + 10; // 10px-40px sway
+
+        // Set CSS variables
+        flake.style.left = `${left}%`;
+        flake.style.setProperty('--fall-duration', `${duration}s`);
+        flake.style.setProperty('--fall-delay', `${delay}s`);
+
+        inner.style.setProperty('--sway-duration', `${swayDuration}s`);
+        inner.style.setProperty('--sway-delay', `${Math.random() * -5}s`);
+        inner.style.setProperty('--sway-amplitude', `${swayAmplitude}px`);
+
+        inner.style.fontSize = `${size}px`;
+        inner.style.opacity = opacity;
+
+        flake.appendChild(inner);
+        snowContainer.appendChild(flake);
+    }
+
+    document.getElementById('app').appendChild(snowContainer);
 }
 
 init();

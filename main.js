@@ -1029,10 +1029,20 @@ function setupAutoUpdater() {
     sendStatusToSettings('downloading', progressObj);
   });
 
+  // Track if update dialog is currently transparent
+  let isUpdateDialogShown = false;
+
   autoUpdater.on('update-downloaded', (info) => {
     console.log('[AutoUpdater] Update downloaded');
 
+    // Prevent multiple dialogs
+    if (isUpdateDialogShown) {
+      console.log('[AutoUpdater] Update dialog already shown, skipping...');
+      return;
+    }
+
     if (isCriticalUpdate) {
+      isUpdateDialogShown = true;
       dialog.showMessageBox({
         type: 'warning',
         title: 'Update Ready',
@@ -1040,11 +1050,13 @@ function setupAutoUpdater() {
         detail: 'The application must restart now to apply the critical update.',
         buttons: ['Restart Now'],
         defaultId: 0,
-        cancelId: 0 // Prevent closing without action (though on Mac Esc might still work, logic is sound for enforcement)
+        cancelId: 0,
+        modal: true // Force modal if parent window exists, though mostly global here
       }).then(() => {
         autoUpdater.quitAndInstall();
+        // No need to reset flag as we are quitting
       });
-      return; // Skip normal notification
+      return;
     }
 
     const store = require('./store');
@@ -1064,14 +1076,20 @@ function setupAutoUpdater() {
     };
     const msg = messages[lang] || messages['en'];
 
+    isUpdateDialogShown = true;
     dialog.showMessageBox({
       type: 'info',
       title: msg.title,
       message: msg.message,
-      buttons: msg.buttons
+      buttons: msg.buttons,
+      cancelId: 1 // Esc defaults to 'Later'
     }).then((returnValue) => {
       if (returnValue.response === 0) {
         autoUpdater.quitAndInstall();
+      } else {
+        // User clicked Later
+        isUpdateDialogShown = false;
+        console.log('[AutoUpdater] User chose to update later');
       }
     });
   });

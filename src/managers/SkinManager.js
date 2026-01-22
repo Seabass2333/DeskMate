@@ -24,6 +24,9 @@ class SkinManager {
             // Preload images
             await this.preloadAssets(config);
 
+            // Try to load skin sound (optional)
+            this.loadSkinSound(skinId);
+
             console.log(`[SkinManager] Loaded skin: ${config.name} (${skinId})`);
             return this.currentSkin;
         } catch (error) {
@@ -113,6 +116,29 @@ class SkinManager {
     getAssetPath(filename) {
         if (!this.currentSkin) return null;
         return `${this.currentSkin.path}/${filename}`;
+    }
+
+    /**
+     * Try to load skin-specific sound
+     * @param {string} skinId 
+     */
+    loadSkinSound(skinId) {
+        if (!this.currentSkin) return;
+
+        const soundPath = `${this.currentSkin.path}/sound.mp3`;
+        const audio = new Audio(soundPath);
+
+        // We attach it tentatively. If it fails to load, we remove it.
+        audio.onerror = () => {
+            if (this.currentSkin) this.currentSkin.sound = null;
+        };
+
+        audio.oncanplaythrough = () => {
+            console.log('[SkinManager] Sound loaded successfully');
+        };
+
+        audio.volume = 0.5;
+        this.currentSkin.sound = audio;
     }
 }
 

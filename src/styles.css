@@ -359,3 +359,113 @@ body {
 .energy-bar-fill.energetic {
   background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
 }
+
+/* ============================================
+   Holiday Easter Eggs
+   ============================================ */
+
+/* Christmas: Particle Snow Effect (Managed by JS) */
+.holiday-xmas {
+  /* Container handled by JS */
+}
+
+.snowflake {
+  position: absolute;
+  top: -40px;
+  /* Start slightly higher */
+  animation: fall var(--fall-duration) linear infinite;
+  animation-delay: var(--fall-delay);
+}
+
+.snowflake-inner {
+  display: block;
+  animation: sway var(--sway-duration) ease-in-out infinite alternate;
+  animation-delay: var(--sway-delay);
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(120vh);
+  }
+}
+
+@keyframes sway {
+  from {
+    transform: translateX(calc(var(--sway-amplitude) * -1)) rotate(-15deg);
+  }
+
+  to {
+    transform: translateX(var(--sway-amplitude)) rotate(15deg);
+  }
+}
+
+/* Lunar New Year: Lantern/Red Theme */
+/* Lunar New Year: Lanterns & Sparkles */
+.holiday-cny {
+  /* Container handled by JS */
+}
+
+.lantern {
+  position: absolute;
+  top: 10px;
+  font-size: 28px;
+  animation: swing 3s ease-in-out infinite alternate;
+  filter: drop-shadow(0 5px 10px rgba(255, 0, 0, 0.4));
+  z-index: 200;
+}
+
+.lantern-left {
+  left: 20px;
+  animation-delay: 0s;
+  transform-origin: top center;
+}
+
+.lantern-right {
+  right: 20px;
+  animation-delay: -1.5s;
+  /* Offset for asymmetry */
+  transform-origin: top center;
+  font-size: 24px;
+  /* Slightly smaller for depth */
+}
+
+.gold-sparkle {
+  position: absolute;
+  bottom: -20px;
+  color: #FFD700;
+  /* Gold */
+  animation: rise linear infinite;
+  opacity: 0;
+  z-index: 10;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes swing {
+  from {
+    transform: rotate(-8deg);
+  }
+
+  to {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes rise {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.8;
+  }
+
+  80% {
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translateY(-80vh) scale(1.2);
+    opacity: 0;
+  }
+}
