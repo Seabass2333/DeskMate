@@ -62,6 +62,14 @@ class StateMachine {
                     console.log(`[State] ${from} -> ${to}`);
                 });
 
+                // Sync initial state immediately
+                // This ensures the pet appears even if the initial transition matches default state
+                const initialState = this.engine.getCurrentState();
+                if (initialState) {
+                    this.state = initialState;
+                    this.anim.play(initialState);
+                }
+
                 console.log('[StateMachine] Using BehaviorEngine adapter');
             } catch (error) {
                 console.warn('[StateMachine] BehaviorEngine init failed, using legacy:', error);
