@@ -1,0 +1,55 @@
+{
+    "compilerOptions": {
+        // 基础配置
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "lib": [
+            "ES2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        // 严格模式 - 渐进式启用
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        // 兼容性 - 允许 JS 文件共存
+        "allowJs": true,
+        "checkJs": false,
+        "skipLibCheck": true,
+        // 输出配置
+        "outDir": "./dist",
+        "rootDir": "./",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        // 模块解析
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        // 路径别名 (未来可扩展)
+        "baseUrl": ".",
+        "paths": {
+            "@/core/*": [
+                "src/core/*"
+            ],
+            "@/audio/*": [
+                "src/audio/*"
+            ],
+            "@/types/*": [
+                "src/types/*"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "**/__tests__/**"
+    ]
+}
