@@ -80,16 +80,16 @@
     },
     "sounds": {
         "click": [
-            "sounds/meow_01.wav",
-            "sounds/meow_02.wav"
+            "sounds/meow_01.mp3",
+            "sounds/meow_02.mp3"
         ],
         "interact": [
-            "sounds/meow_01.wav",
-            "sounds/meow_02.wav"
+            "sounds/meow_01.mp3",
+            "sounds/meow_02.mp3"
         ],
-        "drag": "sounds/drag.wav",
+        "drag": "sounds/drag.mp3",
         "sleep": {
-            "src": "sounds/purr.wav",
+            "src": "sounds/purr.mp3",
             "loop": true,
             "loopDelay": {
                 "min": 5000,
@@ -97,7 +97,7 @@
             },
             "volume": 0.6
         },
-        "angry": "sounds/angry.wav"
+        "angry": "sounds/angry.mp3"
     },
     "behaviors": {
         "states": [
