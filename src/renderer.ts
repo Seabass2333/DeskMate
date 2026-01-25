@@ -73,6 +73,12 @@ window.onunhandledrejection = function (event) {
  * This runs alongside the legacy code during migration
  */
 async function initModernSystem(): Promise<void> {
+    if ((window as any).__modernSystemInitialized) {
+        console.warn('[Renderer.ts] System already initialized, skipping');
+        return;
+    }
+    (window as any).__modernSystemInitialized = true;
+
     console.log('[Renderer.ts] Initializing modern behavior system...');
 
     // Get current skin config
@@ -130,6 +136,11 @@ async function initModernSystem(): Promise<void> {
         });
     }
 
+
+
+    // Sound Debounce (Key: soundId, Value: timestamp)
+    const lastSoundTime = new Map<string, number>();
+
     // Listen for stateChange events to play sounds
     behaviorEngine.on('stateChange', (event) => {
         if (event.type === 'stateChange') {
@@ -140,11 +151,8 @@ async function initModernSystem(): Promise<void> {
             const stateSound = skinConfig?.sounds?.[data.to];
 
             // Always stop previous loop when changing states
-            // (Unless we want to support cross-state loops, but for now strict state=loop is safer)
             if (soundManager.isLooping(data.from) || soundManager.isLooping(data.to) || true) {
-                // Optimization: Only stop if new state doesn't use the SAME loop, but for now simple is better.
-                // Actually, SoundManager.loop() stops previous loop automatically. 
-                // We only need to explicitly stop if the NEW state has NO loop.
+                // Optimization: Stop loop unless state loop persists (not implemented yet)
             }
 
             // Check if new state has a configured sound
@@ -153,8 +161,16 @@ async function initModernSystem(): Promise<void> {
                 if (config?.loop) {
                     soundManager.loop(data.to);
                 } else {
+                    // Prevent duplicate one-shot sounds (Debounce 100ms)
+                    const now = Date.now();
+                    const lastTime = lastSoundTime.get(data.to) || 0;
+                    if (now - lastTime < 300) {
+                        console.warn(`[Renderer.ts] Debounced duplicate sound: ${data.to}`);
+                        return;
+                    }
+                    lastSoundTime.set(data.to, now);
+
                     // New state has non-loop sound (one-shot entry sound)
-                    // We should still stop any previous background loop from previous state
                     soundManager.stopLoop();
                     soundManager.play(data.to);
                 }

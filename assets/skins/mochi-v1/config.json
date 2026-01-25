@@ -87,7 +87,10 @@
             "sounds/meow_01.mp3",
             "sounds/meow_02.mp3"
         ],
-        "drag": "sounds/drag.mp3",
+        "drag": {
+            "src": "sounds/drag.mp3",
+            "loop": false
+        },
         "sleep": {
             "src": "sounds/purr.mp3",
             "loop": true,
@@ -97,7 +100,11 @@
             },
             "volume": 0.6
         },
-        "angry": "sounds/angry.mp3"
+        "angry": "sounds/angry.mp3",
+        "land": [
+            "sounds/meow_01.mp3",
+            "sounds/meow_02.mp3"
+        ]
     },
     "behaviors": {
         "states": [

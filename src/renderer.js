@@ -100,37 +100,10 @@ async function init() {
     // 5. Pomodoro Listener (Handled by PomodoroManager)
 
     // 6. Click Interaction
-    charEl.addEventListener('click', async () => {
-        // Strict Quiet Mode Check (Phase 17 Fix)
-        const engine = window.__modernSystem?.behaviorEngine;
-        if (engine && typeof engine.isQuietMode === 'function') {
-            if (engine.isQuietMode()) {
-                console.log('[Renderer] Click ignored (Quiet Mode)');
-                return;
-            }
-        }
+    // 6. Click Interaction (Legacy Disabled - Moved to DragController.ts)
+    // 6. Click Interaction (Legacy Disabled - Moved to DragController.ts)
+    // Code removed to prevent double-interactions
 
-        // Note: Sound playback is now handled by BehaviorEngine state transition to 'interact'
-        // This ensures single source of truth for sound logic.
-
-        // Close chat, bubble, and dismiss notification sound
-        chatManager.hide();
-        hideBubble();
-        notificationManager.dismiss();
-
-        // Boost energy on interaction
-        if (energyManager) {
-            await energyManager.modifyEnergy(2);
-            // Show status bubble
-            const msg = await energyManager.getStatusMessage();
-            showBubble(msg, 2000);
-        }
-
-        // Interact Trigger
-        // We defer all logic (re-entry, auto-revert, sound) to BehaviorEngine
-        // The engine is configured with a 3s auto-revert for 'interact' state
-        stateMachine.transition(STATES.INTERACT);
-    });
 
     // 7. Context Menu
     window.addEventListener('contextmenu', (e) => {

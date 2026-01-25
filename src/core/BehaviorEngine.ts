@@ -205,6 +205,13 @@ export class BehaviorEngine {
         }
     }
 
+    /**
+     * Check if quiet mode is enabled
+     */
+    isQuietMode(): boolean {
+        return this.quietMode;
+    }
+
     // ========== Idle Timer ==========
 
     /**

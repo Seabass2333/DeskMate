@@ -134,21 +134,32 @@ export class DragController {
             if (!isQuiet) {
                 if (window.SoundManager) {
                     const instance = (window as any).__modernSystem?.soundManager;
-                    if (instance) {
-                        instance.play('land');
-                    }
+                    // User requested to remove land sound to avoid repetition
+                    // if (instance) {
+                    //    instance.play('land');
+                    // }
                 } else if (typeof (window as any).playJumpSound === 'function') {
-                    (window as any).playJumpSound();
+                    // (window as any).playJumpSound();
                 }
             }
         } else {
-            // Stationary -> Click
-            // Handled by renderer's click listener to avoid double-play
+            // Stationary -> Click (Handled here to unify input logic)
+            // Interact Trigger
+            if (!isQuiet) {
+                // Determine interaction (default to click/interact)
+                this.transitionTo('interact');
+            } else {
+                console.log('[DragController] Click ignored (Quiet Mode)');
+            }
         }
 
-        // Return to previous state or idle
-        // If quiet, we stayed in sleep state
-        this.revertState();
+        if (this.hasMoved) {
+            // Return to previous state or idle after Drag
+            this.revertState();
+        } else {
+            // Click interaction handles its own revert via BehaviorEngine config
+            // Do NOT force revert here
+        }
     }
 
     /**
@@ -166,7 +177,7 @@ export class DragController {
     private revertState(): void {
         const sm = this.stateMachine;
         if (sm) {
-            if (typeof sm.revert === 'function') {
+            if (typeof sm.revert === 'function' && false) { // Disable revert history for Drag
                 sm.revert();
             } else if (typeof sm.transition === 'function') {
                 sm.transition('idle');

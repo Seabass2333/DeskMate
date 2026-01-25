@@ -91,7 +91,16 @@ export class SoundManager {
 
             // Reset to start for re-play
             entry.audio.currentTime = 0;
-            await entry.audio.play();
+            console.log(`[SoundManager] Attempting to play: ${soundId} (${entry.audio.src})`);
+            const promise = entry.audio.play();
+
+            if (promise !== undefined) {
+                promise.then(() => {
+                    console.log(`[SoundManager] Playing: ${soundId}`);
+                }).catch(error => {
+                    console.error(`[SoundManager] Play failed for ${soundId}:`, error);
+                });
+            }
             return true;
         } catch (error) {
             console.error(`[SoundManager] Play failed for ${soundId}:`, error);
@@ -292,6 +301,15 @@ export class SoundManager {
         audio.volume = config.volume;
         audio.playbackRate = config.playbackRate;
         audio.loop = config.loop;
+
+        // Debug listeners
+        audio.addEventListener('error', (e) => {
+            console.error(`[SoundManager] Audio Error for ${src}:`, e, audio.error);
+        });
+        audio.addEventListener('canplay', () => {
+            console.log(`[SoundManager] Audio loaded: ${src.split('/').pop()}`);
+        });
+
         return audio;
     }
 }
