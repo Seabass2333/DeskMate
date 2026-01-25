@@ -118,27 +118,54 @@ export class BehaviorEngine {
             return false;
         }
 
-        // Skip if same state
-        if (this.currentState === newState) {
+        // Strict Quiet Mode: Block all transitions except TO 'sleep'
+        if (this.quietMode && newState !== 'sleep') {
+            console.log(`[BehaviorEngine] Transition blocked by Quiet Mode: ${newState}`);
+            return false;
+        }
+
+        // Skip if same state, UNLESS it's a non-idle state (e.g. interact) 
+        // which implies the user wants to re-trigger the action/sound/timer
+        if (this.currentState === newState && newState === 'idle') {
             return true;
         }
 
-        // Perform transition
+        // Perform transition (or re-entry)
+        const isReentry = this.currentState === newState;
         this.previousState = this.currentState;
         this.currentState = newState;
 
-        // Emit event
+        // Emit event (force timestamp update to distinguish events)
         this.emit('stateChange', {
             from: this.previousState,
             to: newState,
             timestamp: Date.now()
         });
 
-        console.log(`[BehaviorEngine] ${this.previousState} -> ${newState}`);
+        if (!isReentry) {
+            console.log(`[BehaviorEngine] ${this.previousState} -> ${newState}`);
+        } else {
+            // console.log(`[BehaviorEngine] Re-entry: ${newState}`);
+        }
 
         // Reset idle timer if transitioning back to idle
         if (newState === 'idle' && !this.quietMode) {
             this.scheduleIdleAction();
+        } else if (newState !== 'idle' && !this.quietMode) {
+            // Check if this state has a duration (transient state)
+            // Look up in idleActions config
+            const actionConfig = this.config.idleActions?.find(a => a.state === newState);
+            if (actionConfig?.duration) {
+                console.log(`[BehaviorEngine] Auto-revert scheduled for ${newState}: ${actionConfig.duration}ms`);
+                this.scheduleRevert(actionConfig.duration);
+            }
+
+            // Safety Fallback: Interactive states should NEVER stick
+            // If configuration lookup failed but we are in a known transient state, enforce revert
+            if (!this.revertTimer && ['interact', 'dance', 'submissive', 'angry'].includes(newState)) {
+                console.warn(`[BehaviorEngine] Safety Revert triggered for stuck state: ${newState}`);
+                this.scheduleRevert(3000);
+            }
         }
 
         return true;

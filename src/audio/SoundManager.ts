@@ -39,8 +39,11 @@ export class SoundManager {
     /** Map of sound ID to entry */
     private sounds: Map<string, SoundEntry> = new Map();
 
-    /** Currently looping sound ID */
-    private currentLoopId: string | null = null;
+    /** Currently looping sound ID (Ambience Channel) */
+    private currentAmbienceId: string | null = null;
+
+    /** Currently playing SFX Audio (SFX Channel) */
+    private activeSfx: HTMLAudioElement | null = null;
 
     /**
      * Load sounds from skin configuration
@@ -80,6 +83,12 @@ export class SoundManager {
         }
 
         try {
+            // Randomize source if variations exist
+            if (entry.config.srcs && entry.config.srcs.length > 1) {
+                const newSrc = entry.config.srcs[Math.floor(Math.random() * entry.config.srcs.length)];
+                entry.audio.src = newSrc;
+            }
+
             // Reset to start for re-play
             entry.audio.currentTime = 0;
             await entry.audio.play();
@@ -90,8 +99,11 @@ export class SoundManager {
         }
     }
 
+    /** Ambience Loop Timer */
+    private ambienceTimer: number | null = null;
+
     /**
-     * Start a looping sound
+     * Start a looping sound (Ambience)
      * Stops any currently looping sound first
      * 
      * @param soundId - Sound identifier
@@ -107,30 +119,72 @@ export class SoundManager {
             return false;
         }
 
-        try {
-            entry.audio.loop = true;
-            entry.audio.currentTime = 0;
-            await entry.audio.play();
-            this.currentLoopId = soundId;
-            return true;
-        } catch (error) {
-            console.error(`[SoundManager] Loop failed for ${soundId}:`, error);
-            return false;
+        this.currentAmbienceId = soundId;
+        const audio = entry.audio;
+        const config = entry.config;
+
+        // Handler for intermittent loops
+        const playNext = async () => {
+            if (this.currentAmbienceId !== soundId) return; // Stop if changed
+
+            try {
+                audio.currentTime = 0;
+                await audio.play();
+            } catch (err) {
+                console.warn('[SoundManager] Ambience play error:', err);
+            }
+        };
+
+        if (config.loopDelay) {
+            // Intermittent Loop
+            audio.loop = false; // Native loop OFF
+
+            // Cleanup old listeners if any (though we usually create fresh audio, 
+            // but here we reuse entry.audio, so we must be careful with 'ended' listeners)
+            // Ideally we'd wrap this cleanly, but for now:
+            audio.onended = () => {
+                if (this.currentAmbienceId !== soundId) return;
+
+                const delay = Math.random() * (config.loopDelay!.max - config.loopDelay!.min) + config.loopDelay!.min;
+                this.ambienceTimer = window.setTimeout(playNext, delay);
+            };
+
+            await playNext(); // Start first play
+        } else {
+            // Standard continuous loop
+            try {
+                audio.loop = true;
+                audio.onended = null; // Clear listener
+                audio.currentTime = 0;
+                await audio.play();
+            } catch (error) {
+                console.error(`[SoundManager] Loop failed for ${soundId}:`, error);
+                return false;
+            }
         }
+
+        return true;
     }
 
     /**
      * Stop the currently looping sound
      */
     stopLoop(): void {
-        if (this.currentLoopId) {
-            const entry = this.sounds.get(this.currentLoopId);
+        // Clear timer
+        if (this.ambienceTimer) {
+            clearTimeout(this.ambienceTimer);
+            this.ambienceTimer = null;
+        }
+
+        if (this.currentAmbienceId) {
+            const entry = this.sounds.get(this.currentAmbienceId);
             if (entry) {
                 entry.audio.pause();
                 entry.audio.currentTime = 0;
                 entry.audio.loop = false;
+                entry.audio.onended = null; // Clear intermittent listener
             }
-            this.currentLoopId = null;
+            this.currentAmbienceId = null;
         }
     }
 
@@ -140,7 +194,7 @@ export class SoundManager {
      * @param soundId - Sound identifier
      */
     isLooping(soundId: string): boolean {
-        return this.currentLoopId === soundId;
+        return this.currentAmbienceId === soundId;
     }
 
     /**
@@ -172,6 +226,8 @@ export class SoundManager {
         }
 
         this.sounds.clear();
+        this.activeSfx = null;
+        this.currentAmbienceId = null;
     }
 
     // ========== Private Methods ==========
@@ -180,6 +236,29 @@ export class SoundManager {
      * Normalize a sound reference to full config
      */
     private normalizeConfig(ref: SoundRef, basePath: string): NormalizedSoundConfig {
+        // String array: Random variations
+        if (Array.isArray(ref)) {
+            // Pick random one to start, but store all
+            // Ideally we'd store the list and pick on play, 
+            // but for simple normalization we map to a list-capable config
+            // Note: The type system needs update to support 'srcs'.
+            // For now, we'll pick one random source for the initial element
+            // A better architecture would perform randomization at play time.
+
+            // Actually, let's just pick one random one for now to keep type compatibility simple,
+            // or better: treat string[] as multiple valid sources.
+            // But wait, Audio element takes one src.
+            // To support variations properly, we need to change how we store sounds.
+            // Let's modify the Entry to hold a list of sources.
+            return {
+                src: `${basePath}/${ref[0]}`, // Fallback compliant
+                srcs: ref.map(r => `${basePath}/${r}`), // New property
+                loop: false,
+                volume: 1,
+                playbackRate: 1
+            };
+        }
+
         if (typeof ref === 'string') {
             return {
                 src: `${basePath}/${ref}`,
@@ -191,7 +270,9 @@ export class SoundManager {
 
         return {
             src: `${basePath}/${ref.src}`,
+            srcs: ref.srcs?.map(r => `${basePath}/${r}`), // Handle array in config object too if present
             loop: ref.loop ?? false,
+            loopDelay: ref.loopDelay,
             volume: ref.volume ?? 1,
             playbackRate: ref.playbackRate ?? 1
         };
@@ -201,7 +282,13 @@ export class SoundManager {
      * Create and configure an Audio element
      */
     private createAudioElement(config: NormalizedSoundConfig): HTMLAudioElement {
-        const audio = new Audio(config.src);
+        // If config has multiple sources, pick one random
+        let src = config.src;
+        if (config.srcs && config.srcs.length > 0) {
+            src = config.srcs[Math.floor(Math.random() * config.srcs.length)];
+        }
+
+        const audio = new Audio(src);
         audio.volume = config.volume;
         audio.playbackRate = config.playbackRate;
         audio.loop = config.loop;

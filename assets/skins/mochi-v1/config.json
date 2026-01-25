@@ -78,7 +78,27 @@
             "speed": 600
         }
     },
-    "sounds": {},
+    "sounds": {
+        "click": [
+            "sounds/meow_01.wav",
+            "sounds/meow_02.wav"
+        ],
+        "interact": [
+            "sounds/meow_01.wav",
+            "sounds/meow_02.wav"
+        ],
+        "drag": "sounds/drag.wav",
+        "sleep": {
+            "src": "sounds/purr.wav",
+            "loop": true,
+            "loopDelay": {
+                "min": 5000,
+                "max": 15000
+            },
+            "volume": 0.6
+        },
+        "angry": "sounds/angry.wav"
+    },
     "behaviors": {
         "states": [
             "idle",
@@ -91,12 +111,6 @@
         ],
         "idleActions": [
             {
-                "state": "sleep",
-                "weight": 30,
-                "duration": 4000,
-                "sound": "sleep"
-            },
-            {
                 "state": "dance",
                 "weight": 20,
                 "duration": 4000
@@ -104,7 +118,7 @@
             {
                 "state": "interact",
                 "weight": 20,
-                "duration": 4000
+                "duration": 3000
             }
         ],
         "idleTimeout": {
@@ -116,7 +130,8 @@
                 "sound": "click"
             },
             "drag": {
-                "state": "drag"
+                "state": "drag",
+                "sound": "drag"
             }
         }
     }

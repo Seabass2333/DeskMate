@@ -6,7 +6,7 @@
 /**
  * Simple sound reference - just a filename
  */
-export type SimpleSoundRef = string;
+export type SimpleSoundRef = string | string[];
 
 /**
  * Complex sound configuration with options
@@ -20,6 +20,8 @@ export interface SoundConfig {
     volume?: number;
     /** Playback rate (0.5 to 2.0, default 1.0) */
     playbackRate?: number;
+    /** Optional delay between loops (in ms) for intermittent sounds */
+    loopDelay?: { min: number; max: number };
 }
 
 /**
@@ -53,7 +55,9 @@ export interface SkinSounds {
  */
 export interface NormalizedSoundConfig {
     src: string;
+    srcs?: string[]; // Optional: for random variations
     loop: boolean;
     volume: number;
     playbackRate: number;
+    loopDelay?: { min: number; max: number };
 }

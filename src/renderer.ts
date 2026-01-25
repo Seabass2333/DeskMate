@@ -12,6 +12,7 @@ import { BehaviorEngine } from './core/BehaviorEngine';
 import { TriggerScheduler } from './core/TriggerScheduler';
 import { SoundManager } from './audio/SoundManager';
 import { EnergyManager } from './core/EnergyManager';
+import { DragController } from './features/DragController';
 
 // Re-export for window global access (legacy compatibility)
 declare global {
@@ -20,6 +21,7 @@ declare global {
         TriggerScheduler: typeof TriggerScheduler;
         SoundManager: typeof SoundManager;
         EnergyManager: typeof EnergyManager;
+        DragController: typeof DragController;
         deskmate: {
             getSettings: () => Promise<any>;
             getQuietMode: () => Promise<boolean>;
@@ -39,6 +41,7 @@ window.BehaviorEngine = BehaviorEngine;
 window.TriggerScheduler = TriggerScheduler;
 window.SoundManager = SoundManager;
 window.EnergyManager = EnergyManager;
+window.DragController = DragController;
 
 // ============================================
 // Global Error Handling (migrated from renderer.js)
@@ -106,6 +109,15 @@ async function initModernSystem(): Promise<void> {
     const energyManager = new EnergyManager();
     await energyManager.init();
 
+    // Sync Initial Quiet Mode
+    try {
+        const isQuiet = await window.deskmate.getQuietMode();
+        behaviorEngine.setQuietMode(isQuiet);
+        console.log(`[Renderer.ts] Initial Quiet Mode: ${isQuiet}`);
+    } catch (e) {
+        console.warn('[Renderer.ts] Failed to get initial quiet mode', e);
+    }
+
     // Connect EnergyManager to TriggerScheduler
     if (scheduler) {
         // Set initial energy context
@@ -126,11 +138,39 @@ async function initModernSystem(): Promise<void> {
 
             // Play state-specific sound if available
             const stateSound = skinConfig?.sounds?.[data.to];
+
+            // Always stop previous loop when changing states
+            // (Unless we want to support cross-state loops, but for now strict state=loop is safer)
+            if (soundManager.isLooping(data.from) || soundManager.isLooping(data.to) || true) {
+                // Optimization: Only stop if new state doesn't use the SAME loop, but for now simple is better.
+                // Actually, SoundManager.loop() stops previous loop automatically. 
+                // We only need to explicitly stop if the NEW state has NO loop.
+            }
+
+            // Check if new state has a configured sound
             if (stateSound) {
-                soundManager.play(data.to);
+                const config = soundManager.getConfig(data.to);
+                if (config?.loop) {
+                    soundManager.loop(data.to);
+                } else {
+                    // New state has non-loop sound (one-shot entry sound)
+                    // We should still stop any previous background loop from previous state
+                    soundManager.stopLoop();
+                    soundManager.play(data.to);
+                }
+            } else {
+                // New state has NO sound -> Silence
+                soundManager.stopLoop();
             }
         }
     });
+
+    // Initialize DragController (Phase 17)
+    // Pass stateMachine placeholder or null if it handles its own transitions via window.BehaviorEngine
+    // Note: Legacy passed stateMachine instance. New DragController can try to access window.BehaviorEngine fallback.
+    // However, clean architecture suggests we should pass an adapter.
+    // For now, let's instantiate it. It relies on DOM elements being present.
+    const dragController = new DragController(behaviorEngine);
 
     // Expose instances for debugging
     (window as any).__modernSystem = {
@@ -138,6 +178,7 @@ async function initModernSystem(): Promise<void> {
         behaviorEngine,
         energyManager,
         scheduler,
+        dragController,
     };
 
     console.log('[Renderer.ts] Modern system ready (legacy system still active)');

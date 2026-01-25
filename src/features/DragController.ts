@@ -64,8 +64,13 @@ export class DragController {
         this.isDragging = true;
         this.hasMoved = false;
 
-        // Transition to drag state
-        this.transitionTo('drag');
+        // Check for Quiet Mode via BehaviorEngine
+        // If quiet (sleep), DO NOT transition to 'drag' state, just move window purely
+
+        // MOVED TO onMouseMove to prevent "click plays drag sound"
+        // if (!this.getIsQuiet()) {
+        //     this.transitionTo('drag');
+        // }
     }
 
     private onMouseMove(e: MouseEvent): void {
@@ -80,6 +85,20 @@ export class DragController {
         // Mark as moved if threshold exceeded (for sound distinction only)
         if (!this.hasMoved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
             this.hasMoved = true;
+
+            // Start Drag State (Sound/Anim) NOW
+            // Check quiet mode again to be safe
+            let isQuiet = false;
+            if (window.BehaviorEngine) {
+                const engine = (window as any).__modernSystem?.behaviorEngine;
+                if (engine && typeof engine.isQuietMode === 'function') {
+                    isQuiet = engine.isQuietMode();
+                }
+            }
+
+            if (!isQuiet) {
+                this.transitionTo('drag');
+            }
         }
 
         // Reset idle timer in scheduler if available
@@ -99,21 +118,36 @@ export class DragController {
             (window as any).notificationManager.dismiss();
         }
 
-        // Sound Logic: Click vs Drag (Jump)
-        if (this.hasMoved) {
-            // Dragged -> Jump loop/land
-            // Legacy sound function, should migrate to SoundManager eventually
-            if (typeof (window as any).playJumpSound === 'function') {
-                (window as any).playJumpSound();
-            }
-        } else {
-            // Stationary -> Click
-            if (typeof (window as any).playClickSound === 'function') {
-                (window as any).playClickSound();
+        // Check Quiet Mode
+        let isQuiet = false;
+        if (window.BehaviorEngine) {
+            const engine = (window as any).__modernSystem?.behaviorEngine;
+            if (engine && typeof engine.isQuietMode === 'function') {
+                isQuiet = engine.isQuietMode();
             }
         }
 
+        // Sound Logic: Click vs Drag (Jump)
+        if (this.hasMoved) {
+            // Dragged -> Land
+            // Only play if NOT quiet
+            if (!isQuiet) {
+                if (window.SoundManager) {
+                    const instance = (window as any).__modernSystem?.soundManager;
+                    if (instance) {
+                        instance.play('land');
+                    }
+                } else if (typeof (window as any).playJumpSound === 'function') {
+                    (window as any).playJumpSound();
+                }
+            }
+        } else {
+            // Stationary -> Click
+            // Handled by renderer's click listener to avoid double-play
+        }
+
         // Return to previous state or idle
+        // If quiet, we stayed in sleep state
         this.revertState();
     }
 
@@ -124,8 +158,8 @@ export class DragController {
         if (this.stateMachine && typeof this.stateMachine.transition === 'function') {
             this.stateMachine.transition(state);
         } else if (window.BehaviorEngine) {
-            // We'd need the instance here. 
-            // For now, assuming drag controller is injected with stateMachine adapter which handles this.
+            const engine = (window as any).__modernSystem?.behaviorEngine;
+            if (engine) engine.transition(state);
         }
     }
 
@@ -138,5 +172,20 @@ export class DragController {
                 sm.transition('idle');
             }
         }
+    }
+
+    /**
+     * Helper to check quiet mode safely
+     */
+    private getIsQuiet(): boolean {
+        // Check BehaviorEngine first (Modern)
+        if (window.BehaviorEngine) {
+            const engine = (window as any).__modernSystem?.behaviorEngine;
+            if (engine && typeof engine.isQuietMode === 'function') {
+                return engine.isQuietMode();
+            }
+        }
+        // Fallback to legacy if needed, or default false
+        return false;
     }
 }

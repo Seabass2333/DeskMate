@@ -61,7 +61,7 @@ async function init() {
     notificationManager.setStateMachine(stateMachine);
 
     // 3. Init Controllers
-    new DragController(stateMachine);
+    // DragController is now handled by modern system (renderer.ts)
     const chatManager = new ChatManager(stateMachine);
     new PomodoroManager(stateMachine);
     const reminderManager = new ReminderManager(stateMachine);
@@ -88,18 +88,30 @@ async function init() {
     // 4.5. Listen for quiet mode changes
     window.deskmate.onQuietModeChanged((enabled) => {
         stateMachine.setQuietMode(enabled);
+
+        // Sync with Modern System (Phase 17 Fix)
+        const modernEngine = window.__modernSystem?.behaviorEngine;
+        if (modernEngine && typeof modernEngine.setQuietMode === 'function') {
+            console.log(`[Renderer] Syncing Quiet Mode to Modern Engine: ${enabled}`);
+            modernEngine.setQuietMode(enabled);
+        }
     });
 
     // 5. Pomodoro Listener (Handled by PomodoroManager)
 
     // 6. Click Interaction
     charEl.addEventListener('click', async () => {
-        // Play skin sound if available
-        const sound = animManager.skinManager.currentSkin?.sound;
-        if (sound) {
-            sound.currentTime = 0;
-            sound.play().catch(e => console.warn('[Renderer] Play sound failed:', e));
+        // Strict Quiet Mode Check (Phase 17 Fix)
+        const engine = window.__modernSystem?.behaviorEngine;
+        if (engine && typeof engine.isQuietMode === 'function') {
+            if (engine.isQuietMode()) {
+                console.log('[Renderer] Click ignored (Quiet Mode)');
+                return;
+            }
         }
+
+        // Note: Sound playback is now handled by BehaviorEngine state transition to 'interact'
+        // This ensures single source of truth for sound logic.
 
         // Close chat, bubble, and dismiss notification sound
         chatManager.hide();
@@ -114,20 +126,10 @@ async function init() {
             showBubble(msg, 2000);
         }
 
-        // In quiet mode: brief wake-up then return to sleep
-        if (stateMachine.quietMode) {
-            // Clear any existing wake timer
-            if (stateMachine.wakeTimer) {
-                clearTimeout(stateMachine.wakeTimer);
-            }
-            stateMachine.transition(STATES.INTERACT);
-            stateMachine.wakeTimer = setTimeout(() => {
-                stateMachine.transition(STATES.SLEEP);
-            }, 3000);
-        } else if (stateMachine.state === STATES.IDLE) {
-            stateMachine.transition(STATES.INTERACT);
-            setTimeout(() => stateMachine.transition(STATES.IDLE), 2000);
-        }
+        // Interact Trigger
+        // We defer all logic (re-entry, auto-revert, sound) to BehaviorEngine
+        // The engine is configured with a 3s auto-revert for 'interact' state
+        stateMachine.transition(STATES.INTERACT);
     });
 
     // 7. Context Menu
@@ -212,6 +214,28 @@ async function init() {
 
     // 12. Holiday Easter Eggs
     checkHoliday();
+
+    // 13. Bridge Modern System Visuals (Phase 17 Fix)
+    // Listen to BehaviorEngine state changes to drive AnimationManager
+    const waitForModern = setInterval(() => {
+        const engine = window.__modernSystem?.behaviorEngine;
+        if (engine) {
+            clearInterval(waitForModern);
+            console.log('[Renderer] Connected to Modern Behavior Engine');
+
+            engine.on('stateChange', (event) => {
+                const newState = event.data.to;
+                console.log(`[Renderer] Visual Sync: ${newState}`);
+
+                // Update Legacy StateMachine (to keep sync)
+                stateMachine.state = newState;
+                stateMachine.previousState = event.data.from;
+
+                // Drive Animation
+                animManager.play(newState);
+            });
+        }
+    }, 100);
 
     console.log('[Renderer] Phase 2 Ready!');
 }
