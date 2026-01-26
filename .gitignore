@@ -8,5 +8,5 @@ node_modules
 supabase/
 
 # Electron
-dist
-build
+/dist
+/build
