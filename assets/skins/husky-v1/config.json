@@ -72,8 +72,7 @@
         "sleep": {
             "src": "../../sounds/dog/sleep snoring - 45s.mp3",
             "srcs": [
-                "../../sounds/dog/sleep snoring - 45s.mp3",
-                "../../sounds/dog/tired-dog-panting - 3s.mp3"
+                "../../sounds/dog/sleep snoring - 45s.mp3"
             ],
             "loop": true,
             "loopDelay": {
