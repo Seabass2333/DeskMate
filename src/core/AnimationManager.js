@@ -11,8 +11,8 @@ class AnimationManager {
 
     async init() {
         try {
-            const petState = await window.deskmate.getPetState();
-            const skinId = petState?.skinId || 'mochi-v1';
+            const settings = await window.deskmate.getSettings();
+            const skinId = settings?.skin || 'mochi-v1';
             await this.skinManager.loadSkin(skinId);
         } catch (e) {
             await this.skinManager.loadSkin('mochi-v1');
