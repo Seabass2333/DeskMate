@@ -82,10 +82,9 @@ function createWindow() {
   }
 
   // Only open DevTools in development mode
-  // DEBUG: Enable DevTools in production to diagnose invisible pet
-  // if (!app.isPackaged) {
-  mainWindow.webContents.openDevTools({ mode: 'detach' });
-  // }
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  }
 }
 
 /** @type {number} */
