@@ -12,7 +12,9 @@ class AnimationManager {
     async init() {
         try {
             const settings = await window.deskmate.getSettings();
-            const skinId = settings?.skin || 'mochi-v1';
+
+            // settings:get returns 'currentSkin' (from config.getSkin()), not 'skin' directly
+            const skinId = settings?.currentSkin || settings?.skin || 'mochi-v1';
             await this.skinManager.loadSkin(skinId);
         } catch (e) {
             await this.skinManager.loadSkin('mochi-v1');
