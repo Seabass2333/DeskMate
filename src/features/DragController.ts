@@ -130,8 +130,14 @@ export class DragController {
         // Sound Logic: Click vs Drag (Jump)
         if (this.hasMoved) {
             // Dragged -> Land
+            // Dragged -> Land
             // Only play if NOT quiet
             if (!isQuiet) {
+                // Boost energy for playing (Drag)
+                if ((window as any).energyManager) {
+                    (window as any).energyManager.modifyEnergy(5);
+                }
+
                 if (window.SoundManager) {
                     const instance = (window as any).__modernSystem?.soundManager;
                     // User requested to remove land sound to avoid repetition
@@ -146,6 +152,11 @@ export class DragController {
             // Stationary -> Click (Handled here to unify input logic)
             // Interact Trigger
             if (!isQuiet) {
+                // Boost energy for interaction (Click)
+                if ((window as any).energyManager) {
+                    (window as any).energyManager.modifyEnergy(2);
+                }
+
                 // Determine interaction (default to click/interact)
                 this.transitionTo('interact');
             } else {

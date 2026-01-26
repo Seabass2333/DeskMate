@@ -75,6 +75,7 @@ async function init() {
 
     // 3.5. Init Energy Manager
     energyManager = new EnergyManager();
+    window.energyManager = energyManager; // Expose for other controllers
     await energyManager.init();
 
     // 4. Initial State - Check quiet mode
