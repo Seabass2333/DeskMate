@@ -11,6 +11,7 @@
     "build:win": "electron-builder --win --x64 --publish never",
     "build:linux": "electron-builder --linux --publish never",
     "build:all": "electron-builder -mwl --publish never",
+    "build:dir": "npm run vite:build && electron-builder --dir",
     "release:mac": "electron-builder --mac --universal --publish always",
     "release:win": "electron-builder --win --x64 --publish always",
     "release:linux": "electron-builder --linux --publish always",
