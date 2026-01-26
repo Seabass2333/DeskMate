@@ -35,6 +35,11 @@ class ChatManager {
         this.inputContainer.addEventListener('mouseleave', () => {
             window.deskmate.setIgnoreMouseEvents(true);
         });
+
+        // Set initial placeholder
+        window.deskmate.t('chatPlaceholder').then(text => {
+            this.input.placeholder = text;
+        });
     }
 
     toggle() {

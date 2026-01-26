@@ -123,7 +123,7 @@ function showContextMenu() {
   };
 
   const template = [
-    { label: `⚡ Energy: ${Math.round(petState.energy)}%`, enabled: false },
+    { label: `${t('energy')}: ${Math.round(petState.energy)}%`, enabled: false },
     { type: 'separator' },
     {
       label: t('talkToMe'),
@@ -139,7 +139,7 @@ function showContextMenu() {
           // Phase 4: Lock >25m for non-VIP
           const isLocked = !isUserVip() && min > 25;
           return {
-            label: min < 1 ? `⚡ ${Math.round(min * 60)}s (Test)` : `${min} ${t('minutes')}${min === defaultDur ? ' (Default)' : ''}${isLocked ? ' 🔒 (VIP)' : ''}`,
+            label: min < 1 ? `⚡ ${Math.round(min * 60)}s ${t('test')}` : `${min} ${t('minutes')}${min === defaultDur ? ` ${t('default')}` : ''}${isLocked ? ` 🔒 ${t('vip')}` : ''}`,
             type: 'checkbox',
             checked: isPomodoroActive && currentPomodoroDuration === min,
             enabled: !isLocked,
@@ -238,7 +238,7 @@ function showContextMenu() {
       submenu: getAvailableSkins().map(skin => {
         const isLocked = !isUserVip() && skin.id !== 'mochi-v1';
         return {
-          label: skin.name + (isLocked ? ' 🔒 (VIP)' : ''),
+          label: skin.name + (isLocked ? ` 🔒 ${t('vip')}` : ''),
           type: 'radio',
           checked: getSkin() === skin.id,
           enabled: !isLocked,

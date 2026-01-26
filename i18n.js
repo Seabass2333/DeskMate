@@ -54,6 +54,7 @@ const translations = {
         // Chat
         thinking: '思考中...',
         connectionFailed: '连接失败... 😿',
+        chatPlaceholder: '说点什么...',
 
         // Errors
         errorNetwork: '断网了... 检查一下网络吧 🌐',
@@ -99,7 +100,11 @@ const translations = {
         statusTired: "有点困了... 🥱",
         statusExhausted: "累趴了... 需要休息... 💤",
         statusMeow: "喵？",
-        quietMode: '安静模式'
+        quietMode: '安静模式',
+        energy: '⚡ 能量',
+        default: '(默认)',
+        vip: '(VIP)',
+        test: '(测试)'
     },
 
     'en': {
@@ -146,6 +151,7 @@ const translations = {
         // Chat
         thinking: 'Thinking...',
         connectionFailed: 'Connection failed... 😿',
+        chatPlaceholder: 'Say something...',
 
         // Errors
         errorNetwork: 'No network... check your connection 🌐',
@@ -191,7 +197,11 @@ const translations = {
         statusTired: "Getting a bit sleepy... 🥱",
         statusExhausted: "Too tired... need rest... 💤",
         statusMeow: "Meow?",
-        quietMode: 'Quiet Mode'
+        quietMode: 'Quiet Mode',
+        energy: '⚡ Energy',
+        default: '(Default)',
+        vip: '(VIP)',
+        test: '(Test)'
     },
 
     'ja': {
@@ -232,8 +242,10 @@ const translations = {
         focusStart: '集中: ${min}m 💪',
         focusStopped: '集中終了',
         focusComplete: '集中完了！休憩しよう~ ☕',
+        // Chat
         thinking: '考え中...',
         connectionFailed: '接続失敗... 😿',
+        chatPlaceholder: '何か言って...',
 
         // Errors
         errorNetwork: 'ネットワークエラー... 接続を確認して 🌐',
@@ -278,7 +290,11 @@ const translations = {
         statusTired: "ちょっと眠いにゃ... 🥱",
         statusExhausted: "疲れたにゃ... 休ませて... 💤",
         statusMeow: "にゃ？",
-        quietMode: '静かモード'
+        quietMode: '静かモード',
+        energy: '⚡ エネルギー',
+        default: '(デフォルト)',
+        vip: '(VIP)',
+        test: '(テスト)'
     },
 
     'ko': {
@@ -321,6 +337,7 @@ const translations = {
         focusComplete: '집중 완료! 쉬어가자~ ☕',
         thinking: '생각 중...',
         connectionFailed: '연결 실패... 😿',
+        chatPlaceholder: '뭔가 말해봐...',
 
         // Errors
         errorNetwork: '네트워크 오류... 연결 확인해 🌐',
@@ -365,7 +382,11 @@ const translations = {
         statusTired: "좀 졸리다냥... 🥱",
         statusExhausted: "너무 힘들어... 쉴래... 💤",
         statusMeow: "냥?",
-        quietMode: '조용한 모드'
+        quietMode: '조용한 모드',
+        energy: '⚡ 에너지',
+        default: '(기본)',
+        vip: '(VIP)',
+        test: '(테스트)'
     },
 
     'es': {
@@ -408,6 +429,7 @@ const translations = {
         focusComplete: '¡Enfoque completado! Toma un descanso~ ☕',
         thinking: 'Pensando...',
         connectionFailed: 'Conexión fallida... 😿',
+        chatPlaceholder: 'Di algo...',
 
         // Errors
         errorNetwork: 'Sin red... revisa tu conexión 🌐',
@@ -452,7 +474,11 @@ const translations = {
         statusTired: "Me está entrando sueño... 🥱",
         statusExhausted: "Demasiado cansado... necesito descansar... 💤",
         statusMeow: "¿Miau?",
-        quietMode: 'Modo Silencioso'
+        quietMode: 'Modo Silencioso',
+        energy: '⚡ Energía',
+        default: '(Por defecto)',
+        vip: '(VIP)',
+        test: '(Prueba)'
     },
 
     'fr': {
@@ -495,6 +521,7 @@ const translations = {
         focusComplete: 'Focus terminé! Prends une pause~ ☕',
         thinking: 'Réflexion...',
         connectionFailed: 'Connexion échouée... 😿',
+        chatPlaceholder: 'Dites quelque chose...',
 
         // Errors
         errorNetwork: 'Pas de réseau... vérifie ta connexion 🌐',
@@ -539,7 +566,11 @@ const translations = {
         statusTired: "Je commence à avoir sommeil... 🥱",
         statusExhausted: "Trop fatigué... besoin de repos... 💤",
         statusMeow: "Miaou?",
-        quietMode: 'Mode Silencieux'
+        quietMode: 'Mode Silencieux',
+        energy: '⚡ Énergie',
+        default: '(Défaut)',
+        vip: '(VIP)',
+        test: '(Test)'
     },
 
     'de': {
@@ -582,6 +613,7 @@ const translations = {
         focusComplete: 'Fokus abgeschlossen! Mach eine Pause~ ☕',
         thinking: 'Denke nach...',
         connectionFailed: 'Verbindung fehlgeschlagen... 😿',
+        chatPlaceholder: 'Sag etwas...',
 
         // Errors
         errorNetwork: 'Kein Netz... überprüfe deine Verbindung 🌐',

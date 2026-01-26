@@ -194,7 +194,15 @@ const SETTINGS_I18N = {
         reminderIntervals: '提醒间隔 (分钟)',
         reminderWater: '💧 喝水',
         reminderEyes: '👁️ 护眼',
-        reminderStretch: '🧘‍♀️ 伸展'
+        reminderEyes: '👁️ 护眼',
+        reminderStretch: '🧘‍♀️ 伸展',
+        // Update System
+        checkUpdates: '检查更新',
+        checkingUpdates: '检查中...',
+        updateAvailable: '发现新版本',
+        updateNotFound: '已是最新',
+        updateError: '检查失败',
+        downloadUpdate: '下载更新'
     },
     'en': {
         settingsTitle: 'Settings',
@@ -270,7 +278,14 @@ const SETTINGS_I18N = {
         reminderIntervals: 'Reminder Intervals (min)',
         reminderWater: '💧 Water',
         reminderEyes: '👁️ Eyes',
-        reminderStretch: '🧘‍♀️ Stretch'
+        reminderStretch: '🧘‍♀️ Stretch',
+        // Update System
+        checkUpdates: 'Check Updates',
+        checkingUpdates: 'Checking...',
+        updateAvailable: 'Update Available',
+        updateNotFound: 'Up to date',
+        updateError: 'Check failed',
+        downloadUpdate: 'Download'
     },
     'ja': {
         settingsTitle: '設定',
@@ -334,7 +349,14 @@ const SETTINGS_I18N = {
         reminderIntervals: 'リマインダー間隔 (分)',
         reminderWater: '💧 水分',
         reminderEyes: '👁️ 目の休憩',
-        reminderStretch: '🧘‍♀️ ストレッチ'
+        reminderStretch: '🧘‍♀️ ストレッチ',
+        // Update System
+        checkUpdates: '更新を確認',
+        checkingUpdates: '確認中...',
+        updateAvailable: '更新あり',
+        updateNotFound: '最新です',
+        updateError: '確認失敗',
+        downloadUpdate: 'ダウンロード'
     },
     'ko': {
         settingsTitle: '설정',
@@ -398,10 +420,22 @@ const SETTINGS_I18N = {
         reminderIntervals: '알림 간격 (분)',
         reminderWater: '💧 물',
         reminderEyes: '👁️ 눈 휴식',
-        reminderStretch: '🧘‍♀️ 스트레칭'
+        reminderStretch: '🧘‍♀️ 伸展',
+        // Update System
+        checkUpdates: '업데이트 확인',
+        checkingUpdates: '확인 중...',
+        updateAvailable: '업데이트 가능',
+        updateNotFound: '최신 버전임',
+        updateError: '확인 실패',
+        downloadUpdate: '다운로드'
     },
     'es': {
         settingsTitle: 'Configuración',
+        // ... (preserving content using multi_replace approach would be safer but replace_file is chunk based)
+        // Wait, I am in replace_file_content tool, I cannot view the file in the middle.
+        // I need to only target the end of each language block.
+        // It's safer to use multi_replace.
+
         providerSection: 'Proveedor API',
         region: 'Región',
         regionChina: '🇨🇳 China',
@@ -462,7 +496,14 @@ const SETTINGS_I18N = {
         reminderIntervals: 'Intervalo (min)',
         reminderWater: '💧 Agua',
         reminderEyes: '👁️ Ojos',
-        reminderStretch: '🧘‍♀️ Estirar'
+        reminderStretch: '🧘‍♀️ Estirar',
+        // Update System
+        checkUpdates: 'Buscar Actualizaciones',
+        checkingUpdates: 'Buscando...',
+        updateAvailable: 'Actualización Disponible',
+        updateNotFound: 'Al día',
+        updateError: 'Error al buscar',
+        downloadUpdate: 'Descargar'
     },
     'fr': {
         settingsTitle: 'Paramètres',
@@ -526,7 +567,14 @@ const SETTINGS_I18N = {
         reminderIntervals: 'Intervalle (min)',
         reminderWater: '💧 Eau',
         reminderEyes: '👁️ Yeux',
-        reminderStretch: '🧘‍♀️ Étirement'
+        reminderStretch: '🧘‍♀️ Étirement',
+        // Update System
+        checkUpdates: 'Vérifier MàJ',
+        checkingUpdates: 'Vérification...',
+        updateAvailable: 'Mise à jour disponible',
+        updateNotFound: 'À jour',
+        updateError: 'Échec vérification',
+        downloadUpdate: 'Télécharger'
     },
     'de': {
         settingsTitle: 'Einstellungen',
@@ -590,7 +638,14 @@ const SETTINGS_I18N = {
         reminderIntervals: 'Intervall (Min)',
         reminderWater: '💧 Wasser',
         reminderEyes: '👁️ Augen',
-        reminderStretch: '🧘‍♀️ Dehnen'
+        reminderStretch: '🧘‍♀️ Dehnen',
+        // Update System
+        checkUpdates: 'Nach Updates suchen',
+        checkingUpdates: 'Prüfen...',
+        updateAvailable: 'Update verfügbar',
+        updateNotFound: 'Auf dem neuesten Stand',
+        updateError: 'Fehler beim Prüfen',
+        downloadUpdate: 'Herunterladen'
     }
 };
 
@@ -747,7 +802,7 @@ async function init() {
                 // Add Check Update Button if container exists
                 if (versionContainer && !versionContainer.querySelector('.check-update-btn')) {
                     const checkBtn = document.createElement('button');
-                    checkBtn.textContent = 'Check Updates';
+                    checkBtn.textContent = t('checkUpdates');
                     checkBtn.className = 'btn-secondary btn-sm check-update-btn';
                     checkBtn.style.marginLeft = '10px';
                     checkBtn.style.padding = '2px 8px';
@@ -777,10 +832,9 @@ async function init() {
                     };
 
                     // Check Update Handler
-                    // Check Update Handler
                     checkBtn.onclick = async () => {
                         checkBtn.disabled = true;
-                        checkBtn.textContent = 'Checking...';
+                        checkBtn.textContent = t('checkingUpdates');
                         isUpdateFound = false;
                         if (messageEl) {
                             messageEl.textContent = '';
@@ -794,10 +848,10 @@ async function init() {
                         console.log('Update Status:', status, data);
                         switch (status) {
                             case 'checking':
-                                checkBtn.textContent = 'Checking...';
+                                checkBtn.textContent = t('checkingUpdates');
                                 break;
                             case 'available':
-                                checkBtn.textContent = 'Update Available';
+                                checkBtn.textContent = t('updateAvailable');
                                 checkBtn.disabled = true;
                                 isUpdateFound = true;
 
@@ -806,8 +860,8 @@ async function init() {
                                 const landingUrl = 'https://seabass2333.github.io/DeskMate/';
 
                                 setUpdateMessage(
-                                    `Found v${data.version}. <br/>` +
-                                    `Download: <a href="#" data-url="${githubUrl}">GitHub</a> | ` +
+                                    `${t('updateAvailable')} v${data.version}. <br/>` +
+                                    `${t('downloadUpdate')}: <a href="#" data-url="${githubUrl}">GitHub</a> | ` +
                                     `<a href="#" data-url="${landingUrl}">Landing Page</a>`,
                                     'success'
                                 );
