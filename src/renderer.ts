@@ -115,29 +115,6 @@ async function initModernSystem(): Promise<void> {
     const energyManager = new EnergyManager();
     await energyManager.init();
 
-    // Sync Initial Quiet Mode
-    try {
-        const isQuiet = await window.deskmate.getQuietMode();
-        behaviorEngine.setQuietMode(isQuiet);
-        console.log(`[Renderer.ts] Initial Quiet Mode: ${isQuiet}`);
-    } catch (e) {
-        console.warn('[Renderer.ts] Failed to get initial quiet mode', e);
-    }
-
-    // Connect EnergyManager to TriggerScheduler
-    if (scheduler) {
-        // Set initial energy context
-        scheduler.setContext({ energy: energyManager.getEnergy() });
-
-        // Update context on change
-        energyManager.on('energyChange', (energy: number) => {
-            scheduler!.setContext({ energy });
-            // console.log('[Renderer.ts] Energy context updated:', energy);
-        });
-    }
-
-
-
     // Sound Debounce (Key: soundId, Value: timestamp)
     const lastSoundTime = new Map<string, number>();
 
@@ -180,6 +157,31 @@ async function initModernSystem(): Promise<void> {
             }
         }
     });
+
+    // Sync Initial Quiet Mode
+    try {
+        const isQuiet = await window.deskmate.getQuietMode();
+        behaviorEngine.setQuietMode(isQuiet);
+        console.log(`[Renderer.ts] Initial Quiet Mode: ${isQuiet}`);
+    } catch (e) {
+        console.warn('[Renderer.ts] Failed to get initial quiet mode', e);
+    }
+
+    // Connect EnergyManager to TriggerScheduler
+    if (scheduler) {
+        // Set initial energy context
+        scheduler.setContext({ energy: energyManager.getEnergy() });
+
+        // Update context on change
+        energyManager.on('energyChange', (energy: number) => {
+            scheduler!.setContext({ energy });
+            // console.log('[Renderer.ts] Energy context updated:', energy);
+        });
+    }
+
+
+
+
 
     // Initialize DragController (Phase 17)
     // Pass stateMachine placeholder or null if it handles its own transitions via window.BehaviorEngine

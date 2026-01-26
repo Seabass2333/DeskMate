@@ -510,7 +510,7 @@ function getQuietMode() {
         const store = require('./store');
         const value = store.get('quietMode');
         // Default to true if not set
-        return value !== undefined ? value : true;
+        return value !== undefined ? value : false;
     } catch (error) {
         return true;
     }
