@@ -32,6 +32,7 @@ window.onunhandledrejection = function (event) {
 // Global instances
 let energyManager = null;
 const notificationManager = new NotificationManager();
+window.notificationManager = notificationManager; // Expose for DragController
 
 // ============================================
 // Main Initialization
