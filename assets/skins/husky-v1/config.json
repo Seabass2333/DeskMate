@@ -58,8 +58,17 @@
             "../../sounds/dog/whimper-sad-2 - 2s.mp3"
         ],
         "sleep": {
-            "src": "../../sounds/dog/tired-dog-panting - 3s.mp3",
-            "loop": true
+            "src": "../../sounds/dog/sleep snoring - 45s.mp3",
+            "srcs": [
+                "../../sounds/dog/sleep snoring - 45s.mp3",
+                "../../sounds/dog/tired-dog-panting - 3s.mp3"
+            ],
+            "loop": true,
+            "loopDelay": {
+                "min": 10000,
+                "max": 30000
+            },
+            "volume": 0.6
         },
         "land": "../../sounds/dog/Growls Ruff Barks - 3s.mp3"
     },
