@@ -1,6 +1,6 @@
 {
   "name": "deskmate",
-  "version": "1.4.13",
+  "version": "1.4.14",
   "description": "A cute desktop pet with AI chat, Pomodoro timer, and reminders",
   "main": "main.js",
   "scripts": {

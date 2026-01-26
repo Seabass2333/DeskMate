@@ -421,6 +421,8 @@
     currentAmbienceId = null;
     /** Currently playing SFX Audio (SFX Channel) */
     activeSfx = null;
+    /** Global Mute State */
+    muted = false;
     /**
      * Load sounds from skin configuration
      * Clears any previously loaded sounds
@@ -439,12 +441,24 @@
       console.log(`[SoundManager] Loaded ${this.sounds.size} sounds`);
     }
     /**
+     * Set global mute state
+     * Stops all sounds if muted
+     */
+    setMuted(muted) {
+      this.muted = muted;
+      console.log(`[SoundManager] Global Mute: ${muted}`);
+      if (muted) {
+        this.stopLoop();
+      }
+    }
+    /**
      * Play a sound by ID (one-shot)
      * 
      * @param soundId - Sound identifier
      * @returns true if played successfully, false otherwise
      */
     async play(soundId) {
+      if (this.muted) return false;
       const entry = this.sounds.get(soundId);
       if (!entry) {
         console.warn(`[SoundManager] Sound not found: ${soundId}`);
@@ -481,6 +495,7 @@
      * @returns true if started successfully
      */
     async loop(soundId) {
+      if (this.muted) return false;
       this.stopLoop();
       const entry = this.sounds.get(soundId);
       if (!entry) {
@@ -986,6 +1001,26 @@
     }
     const energyManager = new EnergyManager();
     await energyManager.init();
+    try {
+      const soundEnabled = await window.deskmate.isSoundEnabled();
+      soundManager.setMuted(!soundEnabled);
+      console.log(`[Renderer.ts] Initial Sound Enabled: ${soundEnabled}`);
+    } catch (e) {
+      console.warn("[Renderer.ts] Failed to get initial sound setting", e);
+    }
+    if (window.deskmate.onSettingsUpdated) {
+      window.deskmate.onSettingsUpdated((settings) => {
+        if (settings.sound && typeof settings.sound.enabled === "boolean") {
+          const enabled = settings.sound.enabled;
+          soundManager.setMuted(!enabled);
+          const currentState = behaviorEngine.getCurrentState();
+          const config = soundManager.getConfig(currentState);
+          if (enabled && config?.loop && !soundManager.isLooping(currentState)) {
+            soundManager.loop(currentState);
+          }
+        }
+      });
+    }
     const lastSoundTime = /* @__PURE__ */ new Map();
     behaviorEngine.on("stateChange", (event) => {
       if (event.type === "stateChange") {

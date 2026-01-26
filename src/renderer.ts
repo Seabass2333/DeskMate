@@ -82,7 +82,7 @@ async function initModernSystem(): Promise<void> {
     console.log('[Renderer.ts] Initializing modern behavior system...');
 
     // Get current skin config
-    const skinConfig = await window.deskmate.getCurrentSkin?.();
+    let skinConfig = await window.deskmate.getCurrentSkin?.();
 
     // Initialize SoundManager if skin has sounds
     const soundManager = new SoundManager();
@@ -137,6 +137,66 @@ async function initModernSystem(): Promise<void> {
                 if (enabled && config?.loop && !soundManager.isLooping(currentState)) {
                     soundManager.loop(currentState);
                 }
+            }
+        });
+    }
+
+    // Listen for Skin Changes (Reload Sounds & Behaviors)
+    if (window.deskmate.onSkinChange) {
+        window.deskmate.onSkinChange(async (skinId: string) => {
+            console.log(`[Renderer.ts] Skin changed to: ${skinId}`);
+
+            // Reload skin config
+            const newSkinConfig = await window.deskmate.getCurrentSkin();
+
+            if (newSkinConfig) {
+                // Update local config reference for state listeners
+                skinConfig = newSkinConfig;
+
+                // 1. Reload Sounds
+                if (newSkinConfig.sounds) {
+                    await soundManager.loadSounds(newSkinConfig.sounds, newSkinConfig.basePath || '');
+                    console.log(`[Renderer.ts] Sounds reloaded for ${skinId}`);
+                } else {
+                    soundManager.dispose();
+                }
+
+                // 2. Restart TriggerScheduler with new behaviors? 
+                // Currently TriggerScheduler creates a new scheduler on init.
+                // We should probably handle full behavior reload, but for v1.4.14 let's focus on Sound sync.
+                // The sound listener uses 'skinConfig', so updating it here fixes the issue.
+            }
+        });
+    }
+
+    // Listen for Skin Changes (Reload Sounds & Behaviors)
+    if (window.deskmate.onSkinChange) {
+        window.deskmate.onSkinChange(async (skinId: string) => {
+            console.log(`[Renderer.ts] Skin changed to: ${skinId}`);
+
+            // Reload skin config
+            const newSkinConfig = await window.deskmate.getCurrentSkin();
+
+            if (newSkinConfig) {
+                // 1. Reload Sounds
+                if (newSkinConfig.sounds) {
+                    await soundManager.loadSounds(newSkinConfig.sounds, newSkinConfig.basePath || '');
+                    console.log(`[Renderer.ts] Sounds reloaded for ${skinId}`);
+                } else {
+                    soundManager.dispose();
+                }
+
+                // 2. Reload Behaviors (TODO: Update BehaviorEngine config dynamically)
+                // For now, BehaviorEngine stays with old config unless we add setConfig
+                // Let's at least ensure sounds match the new skin.
+
+                // Update global reference for state change listener
+                // Wait, the stateChange listener uses the closed-over `skinConfig` variable!
+                // This is a BUG. `skinConfig` is const from init.
+                // We must update the `skinConfig` reference or look it up dynamically.
+                // But `skinConfig` is block-scoped 'const'.
+
+                // FIX: We need to store skinConfig in a mutable variable or property.
             }
         });
     }
