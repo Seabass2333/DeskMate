@@ -115,6 +115,32 @@ async function initModernSystem(): Promise<void> {
     const energyManager = new EnergyManager();
     await energyManager.init();
 
+    // Sync Initial Sound Settings (Global Mute)
+    try {
+        const soundEnabled = await window.deskmate.isSoundEnabled();
+        soundManager.setMuted(!soundEnabled);
+        console.log(`[Renderer.ts] Initial Sound Enabled: ${soundEnabled}`);
+    } catch (e) {
+        console.warn('[Renderer.ts] Failed to get initial sound setting', e);
+    }
+
+    // Listen for Settings Updates (Real-time Mute Toggle)
+    if (window.deskmate.onSettingsUpdated) {
+        window.deskmate.onSettingsUpdated((settings: any) => {
+            if (settings.sound && typeof settings.sound.enabled === 'boolean') {
+                const enabled = settings.sound.enabled;
+                soundManager.setMuted(!enabled);
+                // If unmuted and current state is looping (e.g. sleep), we might want to restart loop?
+                // But simplified logic: next state change will handle it, OR we can check current state.
+                const currentState = behaviorEngine.getCurrentState();
+                const config = soundManager.getConfig(currentState);
+                if (enabled && config?.loop && !soundManager.isLooping(currentState)) {
+                    soundManager.loop(currentState);
+                }
+            }
+        });
+    }
+
     // Sound Debounce (Key: soundId, Value: timestamp)
     const lastSoundTime = new Map<string, number>();
 

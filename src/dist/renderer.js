@@ -986,19 +986,6 @@
     }
     const energyManager = new EnergyManager();
     await energyManager.init();
-    try {
-      const isQuiet = await window.deskmate.getQuietMode();
-      behaviorEngine.setQuietMode(isQuiet);
-      console.log(`[Renderer.ts] Initial Quiet Mode: ${isQuiet}`);
-    } catch (e) {
-      console.warn("[Renderer.ts] Failed to get initial quiet mode", e);
-    }
-    if (scheduler) {
-      scheduler.setContext({ energy: energyManager.getEnergy() });
-      energyManager.on("energyChange", (energy) => {
-        scheduler.setContext({ energy });
-      });
-    }
     const lastSoundTime = /* @__PURE__ */ new Map();
     behaviorEngine.on("stateChange", (event) => {
       if (event.type === "stateChange") {
@@ -1026,6 +1013,19 @@
         }
       }
     });
+    try {
+      const isQuiet = await window.deskmate.getQuietMode();
+      behaviorEngine.setQuietMode(isQuiet);
+      console.log(`[Renderer.ts] Initial Quiet Mode: ${isQuiet}`);
+    } catch (e) {
+      console.warn("[Renderer.ts] Failed to get initial quiet mode", e);
+    }
+    if (scheduler) {
+      scheduler.setContext({ energy: energyManager.getEnergy() });
+      energyManager.on("energyChange", (energy) => {
+        scheduler.setContext({ energy });
+      });
+    }
     const dragController = new DragController(behaviorEngine);
     window.__modernSystem = {
       soundManager,

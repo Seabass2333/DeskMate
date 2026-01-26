@@ -45,6 +45,9 @@ export class SoundManager {
     /** Currently playing SFX Audio (SFX Channel) */
     private activeSfx: HTMLAudioElement | null = null;
 
+    /** Global Mute State */
+    private muted: boolean = false;
+
     /**
      * Load sounds from skin configuration
      * Clears any previously loaded sounds
@@ -66,7 +69,23 @@ export class SoundManager {
             this.sounds.set(id, { audio, config: normalized });
         }
 
+
+
         console.log(`[SoundManager] Loaded ${this.sounds.size} sounds`);
+    }
+
+    /**
+     * Set global mute state
+     * Stops all sounds if muted
+     */
+    setMuted(muted: boolean): void {
+        this.muted = muted;
+        console.log(`[SoundManager] Global Mute: ${muted}`);
+        if (muted) {
+            this.stopLoop();
+            // Stop any active SFX if we were tracking them (we currently don't track persistent SFX references well, 
+            // but short SFX usually don't need force stop. If needed, we can track them).
+        }
     }
 
     /**
@@ -76,6 +95,7 @@ export class SoundManager {
      * @returns true if played successfully, false otherwise
      */
     async play(soundId: string): Promise<boolean> {
+        if (this.muted) return false;
         const entry = this.sounds.get(soundId);
         if (!entry) {
             console.warn(`[SoundManager] Sound not found: ${soundId}`);
@@ -119,6 +139,7 @@ export class SoundManager {
      * @returns true if started successfully
      */
     async loop(soundId: string): Promise<boolean> {
+        if (this.muted) return false;
         // Stop current loop if any
         this.stopLoop();
 
