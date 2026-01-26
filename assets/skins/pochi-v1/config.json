@@ -173,5 +173,69 @@
             "frames": 4,
             "speed": 800
         }
+    },
+    "sounds": {
+        "click": [
+            "../mochi-v1/sounds/meow_01.mp3",
+            "../mochi-v1/sounds/meow_02.mp3"
+        ],
+        "interact": [
+            "../mochi-v1/sounds/meow_01.mp3",
+            "../mochi-v1/sounds/meow_02.mp3"
+        ],
+        "drag": {
+            "src": "../mochi-v1/sounds/drag.mp3",
+            "loop": false
+        },
+        "sleep": {
+            "src": "../mochi-v1/sounds/purr.mp3",
+            "loop": true,
+            "loopDelay": {
+                "min": 5000,
+                "max": 15000
+            },
+            "volume": 0.6
+        },
+        "angry": "../mochi-v1/sounds/angry.mp3",
+        "land": [
+            "../mochi-v1/sounds/meow_01.mp3",
+            "../mochi-v1/sounds/meow_02.mp3"
+        ]
+    },
+    "behaviors": {
+        "states": [
+            "idle",
+            "sleep",
+            "drag",
+            "working",
+            "thinking",
+            "interact",
+            "dance"
+        ],
+        "idleActions": [
+            {
+                "state": "dance",
+                "weight": 20,
+                "duration": 4000
+            },
+            {
+                "state": "interact",
+                "weight": 20,
+                "duration": 3000
+            }
+        ],
+        "idleTimeout": {
+            "min": 15000,
+            "max": 45000
+        },
+        "interactions": {
+            "click": {
+                "sound": "click"
+            },
+            "drag": {
+                "state": "drag",
+                "sound": "drag"
+            }
+        }
     }
 }

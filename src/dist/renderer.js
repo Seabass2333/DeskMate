@@ -980,7 +980,7 @@
     }
     window.__modernSystemInitialized = true;
     console.log("[Renderer.ts] Initializing modern behavior system...");
-    const skinConfig = await window.deskmate.getCurrentSkin?.();
+    let skinConfig = await window.deskmate.getCurrentSkin?.();
     const soundManager = new SoundManager();
     if (skinConfig?.sounds) {
       await soundManager.loadSounds(skinConfig.sounds, skinConfig.basePath || "");
@@ -1017,6 +1017,35 @@
           const config = soundManager.getConfig(currentState);
           if (enabled && config?.loop && !soundManager.isLooping(currentState)) {
             soundManager.loop(currentState);
+          }
+        }
+      });
+    }
+    if (window.deskmate.onSkinChange) {
+      window.deskmate.onSkinChange(async (skinId) => {
+        console.log(`[Renderer.ts] Skin changed to: ${skinId}`);
+        const newSkinConfig = await window.deskmate.getCurrentSkin();
+        if (newSkinConfig) {
+          skinConfig = newSkinConfig;
+          if (newSkinConfig.sounds) {
+            await soundManager.loadSounds(newSkinConfig.sounds, newSkinConfig.basePath || "");
+            console.log(`[Renderer.ts] Sounds reloaded for ${skinId}`);
+          } else {
+            soundManager.dispose();
+          }
+        }
+      });
+    }
+    if (window.deskmate.onSkinChange) {
+      window.deskmate.onSkinChange(async (skinId) => {
+        console.log(`[Renderer.ts] Skin changed to: ${skinId}`);
+        const newSkinConfig = await window.deskmate.getCurrentSkin();
+        if (newSkinConfig) {
+          if (newSkinConfig.sounds) {
+            await soundManager.loadSounds(newSkinConfig.sounds, newSkinConfig.basePath || "");
+            console.log(`[Renderer.ts] Sounds reloaded for ${skinId}`);
+          } else {
+            soundManager.dispose();
           }
         }
       });

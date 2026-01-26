@@ -130,19 +130,23 @@ async function init() {
             const hasSleep = animManager.skinManager.getAnimation('sleep');
             if (hasSleep) {
                 stateMachine.transition(STATES.SLEEP);
+                animManager.play(STATES.SLEEP);
             } else {
                 // Fallback to idle if no sleep animation
                 stateMachine.transition(STATES.IDLE);
+                animManager.play(STATES.IDLE);
             }
         } else {
             const hasIdle = animManager.skinManager.getAnimation('idle');
             if (hasIdle) {
                 stateMachine.transition(STATES.IDLE);
+                animManager.play(STATES.IDLE);
             } else {
                 // Get first available animation key from new skin
                 const animations = animManager.skinManager.currentSkin?.animations;
                 const firstState = animations ? Object.keys(animations)[0] : 'idle';
                 stateMachine.transition(firstState);
+                animManager.play(firstState);
             }
         }
         console.log(`[Renderer] Skin changed to: ${skinId}, state: ${stateMachine.state}`);
