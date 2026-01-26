@@ -55,7 +55,7 @@
     },
     "sounds": {
         "interact": [
-            "../../sounds/dog/Howl - 2s.mp3",
+            "../../sounds/dog/Growls Ruff Barks - 3s.mp3",
             "../../sounds/dog/playing 01 - 6s.mp3"
         ],
         "bark": "../../sounds/dog/Growls Ruff Barks - 3s.mp3",
