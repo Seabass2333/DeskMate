@@ -70,7 +70,8 @@
             },
             "volume": 0.6
         },
-        "land": "../../sounds/dog/Growls Ruff Barks - 3s.mp3"
+        "land": "../../sounds/dog/Growls Ruff Barks - 3s.mp3",
+        "alarm": "../../sounds/times up/church-bell-and-dog-barking - 107s.mp3"
     },
     "behaviors": {
         "states": [
