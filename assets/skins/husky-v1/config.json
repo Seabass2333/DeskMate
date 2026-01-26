@@ -43,7 +43,26 @@
             "speed": 800
         }
     },
-    "sounds": {},
+    "sounds": {
+        "interact": [
+            "../../sounds/dog/Howl - 2s.mp3",
+            "../../sounds/dog/playing 01 - 6s.mp3"
+        ],
+        "click": "../../sounds/dog/Howl - 2s.mp3",
+        "angry": [
+            "../../sounds/dog/snarl 01 - 5s.mp3",
+            "../../sounds/dog/Growls Ruff Barks - 3s.mp3"
+        ],
+        "drag": [
+            "../../sounds/dog/whimper-sad-1 - 3s.mp3",
+            "../../sounds/dog/whimper-sad-2 - 2s.mp3"
+        ],
+        "sleep": {
+            "src": "../../sounds/dog/tired-dog-panting - 3s.mp3",
+            "loop": true
+        },
+        "land": "../../sounds/dog/Growls Ruff Barks - 3s.mp3"
+    },
     "behaviors": {
         "states": [
             "idle",
