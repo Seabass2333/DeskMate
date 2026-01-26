@@ -119,13 +119,25 @@
         "idleActions": [
             {
                 "state": "dance",
-                "weight": 20,
+                "weight": 10,
                 "duration": 4000
             },
             {
                 "state": "interact",
                 "weight": 20,
                 "duration": 3000
+            },
+            {
+                "state": "working",
+                "weight": 15,
+                "duration": 5000,
+                "note": "Grooming"
+            },
+            {
+                "state": "thinking",
+                "weight": 15,
+                "duration": 4000,
+                "note": "Curious"
             }
         ],
         "idleTimeout": {

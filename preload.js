@@ -185,7 +185,7 @@ contextBridge.exposeInMainWorld('deskmate', {
     /**
      * Get random idle message for bubble display
      */
-    getRandomIdleMessage: () => ipcRenderer.invoke('i18n:getRandomIdleMessage'),
+    getRandomIdleMessage: (skinId) => ipcRenderer.invoke('i18n:getRandomIdleMessage', skinId),
 
     /**
      * Check if sound is enabled

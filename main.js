@@ -943,7 +943,7 @@ ipcMain.handle('i18n:translate', (_, key) => t(key));
 ipcMain.handle('app:getVersion', () => app.getVersion());
 
 // Random Idle Message
-ipcMain.handle('i18n:getRandomIdleMessage', () => getRandomIdleMessage());
+ipcMain.handle('i18n:getRandomIdleMessage', (_, skinId) => getRandomIdleMessage(skinId));
 
 // ============================================
 // App Lifecycle

@@ -905,12 +905,18 @@
       }
       if (this.hasMoved) {
         if (!isQuiet) {
+          if (window.energyManager) {
+            window.energyManager.modifyEnergy(5);
+          }
           if (window.SoundManager) {
             window.__modernSystem?.soundManager;
           }
         }
       } else {
         if (!isQuiet) {
+          if (window.energyManager) {
+            window.energyManager.modifyEnergy(2);
+          }
           this.transitionTo("interact");
         } else {
           console.log("[DragController] Click ignored (Quiet Mode)");

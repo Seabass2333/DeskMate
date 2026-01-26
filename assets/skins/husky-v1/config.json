@@ -41,6 +41,16 @@
             "src": "interact.png",
             "frames": 15,
             "speed": 800
+        },
+        "sniff": {
+            "src": "HuskySniff.png",
+            "frames": 24,
+            "speed": 1600
+        },
+        "bark": {
+            "src": "Huskybark.png",
+            "frames": 10,
+            "speed": 1000
         }
     },
     "sounds": {
@@ -48,6 +58,8 @@
             "../../sounds/dog/Howl - 2s.mp3",
             "../../sounds/dog/playing 01 - 6s.mp3"
         ],
+        "bark": "../../sounds/dog/Growls Ruff Barks - 3s.mp3",
+        "sniff": "../../sounds/dog/tired-dog-panting - 3s.mp3",
         "click": "../../sounds/dog/Howl - 2s.mp3",
         "angry": [
             "../../sounds/dog/snarl 01 - 5s.mp3",
@@ -80,18 +92,45 @@
             "drag",
             "working",
             "thinking",
-            "interact"
+            "interact",
+            "sniff",
+            "bark"
         ],
         "idleActions": [
             {
                 "state": "sleep",
-                "weight": 40,
+                "weight": 30,
                 "duration": 5000
             },
             {
                 "state": "interact",
-                "weight": 30,
+                "weight": 20,
                 "duration": 3000,
+                "sound": "bark"
+            },
+            {
+                "state": "sniff",
+                "weight": 20,
+                "duration": 4000,
+                "sound": "sniff"
+            },
+            {
+                "state": "working",
+                "weight": 15,
+                "duration": 5000,
+                "note": "Guard"
+            },
+            {
+                "state": "thinking",
+                "weight": 15,
+                "duration": 4000,
+                "note": "Curious"
+            },
+            {
+                "state": "bark",
+                "weight": 10,
+                "duration": 1500,
+                "note": "Barking",
                 "sound": "bark"
             }
         ],

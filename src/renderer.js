@@ -181,7 +181,10 @@ async function init() {
         idleBubbleTimer = setTimeout(async () => {
             // Double-check still in idle
             if (stateMachine.state === STATES.IDLE && !stateMachine.quietMode) {
-                const msg = await window.deskmate.getRandomIdleMessage();
+                // Get current skin ID to show relevant personality
+                const currentSkin = await window.deskmate.getCurrentSkin();
+                const skinId = currentSkin ? currentSkin.id : 'default';
+                const msg = await window.deskmate.getRandomIdleMessage(skinId);
                 showBubble(msg, 4000);
             }
             scheduleIdleBubble(); // Schedule next

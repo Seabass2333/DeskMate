@@ -80,18 +80,44 @@ const translations = {
         soundEffects: '音效',
 
         // Random idle messages
-        randomMessages: [
-            "...喵zzZ 💤",
-            "*打哈欠* 好无聊喵~ 🥱",
-            "哼，又在偷懒？😏",
-            "*伸懒腰* 本喵需要休息 😸",
-            "喵~（才不是想你摸我）🐱",
-            "好无聊...陪我玩嘛！",
-            "*呼噜呼噜* 😻",
-            "你在干嘛？...随便问问 👀",
-            "有小鱼干吗？🐟",
-            "该休息了吧？本喵说的 ☕"
-        ],
+        randomMessages: {
+            "default": [
+                "...喵zzZ 💤",
+                "*打哈欠* 好无聊喵~ 🥱",
+                "哼，又在偷懒？😏",
+                "*伸懒腰* 本喵需要休息 😸",
+                "喵~（才不是想你摸我）🐱",
+                "好无聊...陪我玩嘛！",
+                "*呼噜呼噜* 😻",
+                "你在干嘛？...随便问问 👀",
+                "有小鱼干吗？🐟",
+                "该休息了吧？本喵说的 ☕"
+            ],
+            "mochi-v1": [
+                "...喵zzZ 💤",
+                "*打哈欠* 好无聊喵~ 🥱",
+                "哼，又在偷懒？😏",
+                "*伸懒腰* 本喵需要休息 😸",
+                "喵~（才不是想你摸我）🐱",
+                "好无聊...陪我玩嘛！",
+                "*呼噜呼噜* 😻",
+                "你在干嘛？...随便问问 👀",
+                "有小鱼干吗？🐟",
+                "该休息了吧？本喵说的 ☕"
+            ],
+            "husky-v1": [
+                "汪！🐶",
+                "*嗅嗅* 有零食的味道？🍖",
+                "陪我玩球！🎾",
+                "我是乖狗狗对吧？🥺",
+                "松鼠！...哦，是鼠标啊。🐿️",
+                "*哈气* 👅",
+                "摸肚肚？好不好嘛？🐾",
+                "嗷呜~~~~！🐺",
+                "好无聊... 出去玩？🍃",
+                "主人在干嘛？让我康康！👀"
+            ]
+        },
 
         // Status Messages
         statusHyper: "能量爆棚！⚡️",
@@ -177,18 +203,44 @@ const translations = {
         soundEffects: 'Sound Effects',
 
         // Random idle messages
-        randomMessages: [
-            "...zzZ 💤",
-            "*yawn* So bored~ 🥱",
-            "Hmph, slacking off again? 😏",
-            "*stretching* I need a break 😸",
-            "Meow~ (not that I want pets) 🐱",
-            "So bored... play with me!",
-            "*purring* 😻",
-            "What are you doing? ...just asking 👀",
-            "Got any treats? 🐟",
-            "Time for a break, I said so ☕"
-        ],
+        randomMessages: {
+            "default": [
+                "...zzZ 💤",
+                "*yawn* So bored~ 🥱",
+                "Hmph, slacking off again? 😏",
+                "*stretching* I need a break 😸",
+                "Meow~ (not that I want pets) 🐱",
+                "So bored... play with me!",
+                "*purring* 😻",
+                "What are you doing? ...just asking 👀",
+                "Got any treats? 🐟",
+                "Time for a break, I said so ☕"
+            ],
+            "mochi-v1": [
+                "...zzZ 💤",
+                "*yawn* So bored~ 🥱",
+                "Hmph, slacking off again? 😏",
+                "*stretching* I need a break 😸",
+                "Meow~ (not that I want pets) 🐱",
+                "So bored... play with me!",
+                "*purring* 😻",
+                "What are you doing? ...just asking 👀",
+                "Got any treats? 🐟",
+                "Time for a break, I said so ☕"
+            ],
+            "husky-v1": [
+                "Woof! 🐶",
+                "*sniff sniff* Smells like snacks? 🍖",
+                "Play ball? 🎾",
+                "I'm a good boy, right? 🥺",
+                "Squirrel! ...oh, it's the mouse. 🐿️",
+                "*pant pant* 👅",
+                "Belly rubs? Please? 🐾",
+                "Awooooo! 🐺",
+                "So bored... let's go out? 🍃",
+                "What are you doing? Let me see! 👀"
+            ]
+        },
 
         // Status Messages
         statusHyper: "I'm overflowing with energy! ⚡️",
@@ -270,18 +322,44 @@ const translations = {
         soundEffects: '効果音',
 
         // Random idle messages
-        randomMessages: [
-            "...むにゃむにゃ 💤",
-            "*あくび* 退屈だにゃ~ 🥱",
-            "ふん、またサボってる？😏",
-            "*伸び* 休憩が必要だにゃ 😸",
-            "にゃ~（撫でてほしいわけじゃないにゃ）🐱",
-            "退屈...遊んでよ！",
-            "*ゴロゴロ* 😻",
-            "何してるの？...聞いてみただけ 👀",
-            "おやつある？🐟",
-            "もう休憩したら？私がそう言うんだから ☕"
-        ],
+        randomMessages: {
+            "default": [
+                "...むにゃむにゃ 💤",
+                "*あくび* 退屈だにゃ~ 🥱",
+                "ふん、またサボってる？😏",
+                "*伸び* 休憩が必要だにゃ 😸",
+                "にゃ~（撫でてほしいわけじゃないにゃ）🐱",
+                "退屈...遊んでよ！",
+                "*ゴロゴロ* 😻",
+                "何してるの？...聞いてみただけ 👀",
+                "おやつある？🐟",
+                "もう休憩したら？私がそう言うんだから ☕"
+            ],
+            "mochi-v1": [
+                "...むにゃむにゃ 💤",
+                "*あくび* 退屈だにゃ~ 🥱",
+                "ふん、またサボってる？😏",
+                "*伸び* 休憩が必要だにゃ 😸",
+                "にゃ~（撫でてほしいわけじゃないにゃ）🐱",
+                "退屈...遊んでよ！",
+                "*ゴロゴロ* 😻",
+                "何してるの？...聞いてみただけ 👀",
+                "おやつある？🐟",
+                "もう休憩したら？私がそう言うんだから ☕"
+            ],
+            "husky-v1": [
+                "ワン！🐶",
+                "*クンクン* おやつの匂い？🍖",
+                "ボール遊びしよう！🎾",
+                "いい子だよね？🥺",
+                "リス！...あ、マウスか。🐿️",
+                "*ハアハア* 👅",
+                "お腹なでて？お願い🐾",
+                "アオーン！🐺",
+                "退屈...お散歩行く？🍃",
+                "何してるの？見せて！👀"
+            ]
+        },
 
         // Status Messages
         statusHyper: "エネルギー満タンだにゃ！⚡️",
@@ -362,18 +440,44 @@ const translations = {
         soundEffects: '효과음',
 
         // Random idle messages
-        randomMessages: [
-            "...졸려 💤",
-            "*하품* 심심해냥~ 🥱",
-            "흥, 또 농땡이? 😏",
-            "*기지개* 나 좀 쉴게 😸",
-            "냥~ (쓰다듬어 달라는 건 아냐) 🐱",
-            "심심해... 나랑 놀아줘!",
-            "*골골송* 😻",
-            "뭐해? ...그냥 물어봤어 👀",
-            "간식 있어? 🐟",
-            "이제 쉴 때 됐잖아? 내가 그렇다면 그런거야 ☕"
-        ],
+        randomMessages: {
+            "default": [
+                "...졸려 💤",
+                "*하품* 심심해냥~ 🥱",
+                "흥, 또 농땡이? 😏",
+                "*기지개* 나 좀 쉴게 😸",
+                "냥~ (쓰다듬어 달라는 건 아냐) 🐱",
+                "심심해... 나랑 놀아줘!",
+                "*골골송* 😻",
+                "뭐해? ...그냥 물어봤어 👀",
+                "간식 있어? 🐟",
+                "이제 쉴 때 됐잖아? 내가 그렇다면 그런거야 ☕"
+            ],
+            "mochi-v1": [
+                "...졸려 💤",
+                "*하품* 심심해냥~ 🥱",
+                "흥, 또 농땡이? 😏",
+                "*기지개* 나 좀 쉴게 😸",
+                "냥~ (쓰다듬어 달라는 건 아냐) 🐱",
+                "심심해... 나랑 놀아줘!",
+                "*골골송* 😻",
+                "뭐해? ...그냥 물어봤어 👀",
+                "간식 있어? 🐟",
+                "이제 쉴 때 됐잖아? 내가 그렇다면 그런거야 ☕"
+            ],
+            "husky-v1": [
+                "멍! 🐶",
+                "*킁킁* 간식 냄새? 🍖",
+                "공놀이 하자! 🎾",
+                "나 착한 강아지 맞지? 🥺",
+                "다람쥐! ...아, 마우스네. 🐿️",
+                "*헥헥* 👅",
+                "배 만져줘? 🐾",
+                "아우~~~~! 🐺",
+                "심심해... 산책 갈까? 🍃",
+                "뭐하고 있어? 나도 볼래! 👀"
+            ]
+        },
 
         // Status Messages
         statusHyper: "에너지가 넘친다냥! ⚡️",
@@ -454,18 +558,44 @@ const translations = {
         soundEffects: 'Efectos de sonido',
 
         // Random idle messages
-        randomMessages: [
-            "...zzZ 💤",
-            "*bostezo* Qué aburrido~ 🥱",
-            "Hmph, ¿holgazaneando de nuevo? 😏",
-            "*estirándose* Necesito un descanso 😸",
-            "Miau~ (no es que quiera mimos) 🐱",
-            "Qué aburrido... ¡juega conmigo!",
-            "*ronroneo* 😻",
-            "¿Qué haces? ...solo pregunto 👀",
-            "¿Tienes premios? 🐟",
-            "Hora de un descanso, yo lo digo ☕"
-        ],
+        randomMessages: {
+            "default": [
+                "...zzZ 💤",
+                "*bostezo* Qué aburrido~ 🥱",
+                "Hmph, ¿holgazaneando de nuevo? 😏",
+                "*estirándose* Necesito un descanso 😸",
+                "Miau~ (no es que quiera mimos) 🐱",
+                "Qué aburrido... ¡juega conmigo!",
+                "*ronroneo* 😻",
+                "¿Qué haces? ...solo pregunto 👀",
+                "¿Tienes premios? 🐟",
+                "Hora de un descanso, yo lo digo ☕"
+            ],
+            "mochi-v1": [
+                "...zzZ 💤",
+                "*bostezo* Qué aburrido~ 🥱",
+                "Hmph, ¿holgazaneando de nuevo? 😏",
+                "*estirándose* Necesito un descanso 😸",
+                "Miau~ (no es que quiera mimos) 🐱",
+                "Qué aburrido... ¡juega conmigo!",
+                "*ronroneo* 😻",
+                "¿Qué haces? ...solo pregunto 👀",
+                "¿Tienes premios? 🐟",
+                "Hora de un descanso, yo lo digo ☕"
+            ],
+            "husky-v1": [
+                "¡Guau! 🐶",
+                "*sniff sniff* ¿Huelo a premios? 🍖",
+                "¿Jugamos a la pelota? 🎾",
+                "Soy un buen chico, ¿verdad? 🥺",
+                "¡Ardilla! ...oh, es el ratón. 🐿️",
+                "*jadeo* 👅",
+                "¿Rascas mi barriga? ¿Por favor? 🐾",
+                "¡Auuuuu! 🐺",
+                "Qué aburrido... ¿vamos afuera? 🍃",
+                "¿Qué estás haciendo? ¡Déjame ver! 👀"
+            ]
+        },
 
         // Status Messages
         statusHyper: "¡Estoy rebosante de energía! ⚡️",
@@ -546,18 +676,44 @@ const translations = {
         soundEffects: 'Effets sonores',
 
         // Random idle messages
-        randomMessages: [
-            "...zzZ 💤",
-            "*bâillement* C'est ennuyeux~ 🥱",
-            "Hmph, tu traînes encore? 😏",
-            "*s'étire* J'ai besoin d'une pause 😸",
-            "Miaou~ (ce n'est pas que je veux des caresses) 🐱",
-            "C'est ennuyeux... joue avec moi!",
-            "*ronronne* 😻",
-            "Tu fais quoi? ...je demande juste 👀",
-            "Tu as des friandises? 🐟",
-            "L'heure de la pause, c'est moi qui le dis ☕"
-        ],
+        randomMessages: {
+            "default": [
+                "...zzZ 💤",
+                "*bâillement* C'est ennuyeux~ 🥱",
+                "Hmph, tu traînes encore? 😏",
+                "*s'étire* J'ai besoin d'une pause 😸",
+                "Miaou~ (ce n'est pas que je veux des caresses) 🐱",
+                "C'est ennuyeux... joue avec moi!",
+                "*ronronne* 😻",
+                "Tu fais quoi? ...je demande juste 👀",
+                "Tu as des friandises? 🐟",
+                "L'heure de la pause, c'est moi qui le dis ☕"
+            ],
+            "mochi-v1": [
+                "...zzZ 💤",
+                "*bâillement* C'est ennuyeux~ 🥱",
+                "Hmph, tu traînes encore? 😏",
+                "*s'étire* J'ai besoin d'une pause 😸",
+                "Miaou~ (ce n'est pas que je veux des caresses) 🐱",
+                "C'est ennuyeux... joue avec moi!",
+                "*ronronne* 😻",
+                "Tu fais quoi? ...je demande juste 👀",
+                "Tu as des friandises? 🐟",
+                "L'heure de la pause, c'est moi qui le dis ☕"
+            ],
+            "husky-v1": [
+                "Wouf! 🐶",
+                "*sniff sniff* Ça sent les friandises? 🍖",
+                "On joue à la balle? 🎾",
+                "Je suis un bon chien, non? 🥺",
+                "Écureuil! ...oh, c'est la souris. 🐿️",
+                "*halètement* 👅",
+                "Gratouille le ventre? S'il te plaît? 🐾",
+                "Aouuuuu! 🐺",
+                "C'est ennuyeux... on sort? 🍃",
+                "Tu fais quoi? Fais voir! 👀"
+            ]
+        },
 
         // Status Messages
         statusHyper: "Je déborde d'énergie! ⚡️",
@@ -638,18 +794,44 @@ const translations = {
         soundEffects: 'Soundeffekte',
 
         // Random idle messages
-        randomMessages: [
-            "...zzZ 💤",
-            "*gähn* So langweilig~ 🥱",
-            "Hmph, faulenzt du schon wieder? 😏",
-            "*strecken* Ich brauche eine Pause 😸",
-            "Miau~ (nicht dass ich gestreichelt werden will) 🐱",
-            "So langweilig... spiel mit mir!",
-            "*schnurren* 😻",
-            "Was machst du? ...frage nur so 👀",
-            "Hast du Leckerlis? 🐟",
-            "Zeit für eine Pause, sag ich ☕"
-        ],
+        randomMessages: {
+            "default": [
+                "...zzZ 💤",
+                "*gähn* So langweilig~ 🥱",
+                "Hmph, faulenzt du schon wieder? 😏",
+                "*strecken* Ich brauche eine Pause 😸",
+                "Miau~ (nicht dass ich gestreichelt werden will) 🐱",
+                "So langweilig... spiel mit mir!",
+                "*schnurren* 😻",
+                "Was machst du? ...frage nur so 👀",
+                "Hast du Leckerlis? 🐟",
+                "Zeit für eine Pause, sag ich ☕"
+            ],
+            "mochi-v1": [
+                "...zzZ 💤",
+                "*gähn* So langweilig~ 🥱",
+                "Hmph, faulenzt du schon wieder? 😏",
+                "*strecken* Ich brauche eine Pause 😸",
+                "Miau~ (nicht dass ich gestreichelt werden will) 🐱",
+                "So langweilig... spiel mit mir!",
+                "*schnurren* 😻",
+                "Was machst du? ...frage nur so 👀",
+                "Hast du Leckerlis? 🐟",
+                "Zeit für eine Pause, sag ich ☕"
+            ],
+            "husky-v1": [
+                "Wuff! 🐶",
+                "*schnüffel* Riecht nach Leckerlis? 🍖",
+                "Ball spielen? 🎾",
+                "Ich bin ein braver Hund, oder? 🥺",
+                "Eichhörnchen! ...oh, ist die Maus. 🐿️",
+                "*hechel* 👅",
+                "Bauch kraulen? Bitte? 🐾",
+                "Auuuuuu! 🐺",
+                "So langweilig... gehen wir raus? 🍃",
+                "Was machst du da? Zeig mal! 👀"
+            ]
+        },
 
         // Status Messages
         statusHyper: "Ich platze vor Energie! ⚡️",
@@ -731,9 +913,24 @@ function getTranslations() {
 /**
  * Get a random idle message
  */
-function getRandomIdleMessage() {
+function getRandomIdleMessage(skinId) {
     const langStrings = translations[currentLanguage] || translations['en'];
-    const messages = langStrings.randomMessages || translations['en'].randomMessages;
+    const allMessages = langStrings.randomMessages || translations['en'].randomMessages;
+
+    // Backward compatibility if randomMessages is still an array (shouldn't be, but safety first)
+    if (Array.isArray(allMessages)) {
+        return allMessages[Math.floor(Math.random() * allMessages.length)];
+    }
+
+    // Get messages for specific skin or fallback to default
+    // If skinId is not provided or not found, use 'default'
+    const targetMessages = (skinId && allMessages[skinId]) ? allMessages[skinId] : allMessages['default'];
+
+    // Safety check just in case 'default' is missing
+    const messages = targetMessages || [];
+
+    if (messages.length === 0) return "...";
+
     return messages[Math.floor(Math.random() * messages.length)];
 }
 
