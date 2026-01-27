@@ -3,38 +3,87 @@
  */
 
 const { createClient } = require('@supabase/supabase-js');
+const restClient = require('./RestApiClient');
+
+// Configuration
+// Check if Self-Hosted mode is enabled via Env or LocalStorage
+const USE_SELF_HOSTED = process.env.USE_SELF_HOSTED === 'true' ||
+    (typeof localStorage !== 'undefined' && localStorage.getItem('use_self_hosted') === 'true');
+
+console.log(`[CloudClient] Mode: ${USE_SELF_HOSTED ? 'SELF-HOSTED' : 'SUPABASE'}`);
 
 // Supabase configuration
-// ANON_KEY is designed to be public - it's used with RLS policies for security
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://isgmlrcfgunisziinhfb.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzZ21scmNmZ3VuaXN6aWluaGZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzNTMyNzMsImV4cCI6MjA4MzkyOTI3M30.OM5q2oMR9U6QpbsOCHhnWs6gSz5eaAqkMj2osBHV40Q';
 
 // Resilience Config
 const RETRY_CONFIG = {
     maxRetries: 3,
-    baseDelayMs: 500,      // 500ms -> 1000ms -> 2000ms (exponential)
-    timeoutMs: 10000       // 10 seconds per request
+    baseDelayMs: 500,
+    timeoutMs: 10000
 };
 
-// Validate configuration
-if (!SUPABASE_ANON_KEY) {
-    console.warn('[SupabaseClient] SUPABASE_ANON_KEY not configured. Remote features disabled.');
-}
-
-// Create Supabase client
-const supabase = SUPABASE_ANON_KEY
+// Create Supabase client (only if needed or for fallback)
+const supabase = (SUPABASE_ANON_KEY && !USE_SELF_HOSTED)
     ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     : null;
 
+// Proxy for Auth to allow switching
+const authProxy = {
+    signInWithOtp: async (params) => {
+        if (USE_SELF_HOSTED) return restClient.signInWithOtp(params);
+        if (supabase) return supabase.auth.signInWithOtp(params);
+        return { error: { message: 'No backend configured' } };
+    },
+    verifyOtp: async (params) => {
+        if (USE_SELF_HOSTED) return restClient.verifyOtp(params);
+        if (supabase) return supabase.auth.verifyOtp(params);
+        return { error: { message: 'No backend configured' } };
+    },
+    signOut: async () => {
+        if (USE_SELF_HOSTED) return restClient.signOut();
+        if (supabase) return supabase.auth.signOut();
+    },
+    getSession: async () => {
+        if (USE_SELF_HOSTED) return restClient.getSession();
+        if (supabase) return supabase.auth.getSession();
+        return { data: { session: null } };
+    },
+    onAuthStateChange: (callback) => {
+        if (USE_SELF_HOSTED) return restClient.onAuthStateChange(callback);
+        if (supabase) return supabase.auth.onAuthStateChange(callback);
+    }
+};
+
+// Hybrid Supabase Object
+const hybridSupabase = {
+    auth: authProxy,
+    rpc: async (fn, params) => {
+        if (USE_SELF_HOSTED) {
+            // Wrap in object structure to match Supabase response format used internally?
+            // Existing `rpc` function wrapper handles the data structure.
+            // But if called directly `supabase.rpc`, it expects { data, error }
+            try {
+                const data = await restClient.rpc(fn, params);
+                return { data, error: null };
+            } catch (err) {
+                return { data: null, error: err };
+            }
+        }
+        if (supabase) return supabase.rpc(fn, params);
+        return { data: null, error: { message: 'No backend configured' } };
+    }
+};
+
 /**
- * Check if Supabase is configured and available
+ * Check if configured
  */
 function isConfigured() {
-    return !!supabase;
+    return USE_SELF_HOSTED || !!supabase;
 }
 
 /**
- * Sleep helper for exponential backoff
+ * Sleep helper
  */
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -54,15 +103,16 @@ function classifyError(error) {
 }
 
 /**
- * Call a Supabase RPC function with retry logic
- * @param {string} functionName 
- * @param {object} params 
- * @param {object} options - Optional overrides for retry config
- * @returns {Promise<any>}
+ * Call RPC function with retry logic
  */
 async function rpc(functionName, params, options = {}) {
-    if (!supabase) {
-        throw new Error('Supabase not configured');
+    if (!isConfigured()) {
+        throw new Error('Backend not configured');
+    }
+
+    // Direct path for Self-Hosted
+    if (USE_SELF_HOSTED) {
+        return await restClient.rpc(functionName, params);
     }
 
     const maxRetries = options.maxRetries ?? RETRY_CONFIG.maxRetries;
@@ -73,7 +123,6 @@ async function rpc(functionName, params, options = {}) {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            // Create abort controller for timeout
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -87,7 +136,6 @@ async function rpc(functionName, params, options = {}) {
                 lastError = error;
                 const errorType = classifyError(error);
 
-                // Only retry on network/timeout errors
                 if (errorType === 'NETWORK' || errorType === 'TIMEOUT') {
                     console.warn(`[Supabase RPC] ${functionName} attempt ${attempt}/${maxRetries} failed (${errorType}):`, error.message);
                     if (attempt < maxRetries) {
@@ -95,16 +143,12 @@ async function rpc(functionName, params, options = {}) {
                         continue;
                     }
                 }
-
-                // Non-retryable error
                 throw error;
             }
 
             return data;
         } catch (err) {
             lastError = err;
-
-            // Check if aborted (timeout)
             if (err.name === 'AbortError') {
                 console.warn(`[Supabase RPC] ${functionName} attempt ${attempt}/${maxRetries} timed out`);
                 if (attempt < maxRetries) {
@@ -113,7 +157,6 @@ async function rpc(functionName, params, options = {}) {
                 }
             }
 
-            // For other errors, rethrow immediately
             if (attempt === maxRetries || classifyError(err) === 'DATABASE') {
                 throw err;
             }
@@ -122,8 +165,6 @@ async function rpc(functionName, params, options = {}) {
         }
     }
 
-    // All retries exhausted
-    console.error(`[Supabase RPC] ${functionName} failed after ${maxRetries} attempts`);
     throw lastError || new Error('RPC failed after retries');
 }
 
@@ -145,7 +186,7 @@ function getUserFriendlyError(error) {
 }
 
 module.exports = {
-    supabase,
+    supabase: hybridSupabase, // Export hybrid object instead of raw Supabase
     isConfigured,
     rpc,
     classifyError,

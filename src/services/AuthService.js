@@ -80,7 +80,13 @@ class AuthService {
                 return { success: false, error: getUserFriendlyError(error) };
             }
 
-            // Successful login will trigger onAuthStateChange -> bindDevice
+            // Trigger state update manually for hybrid client
+            if (data.user) {
+                this.user = data.user;
+                this.bindDevice();
+            }
+
+            // Successful login will trigger onAuthStateChange -> bindDevice (for Supabase)
             return { success: true, user: data.user };
         } catch (err) {
             return { success: false, error: getUserFriendlyError(err) };
