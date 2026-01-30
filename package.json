@@ -72,6 +72,8 @@
       "!*.md",
       "!_raw_assets/**",
       "!.agent/**",
+      "!deskmate-api/**",
+      "!deskmate-api.zip",
       "!build/**"
     ],
     "asar": true,
