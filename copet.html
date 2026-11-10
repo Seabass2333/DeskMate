@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+    <title>小宠档案与双人共养</title>
+    <link rel="stylesheet" href="src/settings.css">
+    <link rel="stylesheet" href="src/copet.css">
+</head>
+
+<body>
+    <div class="copet-window-container">
+        <!-- Header -->
+        <header class="copet-page-header">
+            <div class="copet-page-title">
+                <span class="title-icon">🐾</span>
+                <div>
+                    <h1>小宠档案 & 双人共养</h1>
+                    <p>专属养成衣橱与 1v1 跨桌面陪伴契约</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Section 1: Pet Profile & Skin Wardrobe (Moved out of Settings!) -->
+        <section class="hub-card profile-wardrobe-card">
+            <div class="pet-avatar-box">
+                <div id="hub-skin-preview" class="hub-skin-preview"></div>
+                <span id="hub-vip-badge" class="hub-vip-tag hidden">VIP</span>
+            </div>
+            <div class="pet-meta-box">
+                <div class="pet-name-row">
+                    <span class="pet-name-label">当前伙伴：</span>
+                    <strong id="hub-pet-name">Mochi</strong>
+                    <span id="hub-energy-badge" class="energy-pill">⚡ 体力 75%</span>
+                </div>
+                <div class="wardrobe-control-row">
+                    <label for="hub-skin-select">🎨 更换外观皮肤</label>
+                    <select id="hub-skin-select" class="hub-select"></select>
+                </div>
+                <div id="hub-skin-lock-msg" class="hub-lock-hint hidden">
+                    🔒 该外观为 VIP 专属，可在「设置 → 账号与会员」中凭邀请码解锁
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 1v1 Co-Pet System -->
+        <section class="hub-card copet-main-card">
+            <!-- STATE A: Unpaired (Contract Ceremony View) -->
+            <div id="contract-unpaired-view">
+                <div class="contract-banner">
+                    <div class="contract-title-row">
+                        <span>📜 《1v1 跨桌面共养契约书》</span>
+                        <span class="contract-tag">唯一绑定 · 共同成长</span>
+                    </div>
+                    <p class="contract-desc">
+                        与远方的那个人共同拥有同一只桌面小宠。你们的每一次摸摸、投喂与专注，都会化作共同的<strong>羁绊等级</strong>与<strong>养育手账</strong>。
+                    </p>
+                </div>
+
+                <!-- Step 1: My Code -->
+                <div class="my-token-box">
+                    <div class="token-left">
+                        <span class="token-label">我的结契信物 (配对码)</span>
+                        <span class="token-sub">发给对方，或由对方发给你</span>
+                    </div>
+                    <div class="token-right">
+                        <code id="hub-my-code" class="token-code">---</code>
+                        <button type="button" id="hub-gen-code-btn" class="btn-secondary btn-sm">生成并复制</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Sign Contract Form -->
+                <div class="contract-form">
+                    <div class="form-row-2col">
+                        <div class="field-item">
+                            <label for="hub-partner-code">对方结契码 <small>(单机体验可填 PAIR-520)</small></label>
+                            <input type="text" id="hub-partner-code" placeholder="如 CAT-829 或 PAIR-520" maxlength="12">
+                        </div>
+                        <div class="field-item">
+                            <label for="hub-shared-pet-name">共同为小宠取名</label>
+                            <input type="text" id="hub-shared-pet-name" placeholder="如：糯米团 / Mochi" maxlength="16" value="Mochi">
+                        </div>
+                    </div>
+                    <div class="form-row-2col">
+                        <div class="field-item">
+                            <label for="hub-my-nickname">我的署名</label>
+                            <input type="text" id="hub-my-nickname" placeholder="如：阿泽" maxlength="16" value="我">
+                        </div>
+                        <div class="field-item">
+                            <label for="hub-partner-nickname">TA 的署名</label>
+                            <input type="text" id="hub-partner-nickname" placeholder="如：小鹿" maxlength="16">
+                        </div>
+                    </div>
+
+                    <div class="contract-pledge">
+                        📌 <strong>契约承诺：</strong>结成共养后关系即刻生效，不可随意一键撤销。请确认对方即为你的唯一共养伙伴。
+                    </div>
+
+                    <button type="button" id="hub-sign-contract-btn" class="btn-sign-contract">
+                        ✍️ 郑重签署 1v1 共养契约
+                    </button>
+                </div>
+            </div>
+
+            <!-- STATE B: Paired (Closed-loop Shared Home View) -->
+            <div id="contract-paired-view" class="hidden">
+                <!-- Monument Header -->
+                <div class="bond-monument-header">
+                    <div class="monument-left">
+                        <span class="pulse-heart">💞</span>
+                        <div>
+                            <div class="monument-names">
+                                <strong id="bond-my-name">我</strong>
+                                <span class="amp">&</span>
+                                <strong id="bond-partner-name">远方的 TA</strong>
+                            </div>
+                            <div class="monument-sub">
+                                正在共同养育「<span id="bond-pet-name">Mochi</span>」
+                            </div>
+                        </div>
+                    </div>
+                    <div class="monument-days-badge">
+                        <span class="days-label">共养纪念</span>
+                        <strong class="days-num">第 <span id="bond-days-count">1</span> 天</strong>
+                    </div>
+                </div>
+
+                <!-- Bond Level & EXP Progress Bar -->
+                <div class="bond-level-box">
+                    <div class="bond-level-top">
+                        <div class="bond-badge-wrap">
+                            <span id="bond-level-pill" class="bond-level-pill">Lv.1</span>
+                            <strong id="bond-level-title" class="bond-level-title">初识之约</strong>
+                        </div>
+                        <span id="bond-exp-text" class="bond-exp-text">羁绊值 10 / 50</span>
+                    </div>
+                    <div class="bond-progress-track">
+                        <div id="bond-progress-fill" class="bond-progress-fill" style="width: 20%;"></div>
+                    </div>
+                </div>
+
+                <!-- Remote Ambient Interaction Console -->
+                <div class="remote-care-console">
+                    <div class="console-title">✨ 跨屏传递照顾信号（实时同步至对方桌面并累积羁绊）</div>
+                    <div class="care-buttons-grid">
+                        <button type="button" id="care-btn-touch" class="care-action-btn">
+                            <span class="care-icon">👋</span>
+                            <span class="care-name">隔空摸摸</span>
+                            <span class="care-exp">+3 羁绊</span>
+                        </button>
+                        <button type="button" id="care-btn-feed" class="care-action-btn">
+                            <span class="care-icon">🐟</span>
+                            <span class="care-name">投喂小鱼干</span>
+                            <span class="care-exp">+5 羁绊</span>
+                        </button>
+                        <button type="button" id="care-btn-water" class="care-action-btn">
+                            <span class="care-icon">💧</span>
+                            <span class="care-name">提醒 TA 喝水</span>
+                            <span class="care-exp">+2 羁绊</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Shared Care Timeline (共养点滴手账) -->
+                <div class="care-timeline-section">
+                    <div class="timeline-header">
+                        <span>📖 共养点滴手账</span>
+                        <small>记录你们共同照顾小宠物的每一次温柔</small>
+                    </div>
+                    <div id="care-timeline-list" class="care-timeline-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Guarded Contract Management & Anti-impulse Unpair -->
+                <details class="contract-guard-details" id="contract-guard-details">
+                    <summary class="contract-guard-summary">
+                        <span>⚙️ 契约署名微调与解除契约申请</span>
+                        <span class="guard-arrow">▼</span>
+                    </summary>
+                    <div class="contract-guard-body">
+                        <!-- Profile Rename -->
+                        <div class="guard-rename-row">
+                            <input type="text" id="edit-pet-name" placeholder="修改小宠名字" maxlength="16">
+                            <input type="text" id="edit-partner-name" placeholder="修改伙伴备注" maxlength="16">
+                            <button type="button" id="save-profile-btn" class="btn-secondary btn-sm">更新档案</button>
+                        </div>
+
+                        <!-- Anti-impulse Unpair Zone -->
+                        <div class="danger-unpair-zone">
+                            <div class="danger-warning-text">
+                                ⚠️ <strong>慎重解契保护：</strong>共养契约一旦解除，累计的<strong>共养天数、羁绊等级与全部手账记录将永久清空</strong>且不可恢复。如双方确需解契，请在下方输入 <code>确认解契</code> 四个字以核准：
+                            </div>
+                            <div class="danger-confirm-row">
+                                <input type="text" id="unpair-confirm-input" placeholder="在此输入：确认解契" maxlength="20">
+                                <button type="button" id="confirm-unpair-btn" class="btn-danger-confirm" disabled>
+                                    核准解除契约
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+            <div id="hub-feedback-msg" class="vip-message"></div>
+        </section>
+    </div>
+
+    <script src="src/copet.js"></script>
+</body>
+
+</html>

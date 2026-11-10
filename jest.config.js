@@ -17,9 +17,7 @@ module.exports = {
     // Transform TypeScript files
     transform: {
         '^.+\\.tsx?$': ['ts-jest', {
-            tsconfig: 'tsconfig.json',
-            // Allow JS files to be processed
-            isolatedModules: true
+            tsconfig: 'tsconfig.json'
         }]
     },
 

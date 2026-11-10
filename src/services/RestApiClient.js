@@ -24,7 +24,14 @@ const RPC_MAP = {
     'submit_feedback': '/ops/feedback',
 
     // Auth (Binding)
-    'bind_device_to_user': '/auth/bind-device'
+    'bind_device_to_user': '/auth/bind-device',
+
+    // 1v1 Co-Pet
+    'copet_create_code': '/copet/create-code',
+    'copet_join': '/copet/join',
+    'copet_status': '/copet/status',
+    'copet_send_action': '/copet/send-action',
+    'copet_unpair': '/copet/unpair'
 };
 
 class RestApiClient {

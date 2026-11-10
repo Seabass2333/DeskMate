@@ -5,279 +5,327 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
     <title data-i18n="settingsTitle">DeskMate Settings</title>
     <link rel="stylesheet" href="src/settings.css">
 </head>
 
 <body>
     <div class="settings-container">
-        <h1>⚙️ <span data-i18n="settingsTitle">Settings</span></h1>
-
-        <!-- Provider Selection -->
-        <section class="settings-section">
-            <h2 data-i18n="providerSection">API Provider</h2>
-            <div class="form-group">
-                <label for="region" data-i18n="region">Region</label>
-                <select id="region">
-                    <option value="china" data-i18n="regionChina">🇨🇳 China</option>
-                    <option value="global" data-i18n="regionGlobal">🌍 Global</option>
-                    <option value="local" data-i18n="regionLocal">💻 Local</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="provider" data-i18n="provider">Provider</label>
-                <select id="provider">
-                    <!-- Options populated by JS -->
-                </select>
-            </div>
-        </section>
-
-        <!-- API Key -->
-        <section class="settings-section">
-            <h2 data-i18n="apiKeySection">API Key</h2>
-            <div class="form-group">
-                <label for="apiKey" data-i18n="apiKey">API Key</label>
-                <div class="input-with-button">
-                    <input type="password" id="apiKey" placeholder="sk-xxx...">
-                    <button id="toggleKey" class="btn-icon" title="Show/Hide">👁️</button>
-                </div>
-                <div class="help-text">
-                    <small>
-                        <a href="#" id="apiKeyHelpLink" class="api-key-link">
-                            👉 <span id="apiKeyHelpText" data-i18n="getKeyHelp">Get API Key</span>
-                        </a>
-                    </small>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="model" data-i18n="model">Model</label>
-                <input type="text" id="model" placeholder="deepseek-chat">
-            </div>
-
-            <button id="testConnection" class="btn-secondary">
-                🔗 <span data-i18n="testConnection">Test Connection</span>
+        <!-- Top Header with Quick Jump to Pet Hub -->
+        <header class="settings-topbar">
+            <h1 class="settings-main-title">⚙️ <span data-i18n="settingsTitle">设置</span></h1>
+            <button type="button" id="open-copet-hub-btn" class="btn-pet-hub-jump" title="打开小宠档案与双人共养小屋">
+                🐾 <span>小宠档案 & 双人共养</span>
             </button>
-            <span id="testResult" class="test-result"></span>
-        </section>
+        </header>
 
-        <!-- Language -->
-        <section class="settings-section">
-            <h2 data-i18n="interfaceLanguage">Interface Language</h2>
-            <div class="form-group">
-                <label for="language" data-i18n="language">Language</label>
-                <select id="language">
-                    <option value="zh-CN">🇨🇳 简体中文</option>
-                    <option value="en">🇺🇸 English</option>
-                    <option value="ja">🇯🇵 日本語</option>
-                    <option value="ko">🇰🇷 한국어</option>
-                    <option value="es">🇪🇸 Español</option>
-                    <option value="fr">🇫🇷 Français</option>
-                    <option value="de">🇩🇪 Deutsch</option>
-                </select>
-            </div>
-        </section>
+        <!-- Segmented Tab Navigation -->
+        <nav class="settings-tabs" role="tablist">
+            <button type="button" class="settings-tab-btn active" data-tab="tab-general">
+                🎛️ <span data-i18n="tabGeneral">常规与专注</span>
+            </button>
+            <button type="button" class="settings-tab-btn" data-tab="tab-ai">
+                🧠 <span data-i18n="tabAi">AI 陪伴</span>
+            </button>
+            <button type="button" class="settings-tab-btn" data-tab="tab-account">
+                👤 <span data-i18n="tabAccount">会员与关于</span>
+            </button>
+        </nav>
 
-        <!-- Sound -->
-        <section class="settings-section">
-            <h2 data-i18n="soundSection">Sound</h2>
-            <div class="form-group checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="soundEnabled">
-                    <span data-i18n="soundEffects">Sound Effects</span>
-                </label>
-            </div>
-        </section>
-
-        <!-- Timer Configuration -->
-        <section class="settings-section">
-            <h2 data-i18n="timerSection">Timers & Reminders</h2>
-
-            <div class="form-group">
-                <label for="pomodoroDuration" data-i18n="pomodoroDuration">Focus Duration (min)</label>
-                <input type="number" id="pomodoroDuration" min="1" max="120" value="25">
-            </div>
-
-            <div class="form-group">
-                <label data-i18n="reminderIntervals">Reminder Intervals (min)</label>
-                <div class="grid-inputs">
-                    <div class="input-suffix">
-                        <label for="waterInterval" data-i18n="reminderWater">💧 Water</label>
-                        <input type="number" id="waterInterval" min="5" max="180">
-                    </div>
-                    <div class="input-suffix">
-                        <label for="restInterval" data-i18n="reminderEyes">👁️ Eyes</label>
-                        <input type="number" id="restInterval" min="5" max="180">
-                    </div>
-                    <div class="input-suffix">
-                        <label for="stretchInterval" data-i18n="reminderStretch">🧘‍♀️ Stretch</label>
-                        <input type="number" id="stretchInterval" min="5" max="180">
+        <!-- ==================== TAB 1: 常规与专注 (Ordered by frequency) ==================== -->
+        <div id="tab-general" class="settings-tab-panel active">
+            <!-- 1. Sound & Volume (Top Priority for Office Anti-Disturbance) -->
+            <section class="settings-section">
+                <h2 data-i18n="soundSection">🔊 音效与防打扰</h2>
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="soundEnabled">
+                        <span data-i18n="soundEffects">启用互动音效</span>
+                    </label>
+                </div>
+                <div class="form-group" id="volume-group">
+                    <label for="soundVolume" data-i18n="soundVolume">主音量 (推荐办公室 20%~30%)</label>
+                    <div class="volume-control-row">
+                        <input type="range" id="soundVolume" min="0" max="100" value="30" class="volume-slider">
+                        <span id="volume-value" class="volume-badge">30%</span>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <div class="settings-group">
-            <h3>🎨 <span data-i18n="skinSection">Skin</span></h3>
-            <select id="skin-select" class="settings-input">
-                <!-- Populated dynamically -->
-            </select>
-            <div id="skin-preview-container" class="skin-preview-container">
-                <!-- Preview image -->
-            </div>
-            <div id="vip-lock-msg" class="vip-lock-msg hidden">🔒 VIP Only</div>
+            <!-- 2. Timers & Health Reminders (High-frequency productivity tools) -->
+            <section class="settings-section">
+                <h2 data-i18n="timerSection">🍅 专注与健康提醒时长</h2>
+
+                <div class="form-group">
+                    <label for="pomodoroDuration" data-i18n="pomodoroDuration">默认番茄钟专注时长 (分钟)</label>
+                    <input type="number" id="pomodoroDuration" min="1" max="120" value="25">
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="reminderIntervals">定时提醒间隔 (分钟)</label>
+                    <div class="grid-inputs">
+                        <div class="input-suffix">
+                            <label for="waterInterval" data-i18n="reminderWater">💧 喝水</label>
+                            <input type="number" id="waterInterval" min="5" max="180">
+                        </div>
+                        <div class="input-suffix">
+                            <label for="restInterval" data-i18n="reminderEyes">👁️ 护眼</label>
+                            <input type="number" id="restInterval" min="5" max="180">
+                        </div>
+                        <div class="input-suffix">
+                            <label for="stretchInterval" data-i18n="reminderStretch">🧘‍♀️ 伸展</label>
+                            <input type="number" id="stretchInterval" min="5" max="180">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Interface Language (Low-frequency base setting) -->
+            <section class="settings-section">
+                <h2 data-i18n="interfaceLanguage">🌐 界面语言</h2>
+                <div class="form-group">
+                    <label for="language" data-i18n="language">显示语言</label>
+                    <select id="language">
+                        <option value="zh-CN">🇨🇳 简体中文</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="ja">🇯🇵 日本語</option>
+                        <option value="ko">🇰🇷 한국어</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="de">🇩🇪 Deutsch</option>
+                    </select>
+                </div>
+                <!-- Hidden legacy skin elements kept for settings.js state compatibility (actual UI moved to Pet Hub) -->
+                <div class="hidden">
+                    <select id="skin-select"></select>
+                    <div id="skin-preview-container"></div>
+                </div>
+            </section>
         </div>
 
-        <div class="settings-group">
-            <h3><span data-i18n="vipSection">VIP Membership</span></h3>
-            <div id="vip-status-container" class="vip-status-container">
-                <div class="vip-card-header">
-                    <span id="vip-status-badge" class="badge">FREE</span>
-                    <p id="vip-status-text">Unlock premium skins & unlimited focus timer.</p>
+        <!-- ==================== TAB 2: AI 陪伴大脑 ==================== -->
+        <div id="tab-ai" class="settings-tab-panel">
+            <!-- Built-in Offline Companion Status Card -->
+            <section class="settings-section builtin-ai-card">
+                <div class="builtin-ai-header">
+                    <span class="builtin-ai-badge">✨ 已激活</span>
+                    <strong>内置零门槛智能陪伴引擎</strong>
                 </div>
+                <p class="builtin-ai-desc">
+                    无需任何配置，双击桌面小宠物即可随时聊天解闷。小宠物会根据不同品种性格（傲娇猫咪、忠诚哈士奇、软萌兔兔等）给你贴心回应。
+                </p>
+            </section>
 
-                <div class="vip-input-row" id="vip-input-container">
-                    <input type="text" id="vip-code-input" placeholder="Invite Code (e.g. CAT-LOVER)" maxlength="20">
-                    <button id="vip-redeem-btn" class="btn-primary" data-i18n="redeem" disabled>Redeem</button>
-                </div>
-                <div id="vip-message" class="vip-message"></div>
-                <div id="vip-lock-msg" class="vip-lock-msg hidden">
-                    <span class="lock-icon">🔒</span> <span data-i18n="vipRequired">VIP Required</span>
-                </div>
+            <!-- Advanced AI Model (BYOK - Collapsible by default) -->
+            <details class="settings-section advanced-llm-details" id="advanced-llm-details">
+                <summary class="advanced-llm-summary">
+                    <div class="advanced-llm-header">
+                        <div class="advanced-llm-title-wrap">
+                            <span class="advanced-llm-icon">🧠</span>
+                            <strong data-i18n="advancedLlmTitle">高级 AI 大脑 (自定义 API Key)</strong>
+                            <span class="advanced-llm-tag" data-i18n="advancedTag">高级/可选</span>
+                        </div>
+                        <span class="advanced-llm-toggle-icon" aria-hidden="true" title="展开/收起">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="advanced-llm-hint" data-i18n="advancedLlmHint">默认已启用离线智能陪伴，如需接入专属大模型（DeepSeek / OpenAI / Ollama）可点击右侧图标展开配置</div>
+                </summary>
+                <div class="advanced-llm-body">
+                    <div class="form-group">
+                        <label for="region" data-i18n="region">Region</label>
+                        <select id="region">
+                            <option value="china" data-i18n="regionChina">🇨🇳 China</option>
+                            <option value="global" data-i18n="regionGlobal">🌍 Global</option>
+                            <option value="local" data-i18n="regionLocal">💻 Local</option>
+                        </select>
+                    </div>
 
-                <!-- Dev Tool: Reset VIP -->
-                <div style="margin-top: 10px; text-align: center;">
-                    <button id="reset-vip-btn"
-                        style="background: none; border: none; color: #666; font-size: 11px; cursor: pointer; text-decoration: underline;">
-                        [Dev] Reset VIP
+                    <div class="form-group">
+                        <label for="provider" data-i18n="provider">Provider</label>
+                        <select id="provider"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="apiKey" data-i18n="apiKey">API Key</label>
+                        <div class="input-with-button">
+                            <input type="password" id="apiKey" placeholder="sk-xxx...">
+                            <button id="toggleKey" class="btn-icon" title="Show/Hide">👁️</button>
+                        </div>
+                        <div class="help-text">
+                            <small>
+                                <a href="#" id="apiKeyHelpLink" class="api-key-link">
+                                    👉 <span id="apiKeyHelpText" data-i18n="getKeyHelp">Get API Key</span>
+                                </a>
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="model" data-i18n="model">Model</label>
+                        <input type="text" id="model" placeholder="deepseek-chat">
+                    </div>
+
+                    <button id="testConnection" class="btn-secondary">
+                        🔗 <span data-i18n="testConnection">Test Connection</span>
                     </button>
+                    <span id="testResult" class="test-result"></span>
                 </div>
-            </div>
+            </details>
         </div>
 
-        <!-- User Account (v1.2) -->
-        <div class="settings-group" id="account-section">
-            <h3 class="group-header">
-                👤 <span data-i18n="accountSection">Account</span>
-            </h3>
-
-            <div id="account-status-container">
-                <!-- If not linked -->
-                <div id="account-unlinked" class="fade-in">
-                    <p class="description-text" data-i18n="accountLinkDesc">Link email to sync VIP status across
-                        devices.</p>
-
-                    <div class="email-input-group">
-                        <div class="input-icon-wrapper">
-                            <span class="input-icon">✉️</span>
-                            <input type="email" id="link-email" placeholder="name@example.com"
-                                class="settings-input with-icon">
-                        </div>
-                        <button id="send-otp-btn" class="btn-primary" data-i18n="sendCode">Send Code</button>
+        <!-- ==================== TAB 3: 会员与关于 ==================== -->
+        <div id="tab-account" class="settings-tab-panel">
+            <!-- VIP Membership -->
+            <div class="settings-group">
+                <h3><span data-i18n="vipSection">👑 VIP 会员权益</span></h3>
+                <div id="vip-status-container" class="vip-status-container">
+                    <div class="vip-card-header">
+                        <span id="vip-status-badge" class="badge">FREE</span>
+                        <p id="vip-status-text">Unlock premium skins & unlimited focus timer.</p>
                     </div>
-                </div>
 
-                <!-- OTP Input (hidden by default) -->
-                <div id="otp-container" class="hidden mt-4 fade-in">
-                    <p class="description-text center" data-i18n="enterCodeDesc">Enter the 6-digit code sent to your
-                        email.</p>
-                    <div class="otp-inputs-wrapper">
-                        <div class="otp-input-group">
-                            <input type="text" maxlength="1" class="otp-digit" data-index="0" inputmode="numeric">
-                            <input type="text" maxlength="1" class="otp-digit" data-index="1" inputmode="numeric">
-                            <input type="text" maxlength="1" class="otp-digit" data-index="2" inputmode="numeric">
-                            <input type="text" maxlength="1" class="otp-digit" data-index="3" inputmode="numeric">
-                            <input type="text" maxlength="1" class="otp-digit" data-index="4" inputmode="numeric">
-                            <input type="text" maxlength="1" class="otp-digit" data-index="5" inputmode="numeric">
-                        </div>
-                        <button id="verify-otp-btn" class="btn-primary full-width mt-3" data-i18n="verify"
-                            disabled>Verify</button>
+                    <div class="vip-input-row" id="vip-input-container">
+                        <input type="text" id="vip-code-input" placeholder="Invite Code (e.g. MOCHI-LOVE)" maxlength="20">
+                        <button id="vip-redeem-btn" class="btn-primary" data-i18n="redeem" disabled>Redeem</button>
                     </div>
-                </div>
+                    <div id="vip-message" class="vip-message"></div>
+                    <div id="vip-lock-msg" class="vip-lock-msg hidden">
+                        <span class="lock-icon">🔒</span> <span data-i18n="vipRequired">VIP Required</span>
+                    </div>
 
-                <!-- If linked (hidden by default) -->
-                <div id="account-linked" class="hidden fade-in">
-                    <div class="profile-card">
-                        <div class="profile-avatar">
-                            <div class="avatar-circle">👤</div>
-                        </div>
-                        <div class="profile-info">
-                            <div class="profile-email" id="linked-email">user@example.com</div>
-                            <div class="profile-badges">
-                                <span class="badge premium-solid">LINKED</span>
-                                <!-- Feature: Show VIP badge here too if applicable -->
-                            </div>
-                        </div>
-                        <button id="sign-out-btn" class="btn-icon-text danger" title="Sign Out">
-                            ↪
+                    <div style="margin-top: 8px; text-align: right;">
+                        <button id="reset-vip-btn"
+                            style="background: none; border: none; color: #64748b; font-size: 11px; cursor: pointer; text-decoration: underline;">
+                            [Dev] Reset VIP
                         </button>
                     </div>
                 </div>
-
-                <div id="auth-message" class="vip-message mt-2"></div>
-            </div>
-        </div>
-
-        <!-- Feedback Section (v1.3) -->
-        <div class="settings-group" id="feedback-section">
-            <h3 class="group-header">
-                💬 <span data-i18n="feedbackSection">Feedback</span>
-            </h3>
-
-            <div class="form-group">
-                <label for="feedback-category" data-i18n="feedbackCategory">Category</label>
-                <select id="feedback-category">
-                    <option value="bug" data-i18n="feedbackCategoryBug">🐛 Bug Report</option>
-                    <option value="feature" data-i18n="feedbackCategoryFeature">💡 Feature Request</option>
-                    <option value="question" data-i18n="feedbackCategoryQuestion">❓ Question</option>
-                    <option value="other" data-i18n="feedbackCategoryOther">📝 Other</option>
-                </select>
             </div>
 
-            <div class="form-group">
-                <label for="feedback-content" data-i18n="feedbackContent">Your Feedback</label>
-                <textarea id="feedback-content" rows="4" placeholder="Tell us what's on your mind..."
-                    maxlength="2000"></textarea>
-                <small id="feedback-char-count">0 / 2000</small>
-            </div>
+            <!-- User Account -->
+            <div class="settings-group" id="account-section">
+                <h3 class="group-header">
+                    👤 <span data-i18n="accountSection">云端账号同步</span>
+                </h3>
 
-            <div class="form-group">
-                <label for="feedback-email" data-i18n="feedbackEmail">Email (optional)</label>
-                <input type="email" id="feedback-email" placeholder="your@email.com">
-                <small data-i18n="feedbackEmailHint">We'll only contact you if we need more info.</small>
-            </div>
+                <div id="account-status-container">
+                    <div id="account-unlinked" class="fade-in">
+                        <p class="description-text" data-i18n="accountLinkDesc">绑定邮箱以跨设备备份 VIP 权益与偏好配置。</p>
 
-            <button id="submit-feedback-btn" class="btn-primary" data-i18n="submitFeedback" disabled>Submit
-                Feedback</button>
-            <div id="feedback-message" class="vip-message mt-2"></div>
-        </div>
-
-        <!-- About / Version -->
-        <div class="settings-group" id="about-section">
-            <h3 class="group-header">
-                ℹ️ <span data-i18n="about">About</span>
-            </h3>
-            <div class="form-group">
-                <div id="version-container" class="version-display-box">
-                    <div class="version-row">
-                        <span class="version-label">DeskMate</span>
-                        <span id="app-version-text" class="version-number">Checking...</span>
-                        <!-- Check button inserted by JS -->
+                        <div class="email-input-group">
+                            <div class="input-icon-wrapper">
+                                <span class="input-icon">✉️</span>
+                                <input type="email" id="link-email" placeholder="name@example.com"
+                                    class="settings-input with-icon">
+                            </div>
+                            <button id="send-otp-btn" class="btn-primary" data-i18n="sendCode">Send Code</button>
+                        </div>
                     </div>
-                    <div id="update-message" class="update-message"></div>
+
+                    <div id="otp-container" class="hidden mt-4 fade-in">
+                        <p class="description-text center" data-i18n="enterCodeDesc">Enter the 6-digit code sent to your email.</p>
+                        <div class="otp-inputs-wrapper">
+                            <div class="otp-input-group">
+                                <input type="text" maxlength="1" class="otp-digit" data-index="0" inputmode="numeric">
+                                <input type="text" maxlength="1" class="otp-digit" data-index="1" inputmode="numeric">
+                                <input type="text" maxlength="1" class="otp-digit" data-index="2" inputmode="numeric">
+                                <input type="text" maxlength="1" class="otp-digit" data-index="3" inputmode="numeric">
+                                <input type="text" maxlength="1" class="otp-digit" data-index="4" inputmode="numeric">
+                                <input type="text" maxlength="1" class="otp-digit" data-index="5" inputmode="numeric">
+                            </div>
+                            <button id="verify-otp-btn" class="btn-primary full-width mt-3" data-i18n="verify"
+                                disabled>Verify</button>
+                        </div>
+                    </div>
+
+                    <div id="account-linked" class="hidden fade-in">
+                        <div class="profile-card">
+                            <div class="profile-avatar">
+                                <div class="avatar-circle">👤</div>
+                            </div>
+                            <div class="profile-info">
+                                <div class="profile-email" id="linked-email">user@example.com</div>
+                                <div class="profile-badges">
+                                    <span class="badge premium-solid">LINKED</span>
+                                </div>
+                            </div>
+                            <button id="sign-out-btn" class="btn-icon-text danger" title="Sign Out">↪</button>
+                        </div>
+                    </div>
+
+                    <div id="auth-message" class="vip-message mt-2"></div>
                 </div>
             </div>
+
+            <!-- About / Version -->
+            <div class="settings-group" id="about-section">
+                <h3 class="group-header">
+                    ℹ️ <span data-i18n="about">关于版本</span>
+                </h3>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div id="version-container" class="version-display-box">
+                        <div class="version-row">
+                            <span class="version-label">DeskMate</span>
+                            <span id="app-version-text" class="version-number">Checking...</span>
+                        </div>
+                        <div id="update-message" class="update-message"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible Feedback Drawer (No longer bloats the page!) -->
+            <details class="settings-section advanced-llm-details" id="feedback-section">
+                <summary class="advanced-llm-summary">
+                    <div class="advanced-llm-header">
+                        <div class="advanced-llm-title-wrap">
+                            <span>💬</span>
+                            <strong data-i18n="feedbackSection">问题反馈与建议</strong>
+                        </div>
+                        <span class="advanced-llm-toggle-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
+                    </div>
+                </summary>
+                <div class="advanced-llm-body">
+                    <div class="form-group">
+                        <label for="feedback-category" data-i18n="feedbackCategory">Category</label>
+                        <select id="feedback-category">
+                            <option value="bug" data-i18n="feedbackCategoryBug">🐛 Bug Report</option>
+                            <option value="feature" data-i18n="feedbackCategoryFeature">💡 Feature Request</option>
+                            <option value="question" data-i18n="feedbackCategoryQuestion">❓ Question</option>
+                            <option value="other" data-i18n="feedbackCategoryOther">📝 Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="feedback-content" data-i18n="feedbackContent">Your Feedback</label>
+                        <textarea id="feedback-content" rows="3" placeholder="Tell us what's on your mind..."
+                            maxlength="2000"></textarea>
+                        <small id="feedback-char-count">0 / 2000</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="feedback-email" data-i18n="feedbackEmail">Email (optional)</label>
+                        <input type="email" id="feedback-email" placeholder="your@email.com">
+                    </div>
+
+                    <button id="submit-feedback-btn" class="btn-primary" data-i18n="submitFeedback" disabled>Submit Feedback</button>
+                    <div id="feedback-message" class="vip-message mt-2"></div>
+                </div>
+            </details>
         </div>
 
-
-        <!-- Actions -->
+        <!-- Sticky Footer Actions -->
         <div class="actions">
             <button id="cancelBtn" class="btn-secondary" data-i18n="cancel">Cancel</button>
             <button id="saveBtn" class="btn-primary" data-i18n="save">Save</button>
         </div>
-
     </div>
 
     <script src="src/settings.js"></script>

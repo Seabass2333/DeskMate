@@ -55,6 +55,16 @@
             "frames": 4,
             "speed": 1200
         },
+        "sleep_intro": {
+            "src": "Chilling.png",
+            "frames": 8,
+            "speed": 1000
+        },
+        "wake_intro": {
+            "src": "Excited.png",
+            "frames": 3,
+            "speed": 500
+        },
         "drag": {
             "src": "Hurt.png",
             "frames": 8,

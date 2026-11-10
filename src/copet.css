@@ -1,0 +1,632 @@
+/* 🐾 Pet Profile & 1v1 Co-Pet Hub Dedicated Styles */
+
+.copet-window-container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 16px;
+}
+
+.copet-page-header {
+    margin-bottom: 16px;
+}
+
+.copet-page-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.copet-page-title .title-icon {
+    font-size: 28px;
+    background: rgba(236, 72, 153, 0.14);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copet-page-title h1 {
+    font-size: 19px;
+    margin: 0;
+    color: #f8fafc;
+}
+
+.copet-page-title p {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.hub-card {
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+/* Profile & Wardrobe Top Card */
+.profile-wardrobe-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.pet-avatar-box {
+    position: relative;
+    width: 76px;
+    height: 76px;
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.hub-skin-preview {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+}
+
+.hub-vip-tag {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+}
+
+.pet-meta-box {
+    flex: 1;
+    min-width: 0;
+}
+
+.pet-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.pet-name-label {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.pet-name-row strong {
+    font-size: 15px;
+    color: #f8fafc;
+}
+
+.energy-pill {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.16);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.wardrobe-control-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wardrobe-control-row label {
+    margin: 0;
+    font-size: 12px;
+    color: #cbd5e1;
+    white-space: nowrap;
+}
+
+.hub-select {
+    flex: 1;
+    padding: 7px 30px 7px 10px;
+    font-size: 12px;
+}
+
+.hub-lock-hint {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #fbbf24;
+}
+
+/* Contract Ceremony View */
+.contract-banner {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(102, 126, 234, 0.1));
+    border: 1px solid rgba(236, 72, 153, 0.25);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+}
+
+.contract-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fce7f3;
+    margin-bottom: 6px;
+}
+
+.contract-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(236, 72, 153, 0.25);
+    color: #f9a8d4;
+}
+
+.contract-desc {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #cbd5e1;
+}
+
+.my-token-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px dashed rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+}
+
+.token-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.token-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.token-sub {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.token-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.token-code {
+    font-family: monospace;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: rgba(102, 126, 234, 0.2);
+    color: #a5b4fc;
+    border: 1px solid rgba(102, 126, 234, 0.35);
+}
+
+.contract-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.field-item label {
+    font-size: 11px;
+    color: #cbd5e1;
+    margin-bottom: 4px;
+}
+
+.field-item label small {
+    color: #94a3b8;
+    font-weight: normal;
+}
+
+.field-item input {
+    padding: 8px 10px;
+    font-size: 12px;
+}
+
+.contract-pledge {
+    font-size: 11px;
+    line-height: 1.45;
+    color: #cbd5e1;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+.btn-sign-contract {
+    width: 100%;
+    padding: 11px 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ec4899 0%, #6366f1 100%);
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-sign-contract:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(236, 72, 153, 0.45);
+}
+
+/* Paired Monument & Bond Level */
+.bond-monument-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.14), rgba(99, 102, 241, 0.14));
+    border: 1px solid rgba(236, 72, 153, 0.35);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+}
+
+.monument-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pulse-heart {
+    font-size: 26px;
+    animation: heartPulse 2s infinite ease-in-out;
+}
+
+.monument-names {
+    font-size: 14px;
+    color: #fff;
+}
+
+.monument-names .amp {
+    color: #f472b6;
+    margin: 0 4px;
+}
+
+.monument-sub {
+    font-size: 11px;
+    color: #cbd5e1;
+    margin-top: 2px;
+}
+
+.monument-days-badge {
+    text-align: right;
+    background: rgba(15, 23, 42, 0.45);
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.days-label {
+    display: block;
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+.days-num {
+    font-size: 14px;
+    color: #f472b6;
+}
+
+/* Bond Level Box */
+.bond-level-box {
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+}
+
+.bond-level-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.bond-badge-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bond-level-pill {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    color: #fff;
+}
+
+.bond-level-title {
+    font-size: 13px;
+    color: #f8fafc;
+}
+
+.bond-exp-text {
+    font-size: 11px;
+    color: #a5b4fc;
+    font-family: monospace;
+}
+
+.bond-progress-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.bond-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ec4899, #8b5cf6, #6366f1);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+/* Remote Care Console */
+.remote-care-console {
+    margin-bottom: 14px;
+}
+
+.console-title {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 8px;
+}
+
+.care-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.care-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #f8fafc;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.care-action-btn:hover:not(:disabled) {
+    background: rgba(236, 72, 153, 0.14);
+    border-color: rgba(236, 72, 153, 0.4);
+    transform: translateY(-2px);
+}
+
+.care-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.care-icon {
+    font-size: 18px;
+}
+
+.care-name {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.care-exp {
+    font-size: 10px;
+    color: #f472b6;
+}
+
+/* Shared Care Timeline */
+.care-timeline-section {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+}
+
+.timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+}
+
+.timeline-header small {
+    font-size: 10px;
+    color: #64748b;
+    font-weight: normal;
+}
+
+.care-timeline-list {
+    max-height: 135px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.timeline-item-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #cbd5e1;
+    min-width: 0;
+}
+
+.timeline-actor {
+    font-weight: 600;
+    color: #f9a8d4;
+}
+
+.timeline-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.timeline-exp {
+    color: #a5b4fc;
+    font-weight: 600;
+    font-size: 10px;
+}
+
+.timeline-time {
+    color: #64748b;
+    font-size: 10px;
+}
+
+/* Guarded Contract Management & Anti-impulse Unpair */
+.contract-guard-details {
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.contract-guard-summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #94a3b8;
+    user-select: none;
+}
+
+.contract-guard-summary::-webkit-details-marker {
+    display: none;
+}
+
+.guard-arrow {
+    font-size: 10px;
+    transition: transform 0.2s;
+}
+
+.contract-guard-details[open] .guard-arrow {
+    transform: rotate(180deg);
+}
+
+.contract-guard-body {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.guard-rename-row {
+    display: flex;
+    gap: 6px;
+}
+
+.guard-rename-row input {
+    flex: 1;
+    padding: 6px 8px;
+    font-size: 11px;
+}
+
+.danger-unpair-zone {
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.22);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.danger-warning-text {
+    font-size: 11px;
+    line-height: 1.45;
+    color: #fca5a5;
+    margin-bottom: 8px;
+}
+
+.danger-warning-text code {
+    background: rgba(239, 68, 68, 0.2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #fecaca;
+}
+
+.danger-confirm-row {
+    display: flex;
+    gap: 8px;
+}
+
+.danger-confirm-row input {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger-confirm {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+}
+
+.btn-danger-confirm:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}

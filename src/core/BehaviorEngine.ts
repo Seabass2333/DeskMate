@@ -106,6 +106,44 @@ export class BehaviorEngine {
     }
 
     /**
+     * Dynamically update behavior configuration (e.g. when switching skins)
+     */
+    setConfig(config?: BehaviorConfig): void {
+        this.clearTimers();
+        this.config = config ? {
+            ...config,
+            states: [...config.states]
+        } : {
+            ...DEFAULT_CONFIG,
+            states: [...DEFAULT_CONFIG.states]
+        };
+
+        if (!this.config.states.includes('idle')) {
+            this.config.states.unshift('idle');
+        }
+
+        // If current state is not valid in new skin config, fall back to sleep (if quiet) or idle
+        if (!this.config.states.includes(this.currentState)) {
+            this.currentState = (this.quietMode && this.config.states.includes('sleep')) ? 'sleep' : 'idle';
+        }
+
+        if (this.currentState === 'idle' && !this.quietMode) {
+            this.scheduleIdleAction();
+        }
+    }
+
+    /**
+     * Force emit stateChange event for the current state to refresh visuals/animations
+     */
+    forceRefresh(): void {
+        this.emit('stateChange', {
+            from: this.previousState ?? this.currentState,
+            to: this.currentState,
+            timestamp: Date.now()
+        });
+    }
+
+    /**
      * Transition to a new state
      * 
      * @param newState - State to transition to
@@ -124,28 +162,28 @@ export class BehaviorEngine {
             return false;
         }
 
-        // Skip if same state, UNLESS it's a non-idle state (e.g. interact) 
-        // which implies the user wants to re-trigger the action/sound/timer
-        if (this.currentState === newState && newState === 'idle') {
+        // Re-entry is only allowed for interactive transient states (e.g. repeated clicks on pet)
+        const reentrantStates = ['interact', 'submissive', 'angry', 'bark', 'sniff'];
+        const isReentry = this.currentState === newState;
+        if (isReentry && !reentrantStates.includes(newState)) {
             return true;
         }
 
-        // Perform transition (or re-entry)
-        const isReentry = this.currentState === newState;
-        this.previousState = this.currentState;
-        this.currentState = newState;
+        // Perform transition (preserve previousState on re-entry so revert still works)
+        if (!isReentry) {
+            this.previousState = this.currentState;
+            this.currentState = newState;
+        }
 
         // Emit event (force timestamp update to distinguish events)
         this.emit('stateChange', {
-            from: this.previousState,
+            from: this.previousState ?? 'idle',
             to: newState,
             timestamp: Date.now()
         });
 
         if (!isReentry) {
             console.log(`[BehaviorEngine] ${this.previousState} -> ${newState}`);
-        } else {
-            // console.log(`[BehaviorEngine] Re-entry: ${newState}`);
         }
 
         // Reset idle timer if transitioning back to idle
@@ -162,7 +200,7 @@ export class BehaviorEngine {
 
             // Safety Fallback: Interactive states should NEVER stick
             // If configuration lookup failed but we are in a known transient state, enforce revert
-            if (!this.revertTimer && ['interact', 'dance', 'submissive', 'angry'].includes(newState)) {
+            if (!this.revertTimer && ['interact', 'dance', 'submissive', 'angry', 'bark', 'sniff'].includes(newState)) {
                 console.warn(`[BehaviorEngine] Safety Revert triggered for stuck state: ${newState}`);
                 this.scheduleRevert(3000);
             }

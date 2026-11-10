@@ -79,3 +79,29 @@ export const otpCodes = pgTable('otp_codes', {
     used: boolean('used').default(false),
     createdAt: timestamp('created_at').defaultNow()
 });
+
+// 1v1 Co-Pet Pairing table (Strictly 1-on-1 shared pet relationship)
+export const petPairs = pgTable('pet_pairs', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    pairCode: text('pair_code').notNull().unique(),
+    hostDeviceId: text('host_device_id').notNull(),
+    guestDeviceId: text('guest_device_id'),
+    hostNickname: text('host_nickname').default('铲屎官 A'),
+    guestNickname: text('guest_nickname').default('铲屎官 B'),
+    status: text('status').default('pending'), // 'pending' | 'active' | 'unpaired'
+    sharedSkin: text('shared_skin').default('mochi-v1'),
+    sharedEnergy: integer('shared_energy').default(75),
+    pairedAt: timestamp('paired_at'),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow()
+});
+
+// 1v1 Co-Pet Interaction Events table (Lightweight ambient signals)
+export const coPetEvents = pgTable('copet_events', {
+    id: uuid('id').primaryKey().defaultRandom(),
+    pairId: uuid('pair_id').notNull(),
+    senderDeviceId: text('sender_device_id').notNull(),
+    actionType: text('action_type').notNull(), // 'touch' | 'feed' | 'water_nudge' | 'pomodoro_cheer'
+    payload: jsonb('payload'),
+    createdAt: timestamp('created_at').defaultNow()
+});

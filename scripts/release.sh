@@ -9,6 +9,33 @@ TAG="v$VERSION"
 
 echo "🚀 Preparing release for $TAG..."
 
+# 1.5 Sync Landing Page version manifest (docs/version.json & docs/index.html)
+node -e "
+const fs = require('fs');
+const ver = '$VERSION';
+const tag = 'v' + ver;
+const manifest = {
+  version: ver,
+  tag,
+  macUrl: \`https://github.com/Seabass2333/DeskMate/releases/download/\${tag}/DeskMate-\${ver}-mac-universal.dmg\`,
+  winUrl: \`https://github.com/Seabass2333/DeskMate/releases/download/\${tag}/DeskMate-\${ver}-win-x64.exe\`,
+  releasesUrl: 'https://github.com/Seabass2333/DeskMate/releases/latest',
+  updatedAt: new Date().toISOString().slice(0, 10)
+};
+fs.writeFileSync('./docs/version.json', JSON.stringify(manifest, null, 2) + '\n');
+let html = fs.readFileSync('./docs/index.html', 'utf8');
+html = html.replace(/v\d+\.\d+\.\d+ · macOS/g, \`\${tag} · macOS\`);
+html = html.replace(/releases\/download\/v[^\/]+\/DeskMate-[^-]+-mac-universal\.dmg/g, \`releases/download/\${tag}/DeskMate-\${ver}-mac-universal.dmg\`);
+html = html.replace(/releases\/download\/v[^\/]+\/DeskMate-[^-]+-win-x64\.exe/g, \`releases/download/\${tag}/DeskMate-\${ver}-win-x64.exe\`);
+fs.writeFileSync('./docs/index.html', html);
+"
+
+if [[ -n $(git status -s docs/version.json docs/index.html) ]]; then
+  echo "📝 Updating landing page version manifest to $TAG..."
+  git add docs/version.json docs/index.html
+  git commit -m "chore(release): sync landing page version to $TAG"
+fi
+
 # 2. Check current status
 if [[ -n $(git status -s) ]]; then
   echo "❌ Error: Working directory is not clean. Please commit or stash changes first."

@@ -15,6 +15,7 @@ import inviteRoutes from './routes/invite.js';
 import settingsRoutes from './routes/settings.js';
 import analyticsRoutes from './routes/analytics.js';
 import opsRoutes from './routes/ops.js';
+import copetRoutes from './routes/copet.js';
 
 const app = new Hono();
 
@@ -41,6 +42,7 @@ app.route('/api/invite', inviteRoutes);
 app.route('/api/settings', settingsRoutes);
 app.route('/api/analytics', analyticsRoutes);
 app.route('/api/ops', opsRoutes);
+app.route('/api/copet', copetRoutes);
 
 // Error handling
 app.onError((err, c) => {

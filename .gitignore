@@ -1,8 +1,16 @@
-# Node
+# Node & Package Manager Lockfiles (Unified on npm)
 node_modules
+pnpm-lock.yaml
+yarn.lock
 
+# Environment
 .env
 .env.local
+
+# OS & Test Artifacts
+.DS_Store
+**/.DS_Store
+coverage/
 
 # Supabase
 supabase/

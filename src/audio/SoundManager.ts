@@ -48,6 +48,9 @@ export class SoundManager {
     /** Global Mute State */
     private muted: boolean = false;
 
+    /** Global Master Volume (0.0 to 1.0, default 0.3 for gentle desktop ambiance) */
+    private masterVolume: number = 0.3;
+
     /**
      * Load sounds from skin configuration
      * Clears any previously loaded sounds
@@ -83,9 +86,28 @@ export class SoundManager {
         console.log(`[SoundManager] Global Mute: ${muted}`);
         if (muted) {
             this.stopLoop();
-            // Stop any active SFX if we were tracking them (we currently don't track persistent SFX references well, 
-            // but short SFX usually don't need force stop. If needed, we can track them).
         }
+    }
+
+    /**
+     * Set global master volume (0.0 to 1.0 or 0 to 100)
+     */
+    setMasterVolume(volume: number): void {
+        const normalized = volume > 1 ? Math.min(Math.max(volume / 100, 0), 1) : Math.min(Math.max(volume, 0), 1);
+        this.masterVolume = normalized;
+        console.log(`[SoundManager] Master Volume: ${Math.round(this.masterVolume * 100)}%`);
+
+        // Dynamically update volume of all loaded audio elements
+        for (const entry of this.sounds.values()) {
+            entry.audio.volume = Math.min(Math.max(entry.config.volume * this.masterVolume, 0), 1);
+        }
+    }
+
+    /**
+     * Get current master volume (0.0 to 1.0)
+     */
+    getMasterVolume(): number {
+        return this.masterVolume;
     }
 
     /**
@@ -319,7 +341,7 @@ export class SoundManager {
         }
 
         const audio = new Audio(src);
-        audio.volume = config.volume;
+        audio.volume = Math.min(Math.max(config.volume * this.masterVolume, 0), 1);
         audio.playbackRate = config.playbackRate;
         audio.loop = config.loop;
 

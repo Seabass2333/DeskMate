@@ -8,7 +8,7 @@ describe('InviteCodeService', () => {
     let service;
 
     beforeEach(() => {
-        service = new InviteCodeService();
+        service = new InviteCodeService({ useRemote: false });
     });
 
     describe('verify', () => {

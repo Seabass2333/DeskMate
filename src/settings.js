@@ -135,6 +135,16 @@ const SETTINGS_I18N = {
         interfaceLanguage: '界面语言',
         soundSection: '音效',
         soundEffects: '启用音效',
+        soundVolume: '主音量',
+        advancedLlmTitle: '高级 AI 大脑 (自定义 API Key)',
+        advancedLlmHint: '默认已启用离线智能陪伴，如需接入专属模型可展开配置',
+        advancedTag: '高级/可选',
+        coPetSection: '双人共养 (1v1 共享小宠)',
+        coPetDesc: '连接唯一伙伴，共同拥有同一只桌面宠物，随时传递隔空摸摸与投喂。',
+        coPetMyCode: '我的专属配对码：',
+        coPetCopyCode: '生成 / 复制',
+        coPetBindBtn: '结成共养',
+        coPetUnpairBtn: '解除绑定',
         cancel: '取消',
         save: '保存设置',
         testing: '测试中...',
@@ -220,6 +230,16 @@ const SETTINGS_I18N = {
         interfaceLanguage: 'Interface Language',
         soundSection: 'Sound',
         soundEffects: 'Enable Sound Effects',
+        soundVolume: 'Master Volume',
+        advancedLlmTitle: 'Advanced AI Brain (Custom API Key)',
+        advancedLlmHint: 'Smart offline companion active. Expand to configure your own model.',
+        advancedTag: 'Advanced / Optional',
+        coPetSection: '1v1 Shared Pet',
+        coPetDesc: 'Connect with one partner to co-raise the same desktop pet across screens.',
+        coPetMyCode: 'My Pair Code:',
+        coPetCopyCode: 'Generate / Copy',
+        coPetBindBtn: 'Pair Now',
+        coPetUnpairBtn: 'Unpair',
         cancel: 'Cancel',
         save: 'Save Settings',
         testing: 'Testing...',
@@ -781,6 +801,24 @@ async function init() {
             soundToggle.checked = currentSettings.soundEnabled !== false;
         }
 
+        // Set master volume slider
+        const volumeSlider = document.getElementById('soundVolume');
+        const volumeBadge = document.getElementById('volume-value');
+        if (volumeSlider) {
+            const vol = typeof currentSettings.soundVolume === 'number' ? currentSettings.soundVolume : 30;
+            volumeSlider.value = vol;
+            if (volumeBadge) volumeBadge.textContent = `${vol}%`;
+            volumeSlider.addEventListener('input', () => {
+                if (volumeBadge) volumeBadge.textContent = `${volumeSlider.value}%`;
+            });
+        }
+
+        // Advanced LLM section defaults to collapsed
+        const advancedLlmDetails = document.getElementById('advanced-llm-details');
+        if (advancedLlmDetails) {
+            advancedLlmDetails.open = false;
+        }
+
         // Load language
         if (languageSelect && window.settingsAPI.getLanguage) {
             const lang = await window.settingsAPI.getLanguage();
@@ -831,8 +869,33 @@ async function init() {
                         });
                     };
 
-                    // Check Update Handler
+                    let latestDownloadUrl = null;
+
+                    const renderAvailableUpdate = (data) => {
+                        if (!data || !data.version) return;
+                        isUpdateFound = true;
+                        const githubUrl = data.githubUrl || 'https://github.com/Seabass2333/DeskMate/releases/latest';
+                        const landingUrl = data.landingUrl || 'https://seabass2333.github.io/DeskMate/';
+                        latestDownloadUrl = data.downloadUrl || landingUrl;
+
+                        checkBtn.textContent = `⬇️ ${t('downloadUpdate')} v${data.version}`;
+                        checkBtn.disabled = false;
+
+                        setUpdateMessage(
+                            `🎉 ${t('updateAvailable')}: <strong>v${data.version}</strong><br/>` +
+                            `<a href="#" data-url="${latestDownloadUrl}">🚀 直接下载安装包</a> | ` +
+                            `<a href="#" data-url="${landingUrl}">官网落地页</a> | ` +
+                            `<a href="#" data-url="${githubUrl}">GitHub</a>`,
+                            'success'
+                        );
+                    };
+
+                    // Check Update Handler (or Direct Download if update already found)
                     checkBtn.onclick = async () => {
+                        if (isUpdateFound && latestDownloadUrl) {
+                            window.settingsAPI.openExternal(latestDownloadUrl);
+                            return;
+                        }
                         checkBtn.disabled = true;
                         checkBtn.textContent = t('checkingUpdates');
                         isUpdateFound = false;
@@ -843,6 +906,15 @@ async function init() {
                         await window.settingsAPI.checkUpdate();
                     };
 
+                    // Pre-populate if main process already found an update in background
+                    if (window.settingsAPI.getLatestUpdateInfo) {
+                        window.settingsAPI.getLatestUpdateInfo().then((cached) => {
+                            if (cached && cached.hasUpdate) {
+                                renderAvailableUpdate(cached);
+                            }
+                        }).catch(() => {});
+                    }
+
                     // Update Status Listener
                     window.settingsAPI.onUpdateStatus(({ status, data }) => {
                         console.log('Update Status:', status, data);
@@ -851,27 +923,14 @@ async function init() {
                                 checkBtn.textContent = t('checkingUpdates');
                                 break;
                             case 'available':
-                                checkBtn.textContent = t('updateAvailable');
-                                checkBtn.disabled = true;
-                                isUpdateFound = true;
-
-                                const githubUrl = 'https://github.com/Seabass2333/DeskMate/releases/latest';
-                                // Using the GitHub project page as landing page for now since docs/index.html suggests it
-                                const landingUrl = 'https://seabass2333.github.io/DeskMate/';
-
-                                setUpdateMessage(
-                                    `${t('updateAvailable')} v${data.version}. <br/>` +
-                                    `${t('downloadUpdate')}: <a href="#" data-url="${githubUrl}">GitHub</a> | ` +
-                                    `<a href="#" data-url="${landingUrl}">Landing Page</a>`,
-                                    'success'
-                                );
+                                renderAvailableUpdate(data);
                                 break;
                             case 'not-available':
                                 checkBtn.disabled = false;
-                                checkBtn.textContent = 'Check Updates';
-                                setUpdateMessage('You are using the latest version.', '');
+                                checkBtn.textContent = t('checkUpdates');
+                                setUpdateMessage(`✓ ${t('updateNotFound')}`, 'success');
                                 setTimeout(() => {
-                                    if (messageEl && messageEl.textContent.includes('You are using')) {
+                                    if (messageEl && messageEl.textContent.includes(t('updateNotFound'))) {
                                         messageEl.textContent = '';
                                     }
                                 }, 5000);
@@ -880,29 +939,15 @@ async function init() {
                                 checkBtn.textContent = `Downloading ${Math.round(data.percent)}%`;
                                 break;
                             case 'error':
-                                // If update was found but download failed, show manual links instead of generic failure
-                                if (isUpdateFound) {
-                                    checkBtn.textContent = 'Download Manually';
-                                    // Keep disabled or enable to retry check? Let's keep disabled to suggest manual download
-                                    checkBtn.disabled = true;
-
-                                    const githubUrl = 'https://github.com/Seabass2333/DeskMate/releases/latest';
-                                    const landingUrl = 'https://seabass2333.github.io/DeskMate/';
-
-                                    setUpdateMessage(
-                                        `Auto-update failed. Please download manually: <br/>` +
-                                        `<a href="#" data-url="${githubUrl}">GitHub</a> | ` +
-                                        `<a href="#" data-url="${landingUrl}">Landing Page</a>`,
-                                        'error'
-                                    );
-                                } else {
-                                    checkBtn.disabled = false;
-                                    checkBtn.textContent = 'Retry';
-                                    setUpdateMessage(
-                                        'Check failed. Network error.',
-                                        'error'
-                                    );
+                                if (isUpdateFound && latestDownloadUrl) {
+                                    return;
                                 }
+                                checkBtn.disabled = false;
+                                checkBtn.textContent = t('checkUpdates');
+                                setUpdateMessage(
+                                    `${t('updateError')} — <a href="#" data-url="https://seabass2333.github.io/DeskMate/">前往官网查看</a>`,
+                                    'error'
+                                );
                                 break;
                         }
                     });
@@ -1217,6 +1262,7 @@ async function saveSettings() {
 
     try {
         const soundToggle = document.getElementById('soundEnabled');
+        const volumeSlider = document.getElementById('soundVolume');
 
         // Check if selected skin is locked
         let selectedSkin = skinSelect ? skinSelect.value : 'mochi-v1';
@@ -1231,7 +1277,7 @@ async function saveSettings() {
             apiKey: apiKeyInput.value,
             model: modelInput.value,
             soundEnabled: soundToggle ? soundToggle.checked : true,
-            skin: selectedSkin,
+            soundVolume: volumeSlider ? parseInt(volumeSlider.value, 10) : 30,
             skin: selectedSkin,
             pomodoro: {
                 // Phase 4: Enforce 25m limit for non-VIP
@@ -1770,8 +1816,40 @@ function showFeedbackMessage(msg, type) {
     }, 5000);
 }
 
+// ============================================
+// Segmented Tabs & Pet Hub Jump Controller
+// ============================================
+function initTabsAndShortcuts() {
+    const tabBtns = document.querySelectorAll('.settings-tab-btn');
+    const tabPanels = document.querySelectorAll('.settings-tab-panel');
+    const openHubBtn = document.getElementById('open-copet-hub-btn');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-tab');
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabPanels.forEach(p => p.classList.remove('active'));
+
+            btn.classList.add('active');
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+        });
+    });
+
+    if (openHubBtn) {
+        openHubBtn.addEventListener('click', () => {
+            window.settingsAPI?.openCoPetWindow?.();
+        });
+    }
+}
+
 // Initialize feedback form
 initFeedbackForm();
+
+// Initialize Segmented Tabs & Hub Jump
+initTabsAndShortcuts();
 
 // Initialize on load
 init();

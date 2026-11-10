@@ -193,6 +193,11 @@ contextBridge.exposeInMainWorld('deskmate', {
     isSoundEnabled: () => ipcRenderer.invoke('get-sound-enabled'),
 
     /**
+     * Get sound volume (0-100)
+     */
+    getSoundVolume: () => ipcRenderer.invoke('get-sound-volume'),
+
+    /**
      * Load skin configuration
      */
     loadSkin: (skinId) => ipcRenderer.invoke('skin:load', skinId),
@@ -271,5 +276,18 @@ contextBridge.exposeInMainWorld('deskmate', {
     /**
      * Get full user settings
      */
-    getSettings: () => ipcRenderer.invoke('settings:get')
+    getSettings: () => ipcRenderer.invoke('settings:get'),
+
+    // ============================================
+    // 1v1 Co-Pet (双人共养)
+    // ============================================
+    onCoPetPartnerEvent: (callback) => {
+        ipcRenderer.on('copet:partner-event', (_, event) => callback(event));
+    },
+    onCoPetOutboundFeedback: (callback) => {
+        ipcRenderer.on('copet:outbound-feedback', (_, feedback) => callback(feedback));
+    },
+    onUpdateAvailable: (callback) => {
+        ipcRenderer.on('app:update-available', (_, info) => callback(info));
+    }
 });

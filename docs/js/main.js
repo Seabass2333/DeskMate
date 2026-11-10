@@ -170,23 +170,97 @@ function initCarousel() {
 }
 
 /**
- * Fetch latest release info from GitHub
+ * Compare two semantic version strings (e.g. "v1.5.0" vs "1.4.24")
+ * Returns > 0 if vA > vB, < 0 if vA < vB, 0 if equal
+ */
+function compareSemver(vA, vB) {
+    const clean = (v) => String(v || '0.0.0').replace(/^v/i, '').split('-')[0].split('.').map(n => parseInt(n, 10) || 0);
+    const a = clean(vA);
+    const b = clean(vB);
+    for (let i = 0; i < 3; i++) {
+        if ((a[i] || 0) !== (b[i] || 0)) {
+            return (a[i] || 0) - (b[i] || 0);
+        }
+    }
+    return 0;
+}
+
+/**
+ * Build deterministic GitHub release download URLs for a given version tag
+ */
+function buildReleaseInfoFromTag(tag, assets = []) {
+    const cleanVer = String(tag || '1.5.0').replace(/^v/i, '');
+    const normalizedTag = `v${cleanVer}`;
+    const macAsset = Array.isArray(assets) ? assets.find(a => a.name && a.name.endsWith('.dmg')) : null;
+    const winAsset = Array.isArray(assets) ? assets.find(a => a.name && a.name.endsWith('.exe')) : null;
+
+    return {
+        version: normalizedTag,
+        macUrl: macAsset?.browser_download_url || `https://github.com/Seabass2333/DeskMate/releases/download/${normalizedTag}/DeskMate-${cleanVer}-mac-universal.dmg`,
+        winUrl: winAsset?.browser_download_url || `https://github.com/Seabass2333/DeskMate/releases/download/${normalizedTag}/DeskMate-${cleanVer}-win-x64.exe`
+    };
+}
+
+/**
+ * Fetch latest release info with multi-tier fallback:
+ * 1. GitHub Releases API (/releases/latest -> /releases?per_page=5)
+ * 2. Same-origin ./version.json (immune to api.github.com rate limits or DNS blocks)
  */
 async function fetchReleaseInfo() {
-    try {
-        const response = await fetch('https://api.github.com/repos/Seabass2333/DeskMate/releases/latest');
-        if (!response.ok) return null;
+    let githubInfo = null;
+    let localManifestInfo = null;
 
-        const release = await response.json();
-        return {
-            version: release.tag_name,
-            macUrl: release.assets.find(a => a.name.endsWith('.dmg'))?.browser_download_url,
-            winUrl: release.assets.find(a => a.name.endsWith('.exe'))?.browser_download_url
-        };
-    } catch (error) {
-        console.error('Failed to fetch release info:', error);
-        return null;
+    // 1. Try local static manifest (fast, 0 rate limit)
+    try {
+        const localRes = await fetch(`./version.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (localRes.ok) {
+            const data = await localRes.json();
+            if (data && (data.tag || data.version)) {
+                localManifestInfo = {
+                    version: data.tag || `v${String(data.version).replace(/^v/i, '')}`,
+                    macUrl: data.macUrl,
+                    winUrl: data.winUrl
+                };
+            }
+        }
+    } catch (err) {
+        console.warn('Local version.json check skipped:', err);
     }
+
+    // 2. Try GitHub API (/releases/latest with fallback to /releases list)
+    try {
+        let response = await fetch('https://api.github.com/repos/Seabass2333/DeskMate/releases/latest', {
+            headers: { 'Accept': 'application/vnd.github.v3+json' }
+        });
+
+        if (response.ok) {
+            const release = await response.json();
+            if (release && release.tag_name) {
+                githubInfo = buildReleaseInfoFromTag(release.tag_name, release.assets);
+            }
+        } else {
+            const listRes = await fetch('https://api.github.com/repos/Seabass2333/DeskMate/releases?per_page=5', {
+                headers: { 'Accept': 'application/vnd.github.v3+json' }
+            });
+            if (listRes.ok) {
+                const releases = await listRes.json();
+                const latestValid = Array.isArray(releases) && releases.find(r => !r.draft && r.tag_name);
+                if (latestValid) {
+                    githubInfo = buildReleaseInfoFromTag(latestValid.tag_name, latestValid.assets);
+                }
+            }
+        }
+    } catch (error) {
+        console.warn('GitHub API release check failed, using static manifest fallback:', error);
+    }
+
+    if (githubInfo && localManifestInfo) {
+        return compareSemver(githubInfo.version, localManifestInfo.version) >= 0
+            ? githubInfo
+            : localManifestInfo;
+    }
+
+    return githubInfo || localManifestInfo || buildReleaseInfoFromTag('v1.5.0');
 }
 
 /**

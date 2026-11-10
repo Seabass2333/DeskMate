@@ -1,298 +1,406 @@
 /**
- * DeskMate Renderer Process - TypeScript Entry Point
- * 
- * This is the modern TypeScript entry point that will be bundled by Vite.
- * It imports and initializes the new modular architecture.
- * 
+ * DeskMate Renderer Process - Unified TypeScript Entry Point
+ *
+ * Single source of truth for the pet window runtime:
+ * - Core: AnimationManager, BehaviorEngine, TriggerScheduler, EnergyManager
+ * - Audio: SoundManager
+ * - UI: BubbleManager, NotificationManager
+ * - Features: DragController, ChatManager, PomodoroManager, ReminderManager
+ *
  * @module renderer
  */
 
-// Import new modular components
+import { AnimationManager } from './core/AnimationManager';
 import { BehaviorEngine } from './core/BehaviorEngine';
 import { TriggerScheduler } from './core/TriggerScheduler';
-import { SoundManager } from './audio/SoundManager';
 import { EnergyManager } from './core/EnergyManager';
+import { SoundManager } from './audio/SoundManager';
+import { SkinManager } from './managers/SkinManager';
 import { DragController } from './features/DragController';
+import { ChatManager } from './features/ChatManager';
+import { PomodoroManager } from './features/PomodoroManager';
+import { ReminderManager } from './features/ReminderManager';
+import { CoPetManager } from './features/CoPetManager';
+import { NotificationManager } from './ui/NotificationManager';
+import { initBubbleManager, onBubbleDismiss, showBubble, hideBubble } from './ui/BubbleManager';
 
-// Re-export for window global access (legacy compatibility)
 declare global {
     interface Window {
-        BehaviorEngine: typeof BehaviorEngine;
-        TriggerScheduler: typeof TriggerScheduler;
-        SoundManager: typeof SoundManager;
-        EnergyManager: typeof EnergyManager;
-        DragController: typeof DragController;
         deskmate: {
+            setIgnoreMouseEvents: (ignore: boolean) => void;
+            showContextMenu: () => void;
+            getWindowPosition: () => Promise<[number, number]>;
+            setWindowPosition: (x: number, y: number) => void;
+            showNotification: (title: string, body: string) => void;
+            onPomodoroStart: (callback: (minutes: number) => void) => void;
+            onPomodoroStop: (callback: () => void) => void;
+            setPomodoroState: (isActive: boolean) => void;
+            pomodoroComplete: () => void;
+            onTalkToPet: (callback: () => void) => void;
+            onReminderToggle: (callback: (type: string) => void) => void;
+            onReminderLoopModeChange: (callback: (isLoop: boolean) => void) => void;
+            reminderComplete: (type: string) => void;
+            askAI: (message: string) => Promise<{ success: boolean; message: string }>;
             getSettings: () => Promise<any>;
+            onSettingsUpdated: (callback: (settings: any) => void) => void;
+            isSoundEnabled: () => Promise<boolean>;
+            getSoundVolume?: () => Promise<number>;
+            loadSkin: (skinId: string) => Promise<any>;
+            getCurrentSkin: () => Promise<any>;
+            onSkinChange: (callback: (skinId: string) => void) => void;
             getQuietMode: () => Promise<boolean>;
             onQuietModeChanged: (callback: (enabled: boolean) => void) => void;
-            trackEvent: (name: string, data?: any) => void;
-            getCurrentSkin: () => Promise<any>;
             getPetState: () => Promise<any>;
             savePetState: (state: any) => Promise<any>;
+            modifyEnergy: (delta: number) => Promise<number>;
             t: (key: string) => Promise<string>;
+            getRandomIdleMessage: (skinId: string) => Promise<string>;
+            trackEvent?: (name: string, data?: any) => void;
             [key: string]: any;
         };
     }
 }
 
-// Expose to window for legacy JS modules
-window.BehaviorEngine = BehaviorEngine;
-window.TriggerScheduler = TriggerScheduler;
-window.SoundManager = SoundManager;
-window.EnergyManager = EnergyManager;
-window.DragController = DragController;
-
 // ============================================
-// Global Error Handling (migrated from renderer.js)
+// Global Error Handling
 // ============================================
 
-window.onerror = function (message, source, lineno, colno, error) {
+window.onerror = function (message, source, lineno) {
     console.error('[Renderer Error]', message, '\n  Source:', source, '\n  Line:', lineno);
-    if (window.deskmate?.trackEvent) {
-        window.deskmate.trackEvent('js_error', { message, source, lineno });
-    }
+    window.deskmate?.trackEvent?.('js_error', { message, source, lineno });
     return false;
 };
 
 window.onunhandledrejection = function (event) {
     console.error('[Unhandled Promise Rejection]', event.reason);
-    if (window.deskmate?.trackEvent) {
-        window.deskmate.trackEvent('promise_rejection', {
-            message: event.reason?.message || String(event.reason)
-        });
-    }
+    window.deskmate?.trackEvent?.('promise_rejection', {
+        message: event.reason?.message || String(event.reason)
+    });
 };
 
 // ============================================
-// Modern Init Function
+// Main Application Bootstrap
 // ============================================
 
-/**
- * Initialize the modern behavior system
- * This runs alongside the legacy code during migration
- */
-async function initModernSystem(): Promise<void> {
-    if ((window as any).__modernSystemInitialized) {
-        console.warn('[Renderer.ts] System already initialized, skipping');
+async function initApp(): Promise<void> {
+    if ((window as any).__deskmateInitialized) {
         return;
     }
-    (window as any).__modernSystemInitialized = true;
+    (window as any).__deskmateInitialized = true;
 
-    console.log('[Renderer.ts] Initializing modern behavior system...');
+    const charEl = document.getElementById('character');
+    if (!charEl) {
+        console.error('[Renderer] #character element not found');
+        return;
+    }
 
-    // Get current skin config
+    // 1. Initialize Bubble UI
+    initBubbleManager();
+
+    // 2. Initialize Skin & Animation Manager
+    const skinManager = new SkinManager();
+    const animManager = new AnimationManager(charEl, skinManager);
+    await animManager.init();
+
+    // Fetch full skin config from main process (includes basePath for sound loading)
     let skinConfig = await window.deskmate.getCurrentSkin?.();
 
-    // Initialize SoundManager if skin has sounds
+    // 3. Initialize SoundManager
     const soundManager = new SoundManager();
     if (skinConfig?.sounds) {
         await soundManager.loadSounds(skinConfig.sounds, skinConfig.basePath || '');
-        console.log('[Renderer.ts] SoundManager initialized');
     }
 
-    // Initialize BehaviorEngine with skin behaviors
-    const behaviorEngine = new BehaviorEngine(skinConfig?.behaviors);
-    console.log('[Renderer.ts] BehaviorEngine initialized with states:', behaviorEngine.getValidStates());
-
-    // Initialize TriggerScheduler if triggers defined or for system triggers
-    let scheduler: TriggerScheduler | null = null;
-
-    if (skinConfig?.behaviors?.triggers) {
-        scheduler = new TriggerScheduler(behaviorEngine, skinConfig.behaviors.triggers);
-        console.log('[Renderer.ts] TriggerScheduler started with skin triggers');
-    } else {
-        // Start scheduler even without skin triggers to support system triggers (Phase 17)
-        scheduler = new TriggerScheduler(behaviorEngine, []);
-        console.log('[Renderer.ts] TriggerScheduler started (system triggers only)');
-    }
-
-    if (scheduler) {
-        scheduler.start();
-    }
-
-    // Initialize EnergyManager (Phase 17)
-    const energyManager = new EnergyManager();
-    await energyManager.init();
-
-    // Sync Initial Sound Settings (Global Mute)
     try {
         const soundEnabled = await window.deskmate.isSoundEnabled();
         soundManager.setMuted(!soundEnabled);
-        console.log(`[Renderer.ts] Initial Sound Enabled: ${soundEnabled}`);
     } catch (e) {
-        console.warn('[Renderer.ts] Failed to get initial sound setting', e);
+        console.warn('[Renderer] Failed to load initial sound state:', e);
     }
 
-    // Listen for Settings Updates (Real-time Mute Toggle)
-    if (window.deskmate.onSettingsUpdated) {
-        window.deskmate.onSettingsUpdated((settings: any) => {
-            if (settings.sound && typeof settings.sound.enabled === 'boolean') {
+    // 4. Initialize Unified BehaviorEngine
+    const behaviorEngine = new BehaviorEngine(skinConfig?.behaviors);
+    const lastSoundTime = new Map<string, number>();
+
+    behaviorEngine.on('stateChange', (event) => {
+        if (event.type !== 'stateChange') return;
+        const data = event.data as { from: string; to: string };
+
+        // Drive sprite animation with gentle transition support
+        animManager.play(data.to, data.from);
+
+        // Drive state-specific sound
+        const stateSound = skinConfig?.sounds?.[data.to];
+        if (stateSound) {
+            const config = soundManager.getConfig(data.to);
+            if (config?.loop) {
+                soundManager.loop(data.to);
+            } else {
+                const now = Date.now();
+                const lastTime = lastSoundTime.get(data.to) || 0;
+                if (now - lastTime < 300) {
+                    return;
+                }
+                lastSoundTime.set(data.to, now);
+                soundManager.stopLoop();
+                soundManager.play(data.to);
+            }
+        } else {
+            soundManager.stopLoop();
+        }
+    });
+
+    // 5. Initialize EnergyManager & TriggerScheduler
+    const energyManager = new EnergyManager();
+    await energyManager.init();
+
+    const scheduler = new TriggerScheduler(
+        behaviorEngine,
+        skinConfig?.behaviors?.triggers || []
+    );
+    scheduler.setContext({ energy: energyManager.getEnergy() });
+    energyManager.on('energyChange', (energy: number) => {
+        scheduler.setContext({ energy });
+    });
+    scheduler.start();
+
+    // 6. Initialize Feature & Notification Controllers
+    const notificationManager = new NotificationManager(behaviorEngine);
+    onBubbleDismiss(() => notificationManager.dismiss());
+
+    const chatManager = new ChatManager(behaviorEngine);
+    const dragController = new DragController(behaviorEngine, energyManager, notificationManager, chatManager);
+    const pomodoroManager = new PomodoroManager(behaviorEngine, notificationManager, energyManager);
+    const reminderManager = new ReminderManager(behaviorEngine, notificationManager, energyManager);
+    const coPetManager = new CoPetManager(behaviorEngine, energyManager, soundManager);
+
+    try {
+        const settings = await window.deskmate.getSettings();
+        if (settings) {
+            reminderManager.updateConfiguration(settings);
+
+            // Apply saved volume setting
+            if (typeof settings?.sound?.volume === 'number') {
+                soundManager.setMasterVolume(settings.sound.volume);
+                notificationManager.setVolume(settings.sound.volume);
+            }
+        }
+    } catch (e) {
+        console.warn('[Renderer] Failed to load initial settings:', e);
+    }
+
+    // 7. Apply Initial Quiet Mode & Ensure Initial Animation Renders
+    try {
+        const isQuiet = await window.deskmate.getQuietMode();
+        behaviorEngine.setQuietMode(isQuiet);
+    } catch (e) {
+        console.warn('[Renderer] Failed to get initial quiet mode:', e);
+    }
+    animManager.play(behaviorEngine.getCurrentState());
+
+    // 8. System IPC Event Listeners
+    window.deskmate.onQuietModeChanged?.((enabled: boolean) => {
+        behaviorEngine.setQuietMode(enabled);
+    });
+
+    window.deskmate.onUpdateAvailable?.((info: any) => {
+        if (!info || !info.version) return;
+        if (!behaviorEngine.isQuietMode()) {
+            behaviorEngine.transition('touch');
+            showBubble(`🎉 发现新版本 v${info.version}！右键我可一键下载更新哦~`, 6500);
+        }
+    });
+
+    window.deskmate.onSettingsUpdated?.((settings: any) => {
+        if (!settings) return;
+        reminderManager.updateConfiguration(settings);
+
+        if (settings.sound) {
+            if (typeof settings.sound.enabled === 'boolean') {
                 const enabled = settings.sound.enabled;
                 soundManager.setMuted(!enabled);
-                // If unmuted and current state is looping (e.g. sleep), we might want to restart loop?
-                // But simplified logic: next state change will handle it, OR we can check current state.
                 const currentState = behaviorEngine.getCurrentState();
                 const config = soundManager.getConfig(currentState);
                 if (enabled && config?.loop && !soundManager.isLooping(currentState)) {
                     soundManager.loop(currentState);
                 }
             }
-        });
-    }
-
-    // Listen for Skin Changes (Reload Sounds & Behaviors)
-    if (window.deskmate.onSkinChange) {
-        window.deskmate.onSkinChange(async (skinId: string) => {
-            console.log(`[Renderer.ts] Skin changed to: ${skinId}`);
-
-            // Reload skin config
-            const newSkinConfig = await window.deskmate.getCurrentSkin();
-
-            if (newSkinConfig) {
-                // Update local config reference for state listeners
-                skinConfig = newSkinConfig;
-
-                // 1. Reload Sounds
-                if (newSkinConfig.sounds) {
-                    await soundManager.loadSounds(newSkinConfig.sounds, newSkinConfig.basePath || '');
-                    console.log(`[Renderer.ts] Sounds reloaded for ${skinId}`);
-                } else {
-                    soundManager.dispose();
-                }
-
-                // 2. Restart TriggerScheduler with new behaviors? 
-                // Currently TriggerScheduler creates a new scheduler on init.
-                // We should probably handle full behavior reload, but for v1.4.14 let's focus on Sound sync.
-                // The sound listener uses 'skinConfig', so updating it here fixes the issue.
-            }
-        });
-    }
-
-    // Listen for Skin Changes (Reload Sounds & Behaviors)
-    if (window.deskmate.onSkinChange) {
-        window.deskmate.onSkinChange(async (skinId: string) => {
-            console.log(`[Renderer.ts] Skin changed to: ${skinId}`);
-
-            // Reload skin config
-            const newSkinConfig = await window.deskmate.getCurrentSkin();
-
-            if (newSkinConfig) {
-                // 1. Reload Sounds
-                if (newSkinConfig.sounds) {
-                    await soundManager.loadSounds(newSkinConfig.sounds, newSkinConfig.basePath || '');
-                    console.log(`[Renderer.ts] Sounds reloaded for ${skinId}`);
-                } else {
-                    soundManager.dispose();
-                }
-
-                // 2. Reload Behaviors (TODO: Update BehaviorEngine config dynamically)
-                // For now, BehaviorEngine stays with old config unless we add setConfig
-                // Let's at least ensure sounds match the new skin.
-
-                // Update global reference for state change listener
-                // Wait, the stateChange listener uses the closed-over `skinConfig` variable!
-                // This is a BUG. `skinConfig` is const from init.
-                // We must update the `skinConfig` reference or look it up dynamically.
-                // But `skinConfig` is block-scoped 'const'.
-
-                // FIX: We need to store skinConfig in a mutable variable or property.
-            }
-        });
-    }
-
-    // Sound Debounce (Key: soundId, Value: timestamp)
-    const lastSoundTime = new Map<string, number>();
-
-    // Listen for stateChange events to play sounds
-    behaviorEngine.on('stateChange', (event) => {
-        if (event.type === 'stateChange') {
-            const data = event.data as { from: string; to: string };
-            console.log(`[Renderer.ts] State: ${data.from} -> ${data.to}`);
-
-            // Play state-specific sound if available
-            const stateSound = skinConfig?.sounds?.[data.to];
-
-            // Always stop previous loop when changing states
-            if (soundManager.isLooping(data.from) || soundManager.isLooping(data.to) || true) {
-                // Optimization: Stop loop unless state loop persists (not implemented yet)
-            }
-
-            // Check if new state has a configured sound
-            if (stateSound) {
-                const config = soundManager.getConfig(data.to);
-                if (config?.loop) {
-                    soundManager.loop(data.to);
-                } else {
-                    // Prevent duplicate one-shot sounds (Debounce 100ms)
-                    const now = Date.now();
-                    const lastTime = lastSoundTime.get(data.to) || 0;
-                    if (now - lastTime < 300) {
-                        console.warn(`[Renderer.ts] Debounced duplicate sound: ${data.to}`);
-                        return;
-                    }
-                    lastSoundTime.set(data.to, now);
-
-                    // New state has non-loop sound (one-shot entry sound)
-                    soundManager.stopLoop();
-                    soundManager.play(data.to);
-                }
-            } else {
-                // New state has NO sound -> Silence
-                soundManager.stopLoop();
+            if (typeof settings.sound.volume === 'number') {
+                soundManager.setMasterVolume(settings.sound.volume);
+                notificationManager.setVolume(settings.sound.volume);
             }
         }
     });
 
-    // Sync Initial Quiet Mode
-    try {
-        const isQuiet = await window.deskmate.getQuietMode();
-        behaviorEngine.setQuietMode(isQuiet);
-        console.log(`[Renderer.ts] Initial Quiet Mode: ${isQuiet}`);
-    } catch (e) {
-        console.warn('[Renderer.ts] Failed to get initial quiet mode', e);
-    }
+    window.deskmate.onSkinChange?.(async (skinId: string) => {
+        console.log(`[Renderer] Switching skin to: ${skinId}`);
+        await animManager.loadSkin(skinId);
 
-    // Connect EnergyManager to TriggerScheduler
-    if (scheduler) {
-        // Set initial energy context
-        scheduler.setContext({ energy: energyManager.getEnergy() });
+        const newSkinConfig = await window.deskmate.getCurrentSkin();
+        if (newSkinConfig) {
+            skinConfig = newSkinConfig;
 
-        // Update context on change
-        energyManager.on('energyChange', (energy: number) => {
-            scheduler!.setContext({ energy });
-            // console.log('[Renderer.ts] Energy context updated:', energy);
-        });
-    }
+            if (newSkinConfig.sounds) {
+                await soundManager.loadSounds(newSkinConfig.sounds, newSkinConfig.basePath || '');
+            } else {
+                soundManager.dispose();
+            }
 
+            behaviorEngine.setConfig(newSkinConfig.behaviors);
+        }
 
+        behaviorEngine.forceRefresh();
+    });
 
+    // 9. Context Menu & Global Escape Key
+    window.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        window.deskmate.showContextMenu();
+    });
 
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            chatManager.hide();
+            hideBubble();
+            notificationManager.dismiss();
+        }
+    });
 
-    // Initialize DragController (Phase 17)
-    // Pass stateMachine placeholder or null if it handles its own transitions via window.BehaviorEngine
-    // Note: Legacy passed stateMachine instance. New DragController can try to access window.BehaviorEngine fallback.
-    // However, clean architecture suggests we should pass an adapter.
-    // For now, let's instantiate it. It relies on DOM elements being present.
-    const dragController = new DragController(behaviorEngine);
+    // 10. Random Idle Bubble System
+    let idleBubbleTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // Expose instances for debugging
-    (window as any).__modernSystem = {
+    const scheduleIdleBubble = () => {
+        if (idleBubbleTimer) clearTimeout(idleBubbleTimer);
+
+        if (behaviorEngine.getCurrentState() !== 'idle' || behaviorEngine.isQuietMode()) {
+            idleBubbleTimer = setTimeout(scheduleIdleBubble, 30000);
+            return;
+        }
+
+        const delay = Math.random() * 75000 + 45000;
+        idleBubbleTimer = setTimeout(async () => {
+            if (behaviorEngine.getCurrentState() === 'idle' && !behaviorEngine.isQuietMode()) {
+                const skinId = skinConfig?.id || 'default';
+                const msg = await window.deskmate.getRandomIdleMessage(skinId);
+                if (msg) {
+                    showBubble(msg, 4000);
+                }
+            }
+            scheduleIdleBubble();
+        }, delay);
+    };
+
+    scheduleIdleBubble();
+
+    // 11. Holiday Easter Eggs
+    checkHoliday();
+
+    // Expose unified runtime for debugging
+    (window as any).__deskmate = {
+        animManager,
+        skinManager,
         soundManager,
         behaviorEngine,
         energyManager,
         scheduler,
         dragController,
+        chatManager,
+        pomodoroManager,
+        reminderManager,
+        coPetManager,
+        notificationManager
     };
 
-    console.log('[Renderer.ts] Modern system ready (legacy system still active)');
+    console.log('[Renderer] Unified DeskMate runtime initialized');
 }
 
-// Initialize when DOM is ready
+// ============================================
+// Holiday Visual Effects
+// ============================================
+
+function checkHoliday(): void {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    const appEl = document.getElementById('app');
+    if (!appEl) return;
+
+    appEl.classList.remove('holiday-xmas', 'holiday-cny');
+    document.getElementById('snow-container')?.remove();
+    document.getElementById('cny-container')?.remove();
+
+    if (month === 12 && day >= 24 && day <= 26) {
+        appEl.classList.add('holiday-xmas');
+        spawnSnowflakes(appEl);
+    }
+
+    if (today.getFullYear() === 2026 && month === 2 && day >= 15 && day <= 20) {
+        appEl.classList.add('holiday-cny');
+        spawnLanterns(appEl);
+    }
+}
+
+function spawnLanterns(appEl: HTMLElement): void {
+    const cnyContainer = document.createElement('div');
+    cnyContainer.id = 'cny-container';
+    cnyContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;overflow:hidden;';
+
+    const lanternLeft = document.createElement('div');
+    lanternLeft.className = 'lantern lantern-left';
+    lanternLeft.innerHTML = '🏮';
+    cnyContainer.appendChild(lanternLeft);
+
+    const lanternRight = document.createElement('div');
+    lanternRight.className = 'lantern lantern-right';
+    lanternRight.innerHTML = '🏮';
+    cnyContainer.appendChild(lanternRight);
+
+    for (let i = 0; i < 12; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.innerHTML = '✨';
+        sparkle.className = 'gold-sparkle';
+        sparkle.style.left = `${Math.random() * 100}%`;
+        sparkle.style.animationDuration = `${Math.random() * 2 + 3}s`;
+        sparkle.style.animationDelay = `-${Math.random() * 5}s`;
+        sparkle.style.fontSize = `${Math.random() * 10 + 5}px`;
+        cnyContainer.appendChild(sparkle);
+    }
+
+    appEl.appendChild(cnyContainer);
+}
+
+function spawnSnowflakes(appEl: HTMLElement): void {
+    const snowContainer = document.createElement('div');
+    snowContainer.id = 'snow-container';
+    snowContainer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;overflow:hidden;';
+
+    for (let i = 0; i < 25; i++) {
+        const flake = document.createElement('div');
+        flake.className = 'snowflake';
+
+        const inner = document.createElement('div');
+        inner.className = 'snowflake-inner';
+        inner.innerHTML = '❄️';
+
+        flake.style.left = `${Math.random() * 100}%`;
+        flake.style.setProperty('--fall-duration', `${Math.random() * 3 + 4}s`);
+        flake.style.setProperty('--fall-delay', `${Math.random() * -10}s`);
+
+        inner.style.setProperty('--sway-duration', `${Math.random() * 2 + 3}s`);
+        inner.style.setProperty('--sway-delay', `${Math.random() * -5}s`);
+        inner.style.setProperty('--sway-amplitude', `${Math.random() * 30 + 10}px`);
+        inner.style.fontSize = `${Math.random() * 12 + 8}px`;
+        inner.style.opacity = String(Math.random() * 0.6 + 0.2);
+
+        flake.appendChild(inner);
+        snowContainer.appendChild(flake);
+    }
+
+    appEl.appendChild(snowContainer);
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initModernSystem);
+    document.addEventListener('DOMContentLoaded', initApp);
 } else {
-    initModernSystem();
+    initApp();
 }
-
-console.log('[Renderer.ts] TypeScript entry point loaded');

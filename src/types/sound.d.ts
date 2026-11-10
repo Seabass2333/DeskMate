@@ -14,6 +14,8 @@ export type SimpleSoundRef = string | string[];
 export interface SoundConfig {
     /** Path to the audio file (relative to skin folder) */
     src: string;
+    /** Optional array of audio file paths for random variations */
+    srcs?: string[];
     /** Whether the sound should loop */
     loop?: boolean;
     /** Volume level (0.0 to 1.0) */

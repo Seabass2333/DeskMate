@@ -180,6 +180,52 @@ describe('BehaviorEngine', () => {
         });
     });
 
+    describe('dynamic config and re-entry', () => {
+        it('should update valid states and fallback if current state becomes invalid on setConfig', () => {
+            engine.transition('custom');
+            expect(engine.getCurrentState()).toBe('custom');
+
+            engine.setConfig({
+                states: ['idle', 'sleep', 'sniff', 'bark']
+            });
+
+            expect(engine.getValidStates()).toEqual(['idle', 'sleep', 'sniff', 'bark']);
+            expect(engine.getCurrentState()).toBe('idle');
+            expect(engine.transition('sniff')).toBe(true);
+        });
+
+        it('should allow re-entry for interact state while preserving previousState', () => {
+            engine.setConfig({
+                states: ['idle', 'sleep', 'interact']
+            });
+
+            engine.transition('interact');
+            expect(engine.getPreviousState()).toBe('idle');
+
+            const listener = jest.fn();
+            engine.on('stateChange', listener);
+
+            engine.transition('interact');
+            expect(listener).toHaveBeenCalledTimes(1);
+            expect(engine.getPreviousState()).toBe('idle');
+        });
+
+        it('should emit stateChange for current state on forceRefresh', () => {
+            const listener = jest.fn();
+            engine.on('stateChange', listener);
+
+            engine.forceRefresh();
+            expect(listener).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: 'stateChange',
+                    data: expect.objectContaining({
+                        to: 'idle'
+                    })
+                })
+            );
+        });
+    });
+
     describe('dispose', () => {
         it('should clean up all timers and listeners', () => {
             const listener = jest.fn();

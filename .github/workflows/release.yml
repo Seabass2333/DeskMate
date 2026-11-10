@@ -28,20 +28,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build and Publish Electron App
+      - name: Build Electron App
         run: |
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            npm run release:mac
+            npm run build:mac
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            npm run release:win
+            npm run build:win
           else
-            npm run release:linux
+            npm run build:linux
           fi
         shell: bash
         env:
@@ -54,7 +54,9 @@ jobs:
           name: ${{ matrix.artifact_name }}-build
           path: |
             dist/*.dmg
+            dist/*.zip
             dist/*.exe
+            dist/*.blockmap
             dist/*latest*.yml
           if-no-files-found: warn
 
@@ -78,7 +80,9 @@ jobs:
         with:
           files: |
             artifacts/*.dmg
+            artifacts/*.zip
             artifacts/*.exe
+            artifacts/*.blockmap
             artifacts/*latest*.yml
           generate_release_notes: true
           draft: false

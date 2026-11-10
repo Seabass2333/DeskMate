@@ -53,6 +53,16 @@
             "frames": 4,
             "speed": 2000
         },
+        "sleep_intro": {
+            "src": "idle_sleepy.png",
+            "frames": 8,
+            "speed": 1600
+        },
+        "wake_intro": {
+            "src": "idle_laydown.png",
+            "frames": 12,
+            "speed": 1800
+        },
         "drag": {
             "src": "drag.png",
             "frames": 4,

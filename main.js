@@ -9,6 +9,8 @@ const { getActiveConfig, saveUserSettings, loadUserSettings, PROVIDERS, getPetSt
 const { initI18n, t, setLanguage, getLanguage, SUPPORTED_LANGUAGES, getRandomIdleMessage } = require('./i18n');
 const { trackAppLaunched, trackSkinChanged, trackVipActivated } = require('./src/services/AnalyticsService');
 const { authService } = require('./src/services/AuthService');
+const { getOfflineReply } = require('./src/services/OfflineChatEngine');
+const { coPetService } = require('./src/services/CoPetService');
 
 // Hot reload in development mode only
 if (!app.isPackaged) {
@@ -29,6 +31,9 @@ let mainWindow = null;
 /** @type {BrowserWindow} */
 let settingsWindow = null;
 
+/** @type {BrowserWindow} */
+let coPetWindow = null;
+
 /** @type {Tray} */
 let tray = null;
 
@@ -43,6 +48,10 @@ const activeReminders = new Set();
 
 /** @type {boolean} */
 let isReminderLoopMode = true; // Default to loop mode ON
+
+/** @type {object|null} */
+let latestAvailableUpdate = null;
+const { formatUpdatePayload, checkRemoteRelease } = require('./src/services/UpdateService');
 
 /**
  * Creates the main application window with transparent, frameless configuration
@@ -123,6 +132,21 @@ function showContextMenu() {
   };
 
   const template = [
+    ...(latestAvailableUpdate && latestAvailableUpdate.hasUpdate
+      ? [
+          {
+            label: `🎉 发现新版本 v${latestAvailableUpdate.version} (点击一键下载)`,
+            click: () => {
+              const targetUrl =
+                latestAvailableUpdate.downloadUrl ||
+                latestAvailableUpdate.landingUrl ||
+                'https://github.com/Seabass2333/DeskMate/releases/latest';
+              require('electron').shell.openExternal(targetUrl);
+            }
+          },
+          { type: 'separator' }
+        ]
+      : []),
     { label: `${t('energy')}: ${Math.round(petState.energy)}%`, enabled: false },
     { type: 'separator' },
     {
@@ -252,6 +276,59 @@ function showContextMenu() {
         };
       })
     }] : []),
+    // 1v1 Co-Pet & Pet Hub Entry
+    ...(() => {
+      const coStatus = coPetService.getStatus();
+      if (coStatus.paired) {
+        return [
+          { type: 'separator' },
+          {
+            label: `💞 双人共养 (${coStatus.partnerNickname} · Lv.${coStatus.bond?.level || 1})`,
+            submenu: [
+              {
+                label: `📖 打开共养手账与小宠档案`,
+                click: () => openCoPetWindow()
+              },
+              { type: 'separator' },
+              {
+                label: `👋 隔空摸摸 TA (+3 羁绊)`,
+                click: async () => {
+                  const res = await coPetService.sendInteraction('touch');
+                  if (mainWindow && res.success) {
+                    mainWindow.webContents.send('copet:outbound-feedback', res);
+                  }
+                }
+              },
+              {
+                label: `🐟 投喂小鱼干 (+5 羁绊)`,
+                click: async () => {
+                  const res = await coPetService.sendInteraction('feed');
+                  if (mainWindow && res.success) {
+                    mainWindow.webContents.send('copet:outbound-feedback', res);
+                  }
+                }
+              },
+              {
+                label: `💧 提醒 TA 喝水 (+2 羁绊)`,
+                click: async () => {
+                  const res = await coPetService.sendInteraction('water_nudge');
+                  if (mainWindow && res.success) {
+                    mainWindow.webContents.send('copet:outbound-feedback', res);
+                  }
+                }
+              }
+            ]
+          }
+        ];
+      }
+      return [
+        { type: 'separator' },
+        {
+          label: `🐾 小宠档案与双人共养`,
+          click: () => openCoPetWindow()
+        }
+      ];
+    })(),
     { type: 'separator' },
     {
       label: `💤 ${t('quietMode') || 'Quiet Mode'}`,
@@ -440,6 +517,38 @@ function openSettingsWindow() {
 }
 
 /**
+ * Opens the dedicated Pet Profile & 1v1 Co-Pet Hub window
+ */
+function openCoPetWindow() {
+  if (coPetWindow && !coPetWindow.isDestroyed()) {
+    coPetWindow.focus();
+    return;
+  }
+
+  coPetWindow = new BrowserWindow({
+    width: 500,
+    height: 650,
+    modal: false,
+    frame: true,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload-settings.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  coPetWindow.loadFile('copet.html');
+  coPetWindow.setMenu(null);
+
+  coPetWindow.on('closed', () => {
+    coPetWindow = null;
+  });
+}
+
+/**
  * Reinitialize LLM handler with new config
  */
 function reinitializeLLM() {
@@ -485,6 +594,7 @@ ipcMain.handle('settings:get', () => {
       apiKey: userSettings.llm.apiKey || '',
       model: userSettings.llm.model || '',
       soundEnabled: userSettings.sound ? userSettings.sound.enabled : true,
+      soundVolume: userSettings.sound && typeof userSettings.sound.volume === 'number' ? userSettings.sound.volume : 30,
       pomodoro: userSettings.pomodoro,
       reminders: userSettings.reminders
     };
@@ -497,6 +607,7 @@ ipcMain.handle('settings:get', () => {
     apiKey: '',
     model: PROVIDERS.global.openrouter.model,
     soundEnabled: true,
+    soundVolume: 30,
     pomodoro: {},
     reminders: {}
   };
@@ -520,9 +631,14 @@ ipcMain.handle('settings:save', (_, settings) => {
     };
 
     // Save to user settings file
+    const soundConfig = {
+      enabled: settings.soundEnabled !== false,
+      volume: typeof settings.soundVolume === 'number' ? settings.soundVolume : 30
+    };
+
     const result = saveUserSettings({
       llm: llmConfig,
-      sound: { enabled: settings.soundEnabled },
+      sound: soundConfig,
       skin: settings.skin,
       pomodoro: settings.pomodoro,
       reminders: settings.reminders
@@ -537,7 +653,7 @@ ipcMain.handle('settings:save', (_, settings) => {
       mainWindow.webContents.send('settings-updated', {
         pomodoro: settings.pomodoro,
         reminders: settings.reminders,
-        sound: { enabled: settings.soundEnabled }
+        sound: soundConfig
       });
     }
 
@@ -629,6 +745,12 @@ ipcMain.handle('get-sound-enabled', () => {
   return userSettings?.sound?.enabled !== false;
 });
 
+// Get sound master volume (0-100)
+ipcMain.handle('get-sound-volume', () => {
+  const userSettings = loadUserSettings();
+  return typeof userSettings?.sound?.volume === 'number' ? userSettings.sound.volume : 30;
+});
+
 // Load skin configuration
 ipcMain.handle('skin:load', async (_, skinId) => {
   try {
@@ -707,10 +829,13 @@ ipcMain.on('show-notification', (_, { title, body }) => {
   }
 });
 
-// Pomodoro completed - reset state
+// Pomodoro completed - reset state & reward Co-Pet bond EXP if paired
 ipcMain.on('pomodoro-complete', () => {
   isPomodoroActive = false;
   currentPomodoroDuration = 0;
+  if (coPetService.getStatus().paired) {
+    coPetService.sendInteraction('pomodoro_cheer').catch(() => {});
+  }
   console.log('[Main] Pomodoro completed, state reset');
 });
 
@@ -875,24 +1000,24 @@ ipcMain.handle('pet:modifyEnergy', (_, delta) => {
 // AI/LLM IPC Handlers
 // ============================================
 
-// Handle AI chat request
+// Handle AI chat request with seamless offline fallback
 ipcMain.handle('ai:ask', async (_, userMessage) => {
+  const currentSkin = getSkin() || 'mochi-v1';
+
   if (!llmHandler) {
-    return {
-      success: false,
-      message: "My brain isn't initialized yet. Try again! 🧠"
-    };
+    return getOfflineReply(userMessage, currentSkin);
   }
 
   try {
     const result = await llmHandler.chat(userMessage);
-    return result;
+    if (result && result.success) {
+      return result;
+    }
+    console.warn('[Main] AI returned non-success, falling back to offline reply');
+    return getOfflineReply(userMessage, currentSkin);
   } catch (error) {
-    console.error('[Main] AI request error:', error);
-    return {
-      success: false,
-      message: "Something went wrong with my brain... 🤯"
-    };
+    console.error('[Main] AI request error, falling back to offline reply:', error);
+    return getOfflineReply(userMessage, currentSkin);
   }
 });
 
@@ -946,42 +1071,96 @@ ipcMain.handle('app:getVersion', () => app.getVersion());
 ipcMain.handle('i18n:getRandomIdleMessage', (_, skinId) => getRandomIdleMessage(skinId));
 
 // ============================================
+// 1v1 Co-Pet & Pet Hub IPC Handlers
+// ============================================
+
+coPetService.onPartnerEvent((event) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('copet:partner-event', event);
+  }
+});
+
+coPetService.onStatusChange((status) => {
+  if (coPetWindow && !coPetWindow.isDestroyed()) {
+    coPetWindow.webContents.send('copet:status-changed', status);
+  }
+});
+
+ipcMain.on('copet:openWindow', () => {
+  openCoPetWindow();
+});
+
+ipcMain.on('copet:closeWindow', () => {
+  if (coPetWindow && !coPetWindow.isDestroyed()) {
+    coPetWindow.close();
+  }
+});
+
+ipcMain.handle('skin:switch', (_, skinId) => {
+  if (!skinId) return { success: false };
+  const isLocked = !isUserVip() && skinId !== 'mochi-v1';
+  if (isLocked) return { success: false, message: 'VIP required' };
+
+  setSkin(skinId);
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('skin-change', skinId);
+  }
+  trackSkinChanged(skinId).catch(() => {});
+  return { success: true, skinId };
+});
+
+ipcMain.handle('copet:getStatus', () => {
+  return coPetService.getStatus();
+});
+
+ipcMain.handle('copet:generateCode', async () => {
+  return await coPetService.generateMyCode();
+});
+
+ipcMain.handle('copet:bind', async (_, { code, options, nickname }) => {
+  return await coPetService.bindPartner(code, options || nickname);
+});
+
+ipcMain.handle('copet:updateProfile', (_, profile) => {
+  return coPetService.updateProfile(profile);
+});
+
+ipcMain.handle('copet:unpair', async (_, confirmToken) => {
+  return await coPetService.unpair(confirmToken);
+});
+
+ipcMain.handle('copet:sendAction', async (_, actionType) => {
+  const res = await coPetService.sendInteraction(actionType);
+  if (mainWindow && !mainWindow.isDestroyed() && res.success) {
+    mainWindow.webContents.send('copet:outbound-feedback', res);
+  }
+  return res;
+});
+
+// ============================================
 // App Lifecycle
 // ============================================
 // Auto Updater Logic
 const { autoUpdater } = require('electron-updater');
 
 function setupAutoUpdater() {
-  // Check for updates every hour
   const CHECK_INTERVAL = 60 * 60 * 1000;
-  setInterval(() => {
-    autoUpdater.checkForUpdates().catch(err => console.error('[AutoUpdater] Interval check failed:', err));
-  }, CHECK_INTERVAL);
+  const isUnsignedMac = process.platform === 'darwin';
 
   autoUpdater.logger = console;
-  autoUpdater.autoDownload = true;
+  // On Windows NSIS (verifyUpdateCodeSignature: false), autoDownload works seamlessly.
+  // On unsigned macOS (identity: null), Squirrel.Mac throws signature errors on download/install,
+  // so we disable Squirrel autoDownload on macOS and provide one-click direct DMG download instead.
+  autoUpdater.autoDownload = !isUnsignedMac;
 
-  // Force dev update config if not packaged
   if (!app.isPackaged) {
     autoUpdater.forceDevUpdateConfig = true;
     console.log('[AutoUpdater] Running in dev mode, forced dev update config');
   }
 
-  // Initial Check on Startup
-  // Delay slightly to allow window to load if needed, though not strictly necessary for headless check
-  setTimeout(() => {
-    autoUpdater.checkForUpdates().catch(err => console.error('[AutoUpdater] Initial check failed:', err));
-  }, 3000);
-
-  // Manual check handler
-  ipcMain.handle('app:checkUpdate', async () => {
-    try {
-      return await autoUpdater.checkForUpdates();
-    } catch (e) {
-      console.error('[AutoUpdater] Manual check failed:', e);
-      return { error: e.message };
-    }
-  });
+  let isCriticalUpdate = false;
+  let isUpdateDialogShown = false;
+  let notifiedVersionInSession = null;
 
   function sendStatusToSettings(status, data = null) {
     if (settingsWindow && !settingsWindow.isDestroyed()) {
@@ -989,147 +1168,207 @@ function setupAutoUpdater() {
     }
   }
 
-  // Track if current update is critical
-  let isCriticalUpdate = false;
+  function notifyPetAndUser(updateInfo, { isManual = false } = {}) {
+    if (!updateInfo || !updateInfo.hasUpdate) return;
+    latestAvailableUpdate = updateInfo;
+    isCriticalUpdate = Boolean(updateInfo.isCritical);
+
+    // 1. Send to Settings window if open
+    sendStatusToSettings('available', updateInfo);
+
+    // 2. Notify Desktop Pet bubble gently
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('app:update-available', updateInfo);
+    }
+
+    // 3. If on Windows packaged build, let electron-updater download in background unless it fails
+    if (!isUnsignedMac && app.isPackaged && !isManual) {
+      return;
+    }
+
+    // 4. Show non-intrusive one-click download prompt (once per version per session, or on manual check, or critical)
+    if (!isManual && !isCriticalUpdate && notifiedVersionInSession === updateInfo.version) {
+      return;
+    }
+    if (isUpdateDialogShown) return;
+
+    notifiedVersionInSession = updateInfo.version;
+    isUpdateDialogShown = true;
+
+    const store = require('./store');
+    const lang = store.get('language', 'zh-CN');
+    const isZh = String(lang).startsWith('zh');
+
+    dialog
+      .showMessageBox({
+        type: isCriticalUpdate ? 'warning' : 'info',
+        title: isZh ? `🎉 发现 DeskMate 新版本 v${updateInfo.version}` : `🎉 DeskMate v${updateInfo.version} Available`,
+        message: isZh
+          ? `检测到新版本 v${updateInfo.version}（当前版本 v${updateInfo.currentVersion}）`
+          : `A new version v${updateInfo.version} is available (Current: v${updateInfo.currentVersion}).`,
+        detail: isZh
+          ? '点击「立即下载安装包」可直接获取最新安装包，覆盖安装即可完成升级（您的本地数据与共养记录会自动保留）。'
+          : 'Click "Download Installer" to get the latest installer directly. Your pet data and settings will be preserved.',
+        buttons: isZh
+          ? ['立即下载安装包', '前往官网下载页', '稍后提醒']
+          : ['Download Installer', 'Open Landing Page', 'Later'],
+        defaultId: 0,
+        cancelId: isCriticalUpdate ? 0 : 2
+      })
+      .then(({ response }) => {
+        isUpdateDialogShown = false;
+        const { shell } = require('electron');
+        if (response === 0) {
+          shell.openExternal(updateInfo.downloadUrl || updateInfo.githubUrl);
+          if (isCriticalUpdate) app.quit();
+        } else if (response === 1) {
+          shell.openExternal(updateInfo.landingUrl || updateInfo.githubUrl);
+          if (isCriticalUpdate) app.quit();
+        } else if (isCriticalUpdate) {
+          app.quit();
+        }
+      });
+  }
+
+  /**
+   * Unified update check combining multi-source remote check (GitHub Releases + Static Manifest)
+   * and electron-updater (for Windows background auto-install).
+   */
+  async function performUpdateCheck({ isManual = false } = {}) {
+    sendStatusToSettings('checking');
+    const currentVersion = app.getVersion();
+
+    try {
+      const remoteInfo = await checkRemoteRelease(currentVersion);
+      if (remoteInfo.hasUpdate) {
+        notifyPetAndUser(remoteInfo, { isManual });
+        if (!isUnsignedMac && app.isPackaged) {
+          autoUpdater.checkForUpdates().catch((err) => {
+            console.warn('[AutoUpdater] Background NSIS check skipped:', err.message);
+          });
+        }
+        return remoteInfo;
+      } else {
+        latestAvailableUpdate = remoteInfo;
+        sendStatusToSettings('not-available', remoteInfo);
+        return remoteInfo;
+      }
+    } catch (remoteErr) {
+      console.warn('[AutoUpdater] Remote check fallback to electron-updater:', remoteErr.message);
+      try {
+        const res = await autoUpdater.checkForUpdates();
+        if (res && res.updateInfo) {
+          const payload = formatUpdatePayload(currentVersion, res.updateInfo.version, {
+            releaseNotes:
+              typeof res.updateInfo.releaseNotes === 'string' ? res.updateInfo.releaseNotes : '',
+            source: 'electron-updater'
+          });
+          if (payload.hasUpdate) {
+            notifyPetAndUser(payload, { isManual });
+          } else {
+            sendStatusToSettings('not-available', payload);
+          }
+          return payload;
+        }
+      } catch (updaterErr) {
+        console.error('[AutoUpdater] Both remote and updater checks failed:', updaterErr.message);
+        sendStatusToSettings('error', updaterErr.message);
+        return { error: updaterErr.message };
+      }
+    }
+  }
+
+  // Manual check handler from Settings UI
+  ipcMain.handle('app:checkUpdate', async () => {
+    return await performUpdateCheck({ isManual: true });
+  });
+
+  // Expose latest cached update status if Settings opens later
+  ipcMain.handle('app:getLatestUpdateInfo', () => {
+    return latestAvailableUpdate;
+  });
 
   autoUpdater.on('checking-for-update', () => {
     console.log('[AutoUpdater] Checking for updates...');
-    sendStatusToSettings('checking');
   });
 
   autoUpdater.on('update-available', (info) => {
-    console.log('[AutoUpdater] Update available:', info);
-    sendStatusToSettings('available', info);
-
-    // Check for critical update flag
-    // Keyword: [FORCE_UPDATE] in release notes
-    if (info.releaseNotes && (
-      info.releaseNotes.includes('[FORCE_UPDATE]') ||
-      info.releaseNotes.includes('[CRITICAL]')
-    )) {
-      isCriticalUpdate = true;
-      console.log('[AutoUpdater] Critical update detected!');
-
-      dialog.showMessageBox({
-        type: 'warning',
-        title: 'Critical Update Required',
-        message: `A critical update (${info.version}) is available.`,
-        detail: 'This update includes important security fixes or major improvements. The app will download it automatically.',
-        buttons: ['OK']
-      });
-    } else {
-      isCriticalUpdate = false;
+    console.log('[AutoUpdater] electron-updater found update:', info?.version);
+    const payload = formatUpdatePayload(app.getVersion(), info?.version, {
+      releaseNotes: typeof info?.releaseNotes === 'string' ? info.releaseNotes : '',
+      source: 'electron-updater'
+    });
+    if (payload.hasUpdate) {
+      notifyPetAndUser(payload, { isManual: false });
     }
   });
 
   autoUpdater.on('update-not-available', (info) => {
     console.log('[AutoUpdater] Update not available.');
-    sendStatusToSettings('not-available', info);
+    if (!latestAvailableUpdate || !latestAvailableUpdate.hasUpdate) {
+      sendStatusToSettings('not-available', info);
+    }
   });
 
   autoUpdater.on('error', (err) => {
-    console.error('[AutoUpdater] Error:', err);
-    sendStatusToSettings('error', err.message);
-
-    if (isCriticalUpdate) {
-      dialog.showMessageBox({
-        type: 'error',
-        title: 'Update Failed',
-        message: 'Critical update failed to download.',
-        detail: 'Please download the latest version manually to continue using DeskMate safely.',
-        buttons: ['Download Manually', 'Quit'],
-        cancelId: 1
-      }).then(({ response }) => {
-        if (response === 0) {
-          require('electron').shell.openExternal('https://github.com/Seabass2333/DeskMate/releases/latest');
-          app.quit();
-        } else {
-          app.quit();
-        }
-      });
+    console.warn('[AutoUpdater] Notice:', err.message);
+    // If an update was already found (e.g. on unsigned macOS), do NOT overwrite the 'available' UI state with an error!
+    if (latestAvailableUpdate && latestAvailableUpdate.hasUpdate) {
+      return;
     }
+    sendStatusToSettings('error', err.message);
   });
 
   autoUpdater.on('download-progress', (progressObj) => {
-    let log_message = "Download speed: " + progressObj.bytesPerSecond;
-    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-    log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-    console.log('[AutoUpdater] ' + log_message);
     sendStatusToSettings('downloading', progressObj);
   });
 
-  // Track if update dialog is currently transparent
-  let isUpdateDialogShown = false;
-
   autoUpdater.on('update-downloaded', (info) => {
-    console.log('[AutoUpdater] Update downloaded');
-
-    // Prevent multiple dialogs
-    if (isUpdateDialogShown) {
-      console.log('[AutoUpdater] Update dialog already shown, skipping...');
-      return;
-    }
-
-    if (isCriticalUpdate) {
-      isUpdateDialogShown = true;
-      dialog.showMessageBox({
-        type: 'warning',
-        title: 'Update Ready',
-        message: 'Critical update downloaded.',
-        detail: 'The application must restart now to apply the critical update.',
-        buttons: ['Restart Now'],
-        defaultId: 0,
-        cancelId: 0,
-        modal: true // Force modal if parent window exists, though mostly global here
-      }).then(() => {
-        autoUpdater.quitAndInstall();
-        // No need to reset flag as we are quitting
-      });
-      return;
-    }
+    console.log('[AutoUpdater] Update downloaded:', info?.version);
+    if (isUpdateDialogShown) return;
 
     const store = require('./store');
-    const lang = store.get('language', 'en');
-
-    const messages = {
-      'zh-CN': {
-        title: 'DeskMate 更新',
-        message: '新版本已下载完成，是否立即重启以应用更新？',
-        buttons: ['立即重启', '稍后']
-      },
-      'en': {
-        title: 'DeskMate Update',
-        message: 'A new version has been downloaded. Restart the application to apply the update?',
-        buttons: ['Restart', 'Later']
-      }
-    };
-    const msg = messages[lang] || messages['en'];
+    const lang = store.get('language', 'zh-CN');
+    const isZh = String(lang).startsWith('zh');
 
     isUpdateDialogShown = true;
-    dialog.showMessageBox({
-      type: 'info',
-      title: msg.title,
-      message: msg.message,
-      buttons: msg.buttons,
-      cancelId: 1 // Esc defaults to 'Later'
-    }).then((returnValue) => {
-      if (returnValue.response === 0) {
-        autoUpdater.quitAndInstall();
-      } else {
-        // User clicked Later
-        isUpdateDialogShown = false;
-        console.log('[AutoUpdater] User chose to update later');
-      }
-    });
+    dialog
+      .showMessageBox({
+        type: isCriticalUpdate ? 'warning' : 'info',
+        title: isZh ? 'DeskMate 更新已就绪' : 'DeskMate Update Ready',
+        message: isZh
+          ? `新版本 v${info?.version || ''} 已下载完成，是否立即重启以应用更新？`
+          : 'A new version has been downloaded. Restart the application to apply the update?',
+        buttons: isCriticalUpdate
+          ? [isZh ? '立即重启' : 'Restart Now']
+          : isZh
+          ? ['立即重启', '稍后']
+          : ['Restart', 'Later'],
+        defaultId: 0,
+        cancelId: isCriticalUpdate ? 0 : 1
+      })
+      .then((returnValue) => {
+        if (returnValue.response === 0 || isCriticalUpdate) {
+          autoUpdater.quitAndInstall();
+        } else {
+          isUpdateDialogShown = false;
+        }
+      });
   });
 
-  // Initial check
-  if (app.isPackaged) {
-    autoUpdater.checkForUpdatesAndNotify();
-    setInterval(() => {
-      autoUpdater.checkForUpdatesAndNotify();
-    }, CHECK_INTERVAL);
-  }
+  // Initial check on startup (after 3.5s so main window is ready)
+  setTimeout(() => {
+    performUpdateCheck({ isManual: false }).catch((err) =>
+      console.warn('[AutoUpdater] Initial check failed:', err.message)
+    );
+  }, 3500);
+
+  // Periodic hourly check
+  setInterval(() => {
+    performUpdateCheck({ isManual: false }).catch((err) =>
+      console.warn('[AutoUpdater] Interval check failed:', err.message)
+    );
+  }, CHECK_INTERVAL);
 }
 
 // App lifecycle

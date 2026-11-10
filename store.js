@@ -27,9 +27,10 @@ const schema = {
     sound: {
         type: 'object',
         properties: {
-            enabled: { type: 'boolean', default: true }
+            enabled: { type: 'boolean', default: true },
+            volume: { type: 'number', default: 30, minimum: 0, maximum: 100 }
         },
-        default: { enabled: true }
+        default: { enabled: true, volume: 30 }
     },
     reminders: {
         type: 'object',
@@ -77,12 +78,47 @@ const schema = {
     quietMode: {
         type: 'boolean',
         default: true
+    },
+    coPet: {
+        type: 'object',
+        properties: {
+            paired: { type: 'boolean', default: false },
+            pairId: { type: 'string', default: '' },
+            myCode: { type: 'string', default: '' },
+            partnerCode: { type: 'string', default: '' },
+            myNickname: { type: 'string', default: '我' },
+            partnerNickname: { type: 'string', default: '远方的 TA' },
+            petName: { type: 'string', default: 'Mochi' },
+            pairedAt: { type: 'string', default: '' },
+            bondExp: { type: 'number', default: 0 },
+            logs: { type: 'array', default: [] },
+            lastEventId: { type: 'string', default: '' }
+        },
+        default: {
+            paired: false,
+            pairId: '',
+            myCode: '',
+            partnerCode: '',
+            myNickname: '我',
+            partnerNickname: '远方的 TA',
+            petName: 'Mochi',
+            pairedAt: '',
+            bondExp: 0,
+            logs: [],
+            lastEventId: ''
+        }
     }
 };
 
+const os = require('os');
+const path = require('path');
+
+const isTestEnv = process.env.NODE_ENV === 'test' || Boolean(process.env.JEST_WORKER_ID);
+
 const store = new Store({
     schema,
-    clearInvalidConfig: true  // Automatically clear data that violates schema
+    clearInvalidConfig: true,  // Automatically clear data that violates schema
+    ...(isTestEnv ? { cwd: path.join(os.tmpdir(), 'deskmate-test-store') } : {})
 });
 
 module.exports = store;

@@ -27,9 +27,11 @@ const CONFIG = {
 };
 
 class InviteCodeService {
-    constructor() {
-        // 自动检测：如果 Supabase 配置了就用远程，否则本地
-        this.useRemote = CONFIG.useRemoteValidation && isConfigured();
+    constructor(options = {}) {
+        // 自动检测：如果 Supabase 配置了就用远程，否则本地（支持通过 options.useRemote 显式覆盖）
+        this.useRemote = options.useRemote !== undefined
+            ? Boolean(options.useRemote)
+            : (CONFIG.useRemoteValidation && isConfigured());
         console.log(`[InviteCodeService] Mode: ${this.useRemote ? 'REMOTE' : 'LOCAL'}`);
     }
 

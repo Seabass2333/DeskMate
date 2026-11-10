@@ -73,5 +73,19 @@ contextBridge.exposeInMainWorld('settingsAPI', {
     // App Info
     getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
     checkUpdate: () => ipcRenderer.invoke('app:checkUpdate'),
-    onUpdateStatus: (callback) => ipcRenderer.on('app:updateStatus', (_, data) => callback(data))
+    getLatestUpdateInfo: () => ipcRenderer.invoke('app:getLatestUpdateInfo'),
+    onUpdateStatus: (callback) => ipcRenderer.on('app:updateStatus', (_, data) => callback(data)),
+
+    // 1v1 Co-Pet & Pet Hub (小宠档案与双人共养)
+    getPetState: () => ipcRenderer.invoke('pet:getState'),
+    setSkin: (skinId) => ipcRenderer.invoke('skin:switch', skinId),
+    openCoPetWindow: () => ipcRenderer.send('copet:openWindow'),
+    closeCoPetWindow: () => ipcRenderer.send('copet:closeWindow'),
+    coPetGetStatus: () => ipcRenderer.invoke('copet:getStatus'),
+    coPetGenerateCode: () => ipcRenderer.invoke('copet:generateCode'),
+    coPetBind: (code, options) => ipcRenderer.invoke('copet:bind', { code, options }),
+    coPetUpdateProfile: (profile) => ipcRenderer.invoke('copet:updateProfile', profile),
+    coPetUnpair: (confirmToken) => ipcRenderer.invoke('copet:unpair', confirmToken),
+    coPetSendAction: (actionType) => ipcRenderer.invoke('copet:sendAction', actionType),
+    onCoPetStatusChanged: (callback) => ipcRenderer.on('copet:status-changed', (_, status) => callback(status))
 });
