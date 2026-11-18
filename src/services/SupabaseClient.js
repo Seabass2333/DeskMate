@@ -2,7 +2,6 @@
  * Supabase Client - v1.3 with Network Resilience
  */
 
-const { createClient } = require('@supabase/supabase-js');
 const restClient = require('./RestApiClient');
 
 // Configuration
@@ -23,9 +22,9 @@ const RETRY_CONFIG = {
     timeoutMs: 10000
 };
 
-// Create Supabase client (only if needed or for fallback)
+// Create Supabase client lazily only when not in SELF-HOSTED mode
 const supabase = (SUPABASE_ANON_KEY && !USE_SELF_HOSTED)
-    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    ? require('@supabase/supabase-js').createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
     : null;
 
 // Proxy for Auth to allow switching

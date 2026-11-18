@@ -17,7 +17,8 @@ if (!app.isPackaged) {
   try {
     require('electron-reload')(__dirname, {
       electron: path.join(__dirname, 'node_modules', '.bin', 'electron'),
-      hardResetMethod: 'exit'
+      hardResetMethod: 'exit',
+      ignored: /node_modules|[\/\\]\.|dist|deskmate-api|tests|docs/
     });
     console.log('[Main] Hot reload enabled');
   } catch (e) {

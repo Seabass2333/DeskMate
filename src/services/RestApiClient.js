@@ -132,12 +132,17 @@ class RestApiClient {
             headers['Authorization'] = `Bearer ${this.token}`;
         }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers,
-                body: JSON.stringify(body)
+                body: JSON.stringify(body),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 // Try to parse error
@@ -146,22 +151,12 @@ class RestApiClient {
             }
 
             const data = await response.json();
-
-            // RPC calls often expect { data, error } format wrapper
-            // But our rpc() method in SupabaseClient usually returns { data, error } OR just throws?
-            // Let's check SupabaseClient.js rpc implementation:
-            // "const { data, error } = await supabase.rpc(...)"
-            // It expects an object with data/error structure if calling raw supabase.
-            // BUT, our SupabaseClient.js wrapper `rpc` function implementation (lines 63-128)
-            // returns `data` directly on success, or throws on error.
-
-            // Backend returns specific shapes often.
-            // Invite verify: { valid: true, ... }
-
             return data;
 
         } catch (error) {
-            console.error(`[RestApiClient] Request failed: ${url}`, error);
+            clearTimeout(timeoutId);
+            const causeMsg = error?.cause?.message || error?.cause?.code || error.message || 'Network unreachable';
+            console.warn(`[RestApiClient] Offline or unreachable (${endpoint}): ${causeMsg}`);
             throw error;
         }
     }

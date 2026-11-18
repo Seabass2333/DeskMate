@@ -116,7 +116,7 @@ class InviteCodeService {
             });
             return result;
         } catch (error) {
-            console.error('[InviteCodeService] Failed to get user status:', error);
+            console.warn('[InviteCodeService] Remote status check skipped (offline):', error.message);
             return { vip_tier: 'free', activated_at: null };
         }
     }

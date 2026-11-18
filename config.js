@@ -158,7 +158,7 @@ async function syncVipStatus() {
             console.log('[Config] VIP status synced:', remoteStatus.vip_tier);
         }
     } catch (error) {
-        console.error('[Config] Failed to sync VIP status:', error);
+        console.warn('[Config] VIP status sync skipped (offline):', error.message);
     }
 }
 
