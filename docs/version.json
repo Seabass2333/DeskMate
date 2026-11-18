@@ -1,8 +1,8 @@
 {
-  "version": "1.5.0",
-  "tag": "v1.5.0",
-  "macUrl": "https://github.com/Seabass2333/DeskMate/releases/download/v1.5.0/DeskMate-1.5.0-mac-universal.dmg",
-  "winUrl": "https://github.com/Seabass2333/DeskMate/releases/download/v1.5.0/DeskMate-1.5.0-win-x64.exe",
+  "version": "1.5.1",
+  "tag": "v1.5.1",
+  "macUrl": "https://github.com/Seabass2333/DeskMate/releases/download/v1.5.1/DeskMate-1.5.1-mac-universal.dmg",
+  "winUrl": "https://github.com/Seabass2333/DeskMate/releases/download/v1.5.1/DeskMate-1.5.1-win-x64.exe",
   "releasesUrl": "https://github.com/Seabass2333/DeskMate/releases/latest",
-  "updatedAt": "2026-11-10"
+  "updatedAt": "2026-11-18"
 }
