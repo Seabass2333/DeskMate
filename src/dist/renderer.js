@@ -1094,12 +1094,12 @@
      * Normalize a sound reference to full config
      */
     normalizeConfig(ref, basePath) {
+      const cleanBase = String(basePath || "").replace(/\\/g, "/").replace(/\/+$/, "");
+      const joinUrl = (r) => `${cleanBase}/${String(r || "").replace(/\\/g, "/").replace(/^\/+/, "")}`;
       if (Array.isArray(ref)) {
         return {
-          src: `${basePath}/${ref[0]}`,
-          // Fallback compliant
-          srcs: ref.map((r) => `${basePath}/${r}`),
-          // New property
+          src: joinUrl(ref[0]),
+          srcs: ref.map((r) => joinUrl(r)),
           loop: false,
           volume: 1,
           playbackRate: 1
@@ -1107,16 +1107,15 @@
       }
       if (typeof ref === "string") {
         return {
-          src: `${basePath}/${ref}`,
+          src: joinUrl(ref),
           loop: false,
           volume: 1,
           playbackRate: 1
         };
       }
       return {
-        src: `${basePath}/${ref.src}`,
-        srcs: ref.srcs?.map((r) => `${basePath}/${r}`),
-        // Handle array in config object too if present
+        src: joinUrl(ref.src),
+        srcs: ref.srcs?.map((r) => joinUrl(r)),
         loop: ref.loop ?? false,
         loopDelay: ref.loopDelay,
         volume: ref.volume ?? 1,
@@ -1797,10 +1796,8 @@
     });
     window.deskmate.onUpdateAvailable?.((info) => {
       if (!info || !info.version) return;
-      if (!behaviorEngine.isQuietMode()) {
-        behaviorEngine.transition("touch");
-        showBubble(`🎉 发现新版本 v${info.version}！右键我可一键下载更新哦~`, 6500);
-      }
+      behaviorEngine.transition("interact");
+      showBubble(`🎉 发现新版本 v${info.version}！右键我或顶部图标可一键下载更新~`, 8e3);
     });
     window.deskmate.onSettingsUpdated?.((settings) => {
       if (!settings) return;

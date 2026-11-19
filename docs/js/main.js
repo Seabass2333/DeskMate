@@ -7,19 +7,19 @@
 const i18n = {
     'zh-CN': {
         heroTitle: '你的桌面萌宠伙伴',
-        heroSubtitle: 'AI 对话 · 番茄专注 · 健康提醒',
+        heroSubtitle: '1v1 双人共养 · 零配置秒聊 · 专注提醒',
         downloadMac: '下载 macOS 版',
         downloadWin: '下载 Windows 版',
         speechBubble: '喵~ 今天也要加油哦！',
         featuresTitle: '为什么选择 DeskMate？',
-        feature1Title: 'AI 对话陪伴',
-        feature1Desc: '随时与萌宠聊天，支持多种 AI 模型，缓解工作压力',
-        feature2Title: '番茄钟专注',
-        feature2Desc: '25 分钟专注模式，帮助你保持高效工作状态',
-        feature3Title: '健康提醒',
-        feature3Desc: '定时提醒喝水、休息眼睛、伸展身体',
-        feature4Title: '个性皮肤',
-        feature4Desc: '多款可爱宠物皮肤，VIP 专属皮肤更精彩',
+        feature1Title: '1v1 双人跨桌面共养',
+        feature1Desc: '与远方的 TA 签署专属陪伴契约，隔空摸摸、投喂小鱼干，累积羁绊等级与共养手账',
+        feature2Title: '零配置秒聊 · AI 陪伴',
+        feature2Desc: '双击小宠即可暖心闲聊，开箱即用无需配置 Key，也支持高级自定义 DeepSeek / OpenAI 模型',
+        feature3Title: '专注番茄钟 & 温柔提醒',
+        feature3Desc: '定时提醒喝水、护眼与伸展，支持 0~100% 独立音量与勿扰模式，安静守护不打扰',
+        feature4Title: '像素萌宠衣橱',
+        feature4Desc: '多款可爱像素小宠皮肤，拥有自然入睡/唤醒过渡动画，支持跨平台 macOS & Windows',
         screenshotsTitle: '产品预览',
         screenshot1: 'AI 对话 - 萌宠回复',
         screenshot2: '简洁的对话输入',
@@ -28,24 +28,28 @@ const i18n = {
         ctaTitle: '准备好开始了吗？',
         ctaSubtitle: '免费下载，让可爱陪伴你的每一天',
         viewChangelog: '📋 查看更新日志',
+        macTipSummary: '🍎 macOS 首次打开提示「无法验证开发者」或「已损坏」怎么办？',
+        macTipDesc: '因目前为独立开发者开源免费版本尚未购买 Apple 商业签名，将 DeskMate 拖入「应用程序」文件夹后，在终端执行以下一行命令即可正常打开：',
+        copyCmd: '复制命令',
+        copiedCmd: '✓ 已复制',
         feedback: '反馈建议',
         privacy: '隐私政策'
     },
     'en': {
         heroTitle: 'Your Cute Desktop Pet Companion',
-        heroSubtitle: 'AI Chat · Focus Timer · Health Reminders',
+        heroSubtitle: '1v1 Co-Pet · Instant Chat · Gentle Focus',
         downloadMac: 'Download for macOS',
         downloadWin: 'Download for Windows',
         speechBubble: 'Meow~ Have a great day!',
         featuresTitle: 'Why Choose DeskMate?',
-        feature1Title: 'AI Companion',
-        feature1Desc: 'Chat with your pet anytime, supports multiple AI models',
-        feature2Title: 'Pomodoro Timer',
-        feature2Desc: '25-minute focus sessions to boost your productivity',
-        feature3Title: 'Health Reminders',
-        feature3Desc: 'Timely reminders for water, eye rest, and stretching',
-        feature4Title: 'Custom Skins',
-        feature4Desc: 'Multiple cute pet skins, exclusive VIP skins available',
+        feature1Title: '1v1 Shared Co-Pet',
+        feature1Desc: 'Sign a 1v1 contract with someone special — send pats & treats across desktops and grow your bond together',
+        feature2Title: 'Zero-Setup Instant Chat',
+        feature2Desc: 'Double-click your pet to chat immediately offline, or optionally plug in your own DeepSeek / OpenAI API key',
+        feature3Title: 'Focus & Gentle Reminders',
+        feature3Desc: 'Pomodoro timer and water/eye/stretch reminders with 0–100% volume control and Quiet Mode',
+        feature4Title: 'Pixel Pet Wardrobe',
+        feature4Desc: 'Adorable pixel-art pet skins with smooth sleep/wake transitions on macOS & Windows',
         screenshotsTitle: 'Preview',
         screenshot1: 'AI Chat - Pet Response',
         screenshot2: 'Clean Chat Input',
@@ -54,6 +58,10 @@ const i18n = {
         ctaTitle: 'Ready to Get Started?',
         ctaSubtitle: 'Free download, let cuteness accompany your day',
         viewChangelog: '📋 View Changelog',
+        macTipSummary: '🍎 macOS says "Unverified Developer" or "App is damaged"?',
+        macTipDesc: 'Because DeskMate is an indie open-source app without a paid Apple Developer certificate yet, drag it to Applications and run this command in Terminal:',
+        copyCmd: 'Copy Command',
+        copiedCmd: '✓ Copied',
         feedback: 'Feedback',
         privacy: 'Privacy Policy'
     }
@@ -328,4 +336,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update download links
     updateDownloadLinks();
+
+    // Copy macOS Gatekeeper fix command
+    const copyCmdBtn = document.getElementById('copy-mac-cmd');
+    const cmdCode = document.getElementById('mac-xattr-cmd');
+    copyCmdBtn?.addEventListener('click', async () => {
+        if (!cmdCode) return;
+        try {
+            await navigator.clipboard.writeText(cmdCode.textContent.trim());
+            const dict = i18n[currentLang] || i18n['zh-CN'];
+            copyCmdBtn.textContent = dict.copiedCmd || '✓ 已复制';
+            setTimeout(() => {
+                copyCmdBtn.textContent = dict.copyCmd || '复制命令';
+            }, 2200);
+        } catch (_) {
+            // Ignore clipboard errors on restricted origins
+        }
+    });
 });

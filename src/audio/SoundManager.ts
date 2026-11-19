@@ -288,23 +288,14 @@ export class SoundManager {
      * Normalize a sound reference to full config
      */
     private normalizeConfig(ref: SoundRef, basePath: string): NormalizedSoundConfig {
+        const cleanBase = String(basePath || '').replace(/\\/g, '/').replace(/\/+$/, '');
+        const joinUrl = (r: string) => `${cleanBase}/${String(r || '').replace(/\\/g, '/').replace(/^\/+/, '')}`;
+
         // String array: Random variations
         if (Array.isArray(ref)) {
-            // Pick random one to start, but store all
-            // Ideally we'd store the list and pick on play, 
-            // but for simple normalization we map to a list-capable config
-            // Note: The type system needs update to support 'srcs'.
-            // For now, we'll pick one random source for the initial element
-            // A better architecture would perform randomization at play time.
-
-            // Actually, let's just pick one random one for now to keep type compatibility simple,
-            // or better: treat string[] as multiple valid sources.
-            // But wait, Audio element takes one src.
-            // To support variations properly, we need to change how we store sounds.
-            // Let's modify the Entry to hold a list of sources.
             return {
-                src: `${basePath}/${ref[0]}`, // Fallback compliant
-                srcs: ref.map(r => `${basePath}/${r}`), // New property
+                src: joinUrl(ref[0]),
+                srcs: ref.map(r => joinUrl(r)),
                 loop: false,
                 volume: 1,
                 playbackRate: 1
@@ -313,7 +304,7 @@ export class SoundManager {
 
         if (typeof ref === 'string') {
             return {
-                src: `${basePath}/${ref}`,
+                src: joinUrl(ref),
                 loop: false,
                 volume: 1,
                 playbackRate: 1
@@ -321,8 +312,8 @@ export class SoundManager {
         }
 
         return {
-            src: `${basePath}/${ref.src}`,
-            srcs: ref.srcs?.map(r => `${basePath}/${r}`), // Handle array in config object too if present
+            src: joinUrl(ref.src),
+            srcs: ref.srcs?.map(r => joinUrl(r)),
             loop: ref.loop ?? false,
             loopDelay: ref.loopDelay,
             volume: ref.volume ?? 1,

@@ -2,6 +2,11 @@
 require('dotenv').config({ path: require('path').join(__dirname, '.env.local') });
 
 const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeImage, shell, net } = require('electron');
+
+// Windows 10/11 requires AppUserModelId matching build.appId so native Notifications work!
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.seabass2333.deskmate');
+}
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
@@ -55,6 +60,34 @@ let latestAvailableUpdate = null;
 const { formatUpdatePayload, checkRemoteRelease } = require('./src/services/UpdateService');
 
 /**
+ * Load a unified 16x16 (@2x 32x32) minimalist monochrome menu icon
+ * Uses macOS Template Image mode so macOS auto-tints for light/dark/hover states.
+ */
+const menuIconCache = new Map();
+function getMenuIcon(name) {
+  if (menuIconCache.has(name)) return menuIconCache.get(name);
+  const iconPath = path.join(__dirname, 'assets', 'icons', 'menu', `${name}Template.png`);
+  try {
+    const img = nativeImage.createFromPath(iconPath);
+    if (!img.isEmpty()) {
+      if (process.platform === 'darwin') {
+        img.setTemplateImage(true);
+      }
+      menuIconCache.set(name, img);
+      return img;
+    }
+  } catch (_) {}
+  return undefined;
+}
+
+/**
+ * Strip leading emoji prefixes from i18n menu labels so menus use unified vector-style icons
+ */
+function cleanMenuLabel(str) {
+  return String(str || '').replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\u23F0-\u23FF\u2600-\u27BF]+\s*/gu, '').trim();
+}
+
+/**
  * Creates the main application window with transparent, frameless configuration
  */
 function createWindow() {
@@ -63,10 +96,12 @@ function createWindow() {
     height: 250,
     frame: false,
     transparent: true,
+    backgroundColor: '#00000000',
     alwaysOnTop: true,
     skipTaskbar: true,
     hasShadow: false,
     resizable: false,
+    icon: path.join(__dirname, 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -86,9 +121,11 @@ function createWindow() {
   const { width, height } = primaryDisplay.workAreaSize;
   mainWindow.setPosition(width - 280, height - 280);
 
-  // Mac-specific: Show on all workspaces
+  // Platform-specific window layering
   if (process.platform === 'darwin') {
     mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  } else if (process.platform === 'win32') {
+    mainWindow.setAlwaysOnTop(true, 'screen-saver');
   }
 
   // Only open DevTools in development mode
@@ -136,35 +173,44 @@ function showContextMenu() {
     ...(latestAvailableUpdate && latestAvailableUpdate.hasUpdate
       ? [
           {
-            label: `🎉 发现新版本 v${latestAvailableUpdate.version} (点击一键下载)`,
+            label: `发现新版本 v${latestAvailableUpdate.version}（点击更新）`,
+            icon: getMenuIcon('update'),
             click: () => {
               const targetUrl =
                 latestAvailableUpdate.downloadUrl ||
                 latestAvailableUpdate.landingUrl ||
                 'https://github.com/Seabass2333/DeskMate/releases/latest';
-              require('electron').shell.openExternal(targetUrl);
+              shell.openExternal(targetUrl);
             }
           },
           { type: 'separator' }
         ]
       : []),
-    { label: `${t('energy')}: ${Math.round(petState.energy)}%`, enabled: false },
+    {
+      label: `${cleanMenuLabel(t('energy'))}  ${Math.round(petState.energy)}%`,
+      icon: getMenuIcon('bolt'),
+      enabled: false
+    },
     { type: 'separator' },
     {
-      label: t('talkToMe'),
+      label: cleanMenuLabel(t('talkToMe')),
+      icon: getMenuIcon('chat'),
       click: () => {
         mainWindow.webContents.send('talk-to-pet');
       }
     },
-    { type: 'separator' },
     {
-      label: isPomodoroActive ? `${t('focusing')} (${currentPomodoroDuration}m)` : t('startFocus'),
+      label: isPomodoroActive
+        ? `${cleanMenuLabel(t('focusing'))} (${currentPomodoroDuration}m)`
+        : cleanMenuLabel(t('startFocus')),
+      icon: getMenuIcon('timer'),
       submenu: [
         ...durations.map(min => {
-          // Phase 4: Lock >25m for non-VIP
           const isLocked = !isUserVip() && min > 25;
           return {
-            label: min < 1 ? `⚡ ${Math.round(min * 60)}s ${t('test')}` : `${min} ${t('minutes')}${min === defaultDur ? ` ${t('default')}` : ''}${isLocked ? ` 🔒 ${t('vip')}` : ''}`,
+            label: min < 1
+              ? `${Math.round(min * 60)}s (${cleanMenuLabel(t('test'))})`
+              : `${min} ${t('minutes')}${min === defaultDur ? ` · ${t('default')}` : ''}${isLocked ? ` [${t('vip')}]` : ''}`,
             type: 'checkbox',
             checked: isPomodoroActive && currentPomodoroDuration === min,
             enabled: !isLocked,
@@ -176,7 +222,7 @@ function showContextMenu() {
         }),
         { type: 'separator' },
         {
-          label: `${t('stopFocus')}`,
+          label: cleanMenuLabel(t('stopFocus')),
           enabled: isPomodoroActive,
           click: () => {
             isPomodoroActive = false;
@@ -186,12 +232,12 @@ function showContextMenu() {
         }
       ]
     },
-    { type: 'separator' },
     {
-      label: t('reminders'),
+      label: cleanMenuLabel(t('reminders')),
+      icon: getMenuIcon('bell'),
       submenu: [
         {
-          label: t('loopMode'),
+          label: cleanMenuLabel(t('loopMode')),
           type: 'checkbox',
           checked: isReminderLoopMode,
           click: () => {
@@ -200,9 +246,8 @@ function showContextMenu() {
             console.log('[Main] Loop mode:', isReminderLoopMode ? 'ON' : 'OFF');
           }
         },
-        { type: 'separator' },
         {
-          label: `${t('testReminder')} (10s)`,
+          label: `${cleanMenuLabel(t('testReminder'))} (10s)`,
           type: 'checkbox',
           checked: activeReminders.has('test'),
           click: () => {
@@ -216,7 +261,7 @@ function showContextMenu() {
         },
         { type: 'separator' },
         {
-          label: `${t('drinkWater')} (${reminderIntervals.water}${t('minutes')})`,
+          label: `${cleanMenuLabel(t('drinkWater'))} (${reminderIntervals.water}${t('minutes')})`,
           type: 'checkbox',
           checked: activeReminders.has('water'),
           click: () => {
@@ -229,7 +274,7 @@ function showContextMenu() {
           }
         },
         {
-          label: `${t('restEyes')} (${reminderIntervals.rest}${t('minutes')})`,
+          label: `${cleanMenuLabel(t('restEyes'))} (${reminderIntervals.rest}${t('minutes')})`,
           type: 'checkbox',
           checked: activeReminders.has('rest'),
           click: () => {
@@ -242,7 +287,7 @@ function showContextMenu() {
           }
         },
         {
-          label: `${t('stretch')} (${reminderIntervals.stretch}${t('minutes')})`,
+          label: `${cleanMenuLabel(t('stretch'))} (${reminderIntervals.stretch}${t('minutes')})`,
           type: 'checkbox',
           checked: activeReminders.has('stretch'),
           click: () => {
@@ -256,83 +301,9 @@ function showContextMenu() {
         }
       ]
     },
-    { type: 'separator' },
-    // Skin switching (VIP feature)
-    ...(isVipFeatureEnabled('skinSwitching') ? [{
-      label: `${t('skins') || 'Skins'}`,
-      submenu: getAvailableSkins().map(skin => {
-        const isLocked = !isUserVip() && skin.id !== 'mochi-v1';
-        return {
-          label: skin.name + (isLocked ? ` 🔒 ${t('vip')}` : ''),
-          type: 'radio',
-          checked: getSkin() === skin.id,
-          enabled: !isLocked,
-          click: () => {
-            if (isLocked) return;
-            setSkin(skin.id);
-            mainWindow.webContents.send('skin-change', skin.id);
-            trackSkinChanged(skin.id).catch(e => console.warn('[Analytics] Skin tracking failed:', e.message));
-            console.log(`[Main] Skin changed to: ${skin.id}`);
-          }
-        };
-      })
-    }] : []),
-    // 1v1 Co-Pet & Pet Hub Entry
-    ...(() => {
-      const coStatus = coPetService.getStatus();
-      if (coStatus.paired) {
-        return [
-          { type: 'separator' },
-          {
-            label: `💞 双人共养 (${coStatus.partnerNickname} · Lv.${coStatus.bond?.level || 1})`,
-            submenu: [
-              {
-                label: `📖 打开共养手账与小宠档案`,
-                click: () => openCoPetWindow()
-              },
-              { type: 'separator' },
-              {
-                label: `👋 隔空摸摸 TA (+3 羁绊)`,
-                click: async () => {
-                  const res = await coPetService.sendInteraction('touch');
-                  if (mainWindow && res.success) {
-                    mainWindow.webContents.send('copet:outbound-feedback', res);
-                  }
-                }
-              },
-              {
-                label: `🐟 投喂小鱼干 (+5 羁绊)`,
-                click: async () => {
-                  const res = await coPetService.sendInteraction('feed');
-                  if (mainWindow && res.success) {
-                    mainWindow.webContents.send('copet:outbound-feedback', res);
-                  }
-                }
-              },
-              {
-                label: `💧 提醒 TA 喝水 (+2 羁绊)`,
-                click: async () => {
-                  const res = await coPetService.sendInteraction('water_nudge');
-                  if (mainWindow && res.success) {
-                    mainWindow.webContents.send('copet:outbound-feedback', res);
-                  }
-                }
-              }
-            ]
-          }
-        ];
-      }
-      return [
-        { type: 'separator' },
-        {
-          label: `🐾 小宠档案与双人共养`,
-          click: () => openCoPetWindow()
-        }
-      ];
-    })(),
-    { type: 'separator' },
     {
-      label: `💤 ${t('quietMode') || 'Quiet Mode'}`,
+      label: cleanMenuLabel(t('quietMode') || '安静模式'),
+      icon: getMenuIcon('moon'),
       type: 'checkbox',
       checked: getQuietMode(),
       click: (menuItem) => {
@@ -345,15 +316,95 @@ function showContextMenu() {
       }
     },
     { type: 'separator' },
+    // 1v1 Co-Pet & Pet Hub Entry
+    ...(() => {
+      const coStatus = coPetService.getStatus();
+      if (coStatus.paired) {
+        return [
+          {
+            label: `双人共养 · ${coStatus.partnerNickname} (Lv.${coStatus.bond?.level || 1})`,
+            icon: getMenuIcon('heart'),
+            submenu: [
+              {
+                label: '打开共养手账与小宠档案',
+                icon: getMenuIcon('heart'),
+                click: () => openCoPetWindow()
+              },
+              { type: 'separator' },
+              {
+                label: '隔空摸摸 TA (+3 羁绊)',
+                click: async () => {
+                  const res = await coPetService.sendInteraction('touch');
+                  if (mainWindow && res.success) {
+                    mainWindow.webContents.send('copet:outbound-feedback', res);
+                  }
+                }
+              },
+              {
+                label: '投喂小鱼干 (+5 羁绊)',
+                click: async () => {
+                  const res = await coPetService.sendInteraction('feed');
+                  if (mainWindow && res.success) {
+                    mainWindow.webContents.send('copet:outbound-feedback', res);
+                  }
+                }
+              },
+              {
+                label: '提醒 TA 喝水 (+2 羁绊)',
+                click: async () => {
+                  const res = await coPetService.sendInteraction('water_nudge');
+                  if (mainWindow && res.success) {
+                    mainWindow.webContents.send('copet:outbound-feedback', res);
+                  }
+                }
+              }
+            ]
+          }
+        ];
+      }
+      return [
+        {
+          label: '小宠档案与双人共养',
+          icon: getMenuIcon('heart'),
+          click: () => openCoPetWindow()
+        }
+      ];
+    })(),
+    // Skin switching (VIP feature)
+    ...(isVipFeatureEnabled('skinSwitching') ? [{
+      label: cleanMenuLabel(t('skins') || '外观皮肤'),
+      icon: getMenuIcon('skin'),
+      submenu: getAvailableSkins().map(skin => {
+        const isLocked = !isUserVip() && skin.id !== 'mochi-v1';
+        return {
+          label: skin.name + (isLocked ? ` [${t('vip')}]` : ''),
+          type: 'radio',
+          checked: getSkin() === skin.id,
+          enabled: !isLocked,
+          click: () => {
+            if (isLocked) return;
+            setSkin(skin.id);
+            mainWindow.webContents.send('skin-change', skin.id);
+            if (coPetWindow && !coPetWindow.isDestroyed()) {
+              coPetWindow.webContents.send('skin-change', skin.id);
+            }
+            trackSkinChanged(skin.id).catch(e => console.warn('[Analytics] Skin tracking failed:', e.message));
+            console.log(`[Main] Skin changed to: ${skin.id}`);
+          }
+        };
+      })
+    }] : []),
+    { type: 'separator' },
     {
-      label: t('settings'),
+      label: cleanMenuLabel(t('settings')),
+      icon: getMenuIcon('settings'),
       click: () => {
         openSettingsWindow();
       }
     },
-    { type: 'separator' },
     {
-      label: t('exit'),
+      label: cleanMenuLabel(t('exit')),
+      icon: getMenuIcon('exit'),
       click: () => app.quit()
     }
   ];
@@ -384,15 +435,22 @@ function createTray() {
   // Create tray with a fallback icon first
   let trayIcon = createFallbackTrayIcon();
 
-  // Load pixel-art tray icon (automatically pairs tray-icon-optimized.png @1x 18x18 and @2x 36x36)
-  const iconPath = path.join(__dirname, 'assets/images/tray-icon-optimized.png');
+  // Load pixel-art tray icon (macOS auto-pairs @1x/@2x; Windows HiDPI uses 36x36 @2x directly)
+  const iconFileName = process.platform === 'win32'
+    ? 'tray-icon-optimized@2x.png'
+    : 'tray-icon-optimized.png';
+  const iconPath = path.join(__dirname, 'assets/images', iconFileName);
   try {
     const customIcon = nativeImage.createFromPath(iconPath);
     if (!customIcon.isEmpty()) {
-      const size = customIcon.getSize();
-      trayIcon = (size.width === 18 && size.height === 18)
-        ? customIcon
-        : customIcon.resize({ width: 18, height: 18, quality: 'good' });
+      if (process.platform === 'win32') {
+        trayIcon = customIcon;
+      } else {
+        const size = customIcon.getSize();
+        trayIcon = (size.width === 18 && size.height === 18)
+          ? customIcon
+          : customIcon.resize({ width: 18, height: 18, quality: 'good' });
+      }
     }
   } catch (e) {
     console.log('[Tray] Using fallback icon');
@@ -403,12 +461,13 @@ function createTray() {
   // Remove emoji title - it causes duplicate icons
   tray.setToolTip('DeskMate');
 
-  // Build tray context menu dynamically so update entries appear immediately
+  // Build tray context menu dynamically with unified monochrome icons
   const buildTrayMenu = () => Menu.buildFromTemplate([
     ...(latestAvailableUpdate && latestAvailableUpdate.hasUpdate
       ? [
           {
-            label: `🎉 发现新版本 v${latestAvailableUpdate.version} (点击一键下载)`,
+            label: `发现新版本 v${latestAvailableUpdate.version}（点击更新）`,
+            icon: getMenuIcon('update'),
             click: () => {
               const targetUrl =
                 latestAvailableUpdate.downloadUrl ||
@@ -421,7 +480,8 @@ function createTray() {
         ]
       : []),
     {
-      label: t('showHide'),
+      label: cleanMenuLabel(t('showHide')),
+      icon: getMenuIcon('eye'),
       click: () => {
         if (mainWindow) {
           if (mainWindow.isVisible()) {
@@ -434,7 +494,8 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: t('talkToMe'),
+      label: cleanMenuLabel(t('talkToMe')),
+      icon: getMenuIcon('chat'),
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -443,7 +504,8 @@ function createTray() {
       }
     },
     {
-      label: `${t('startFocus')} (25${t('minutes')})`,
+      label: `${cleanMenuLabel(t('startFocus'))} (25${t('minutes')})`,
+      icon: getMenuIcon('timer'),
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -454,24 +516,39 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: t('settings'),
+      label: '小宠档案与双人共养',
+      icon: getMenuIcon('heart'),
+      click: () => openCoPetWindow()
+    },
+    {
+      label: cleanMenuLabel(t('settings')),
+      icon: getMenuIcon('settings'),
       click: () => openSettingsWindow()
     },
     {
-      label: t('autoStart'),
+      label: cleanMenuLabel(t('autoStart')),
       type: 'checkbox',
       checked: app.getLoginItemSettings().openAtLogin,
       click: (menuItem) => {
-        app.setLoginItemSettings({
-          openAtLogin: menuItem.checked,
-          openAsHidden: true // Start minimized to tray
-        });
+        if (process.platform === 'win32') {
+          app.setLoginItemSettings({
+            openAtLogin: menuItem.checked,
+            path: process.execPath,
+            args: ['--hidden']
+          });
+        } else {
+          app.setLoginItemSettings({
+            openAtLogin: menuItem.checked,
+            openAsHidden: true // Start minimized to tray on macOS
+          });
+        }
         console.log('[Main] Auto-start:', menuItem.checked ? 'enabled' : 'disabled');
       }
     },
     { type: 'separator' },
     {
-      label: t('exit'),
+      label: cleanMenuLabel(t('exit')),
+      icon: getMenuIcon('exit'),
       click: () => app.quit()
     }
   ]);
@@ -507,13 +584,15 @@ function openSettingsWindow() {
 
   settingsWindow = new BrowserWindow({
     width: 450,
-    height: 580,
-    // Removed parent to make window independent
+    height: process.platform === 'win32' ? 610 : 580,
+    backgroundColor: '#1a1a2e',
     modal: false,
     frame: true,
+    autoHideMenuBar: true,
     resizable: false,
     minimizable: false,
     maximizable: false,
+    icon: path.join(__dirname, 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload-settings.js'),
       contextIsolation: true,
@@ -521,7 +600,7 @@ function openSettingsWindow() {
     }
   });
 
-  settingsWindow.loadFile('settings.html');
+  settingsWindow.loadFile(path.join(__dirname, 'settings.html'));
   settingsWindow.setMenu(null);
 
   settingsWindow.on('closed', () => {
@@ -540,12 +619,15 @@ function openCoPetWindow() {
 
   coPetWindow = new BrowserWindow({
     width: 500,
-    height: 710,
+    height: process.platform === 'win32' ? 740 : 710,
+    backgroundColor: '#1a1a2e',
     modal: false,
     frame: true,
+    autoHideMenuBar: true,
     resizable: false,
     minimizable: false,
     maximizable: false,
+    icon: path.join(__dirname, 'build', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload-settings.js'),
       contextIsolation: true,
@@ -553,7 +635,7 @@ function openCoPetWindow() {
     }
   });
 
-  coPetWindow.loadFile('copet.html');
+  coPetWindow.loadFile(path.join(__dirname, 'copet.html'));
   coPetWindow.setMenu(null);
 
   coPetWindow.on('closed', () => {
@@ -794,8 +876,7 @@ ipcMain.handle('skin:load', async (_, skinId) => {
 // Get current skin configuration with basePath for TypeScript modules
 ipcMain.handle('skin:getCurrent', async () => {
   try {
-    const userSettings = loadUserSettings();
-    const skinId = userSettings?.skin || 'mochi-v1';
+    const skinId = getSkin() || 'mochi-v1';
     const skinPath = path.join(__dirname, 'assets', 'skins', skinId);
     const configPath = path.join(skinPath, 'config.json');
 
@@ -808,11 +889,11 @@ ipcMain.handle('skin:getCurrent', async () => {
 
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
-    // Return config with basePath for asset loading
+    // Return POSIX relative basePath so Chromium Audio/img URLs work identically on Windows & macOS
     return {
       ...config,
       id: skinId,
-      basePath: skinPath,
+      basePath: `assets/skins/${skinId}`,
     };
   } catch (error) {
     console.error('[Main] Failed to get current skin:', error);
@@ -828,10 +909,14 @@ ipcMain.handle('get-window-position', () => {
   return [0, 0];
 });
 
-// Set window position during drag
+// Set window position during drag (use setBounds to prevent Windows 125%/150% DPI window ballooning)
 ipcMain.on('set-window-position', (_, { x, y }) => {
   if (mainWindow) {
-    mainWindow.setPosition(Math.round(x), Math.round(y));
+    if (process.platform === 'win32') {
+      mainWindow.setBounds({ x: Math.round(x), y: Math.round(y), width: 250, height: 250 });
+    } else {
+      mainWindow.setPosition(Math.round(x), Math.round(y));
+    }
   }
 });
 
@@ -1079,6 +1164,7 @@ ipcMain.handle('i18n:translate', (_, key) => t(key));
 
 // App Info
 ipcMain.handle('app:getVersion', () => app.getVersion());
+ipcMain.handle('app:isDev', () => !app.isPackaged);
 
 // Random Idle Message
 ipcMain.handle('i18n:getRandomIdleMessage', (_, skinId) => getRandomIdleMessage(skinId));
@@ -1288,7 +1374,9 @@ function setupAutoUpdater() {
         notifyPetAndUser(remoteInfo, { isManual });
         if (!isUnsignedMac && app.isPackaged) {
           autoUpdater.checkForUpdates().catch((err) => {
-            console.warn('[AutoUpdater] Background NSIS check skipped:', err.message);
+            console.warn('[AutoUpdater] Background NSIS check failed, falling back to download prompt:', err.message);
+            // If Windows background NSIS download fails, still surface the one-click download prompt!
+            notifyPetAndUser(remoteInfo, { isManual: true });
           });
         }
         return remoteInfo;
@@ -1393,7 +1481,7 @@ function setupAutoUpdater() {
       })
       .then((returnValue) => {
         if (returnValue.response === 0 || isCriticalUpdate) {
-          autoUpdater.quitAndInstall();
+          autoUpdater.quitAndInstall(false, true);
         } else {
           isUpdateDialogShown = false;
         }

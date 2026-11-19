@@ -724,16 +724,13 @@ const saveBtn = document.getElementById('saveBtn');
 const cancelBtn = document.getElementById('cancelBtn');
 const languageSelect = document.getElementById('language');
 
-// Wrapper for new elements (handle if they are missing during transition)
-const skinSelect = document.getElementById('skin-select');
-const skinPreviewContainer = document.getElementById('skin-preview-container');
+// VIP & Account Elements
 const vipStatusBadge = document.getElementById('vip-status-badge');
 const vipStatusText = document.getElementById('vip-status-text');
 const vipInputContainer = document.getElementById('vip-input-container');
 const vipCodeInput = document.getElementById('vip-code-input');
 const vipRedeemBtn = document.getElementById('vip-redeem-btn');
 const vipMessage = document.getElementById('vip-message');
-const vipLockMsg = document.getElementById('vip-lock-msg');
 
 // Timer Inputs
 const pomodoroInput = document.getElementById('pomodoroDuration');
@@ -744,9 +741,27 @@ const stretchInput = document.getElementById('stretchInterval');
 // State
 let currentSettings = null;
 let keyVisible = false;
-let availableSkins = [];
 let isVip = false;
 let cachedVipStatus = null;
+
+/**
+ * Show a sleek non-blocking toast notification inside Settings
+ */
+let toastTimer = null;
+function showSettingsToast(message, type = 'info') {
+    let toast = document.getElementById('settings-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'settings-toast';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.className = `settings-toast ${type} visible`;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        toast.classList.remove('visible');
+    }, 3200);
+}
 
 /**
  * Initialize the settings page
@@ -766,14 +781,12 @@ async function init() {
             throw new Error('Failed to load settings (result is null)');
         }
 
-        availableSkins = currentSettings.availableSkins || [];
         isVip = currentSettings.vipStatus?.enabled || false;
 
         // Populate provider dropdown based on region
         populateProviders(currentSettings.region || 'global');
 
-        // Populate skins
-        populateSkins(availableSkins, currentSettings.currentSkin);
+        // Refresh VIP UI
         cachedVipStatus = currentSettings.vipStatus;
         updateVipStatusUI(currentSettings.vipStatus);
 
@@ -972,27 +985,42 @@ async function init() {
         cancelBtn.addEventListener('click', closeWindow);
         languageSelect?.addEventListener('change', () => applyI18n(languageSelect.value));
 
-        // New Event Listeners
-        skinSelect?.addEventListener('change', onSkinChange);
+        // VIP Redeem
         vipRedeemBtn?.addEventListener('click', redeemInviteCode);
 
-        // Dev: Reset VIP
-        document.getElementById('reset-vip-btn')?.addEventListener('click', async () => {
-            if (confirm('Reset VIP status to Free? This will lock skins and features.')) {
-                await window.settingsAPI.resetVip();
-                // Reload settings to refresh UI
-                const newStatus = await window.settingsAPI.getVipStatus();
-                updateVipStatusUI(newStatus);
+        // Dev: Show Reset VIP button only in development mode (2-click inline confirm, no blocking confirm/alert)
+        if (window.settingsAPI.isDev) {
+            window.settingsAPI.isDev().then((isDevMode) => {
+                if (isDevMode) {
+                    document.getElementById('dev-vip-tools')?.classList.remove('hidden');
+                }
+            }).catch(() => {});
+        }
 
-                // Also refresh stats as skin might change
-                currentSettings = await window.settingsAPI.getSettings();
-                isVip = newStatus?.enabled || false; // Update global state
-
-                populateSkins(availableSkins, currentSettings.skin);
-                updateTimerLocks(); // Update locks
-
-                alert('VIP reset to Free.');
+        const resetVipBtn = document.getElementById('reset-vip-btn');
+        let resetVipConfirming = false;
+        let resetVipTimer = null;
+        resetVipBtn?.addEventListener('click', async () => {
+            if (!resetVipConfirming) {
+                resetVipConfirming = true;
+                resetVipBtn.textContent = '[Dev] 再次点击确认重置 VIP';
+                resetVipTimer = setTimeout(() => {
+                    resetVipConfirming = false;
+                    resetVipBtn.textContent = '[Dev] Reset VIP';
+                }, 3000);
+                return;
             }
+            clearTimeout(resetVipTimer);
+            resetVipConfirming = false;
+            resetVipBtn.textContent = '[Dev] Reset VIP';
+
+            await window.settingsAPI.resetVip();
+            const newStatus = await window.settingsAPI.getVipStatus();
+            updateVipStatusUI(newStatus);
+            currentSettings = await window.settingsAPI.getSettings();
+            isVip = newStatus?.enabled || false;
+            updateTimerLocks();
+            showSettingsToast('VIP 状态已重置为免费版', 'info');
         });
 
         // Init Auth
@@ -1029,123 +1057,14 @@ async function init() {
         console.log('[Settings] Init complete');
     } catch (error) {
         console.error('[Settings] Init error:', error);
-        alert('Settings Init Error: ' + error.message + '\n' + error.stack);
     }
 }
 
-// Global error handler
+// Global error handler (log cleanly without blocking production alerts)
 window.onerror = function (msg, url, line, col, error) {
-    alert('Global Error: ' + msg + '\nLine: ' + line);
+    console.error('[Settings] Global Error:', msg, 'Line:', line, error);
     return false;
 };
-
-/**
- * Populate skin dropdown
- */
-function populateSkins(skins, currentSkinId) {
-    if (!skinSelect) return;
-
-    skinSelect.innerHTML = '';
-
-    skins.forEach(skin => {
-        const option = document.createElement('option');
-        option.value = skin.id;
-        // Add lock emoji if locked
-        const isLocked = !isVip && skin.id !== 'mochi-v1';
-        option.textContent = (isLocked ? '🔒 ' : '') + skin.name;
-        if (isLocked) {
-            // option.disabled = true; // Use softer lock logic for better UX
-            option.setAttribute('data-locked', 'true');
-        }
-        skinSelect.appendChild(option);
-    });
-
-    skinSelect.value = currentSkinId || 'mochi-v1';
-    updateSkinPreview(currentSkinId || 'mochi-v1');
-}
-
-/**
- * Handle skin change
- */
-function onSkinChange() {
-    const skinId = skinSelect.value;
-    updateSkinPreview(skinId);
-}
-
-/**
- * Update skin preview image and lock status
- */
-function updateSkinPreview(skinId) {
-    const skin = availableSkins.find(s => s.id === skinId);
-    if (!skin) return;
-
-    // Update preview
-    if (skinPreviewContainer) {
-        // Clear previous content
-        skinPreviewContainer.innerHTML = '';
-
-        if (skin.previewSpriteRel || skin.previewSprite) {
-            // Create sprite preview div
-            const spriteDiv = document.createElement('div');
-            const spriteUrl = (skin.previewSpriteRel || skin.previewSprite).replace(/\\/g, '/');
-            spriteDiv.style.backgroundImage = `url("${spriteUrl}")`;
-            spriteDiv.style.backgroundRepeat = 'no-repeat';
-
-            // Dimensions setup
-            const [baseW, baseH] = skin.baseSize || [32, 32];
-
-            // Animation Data
-            const anim = skin.idleAnimation;
-            const frames = anim ? anim.frames : 1;
-            const speed = anim ? anim.speed : 1000;
-
-            // Set container size (unscaled)
-            spriteDiv.style.width = `${baseW}px`;
-            spriteDiv.style.height = `${baseH}px`;
-
-            // Background Size: width * frames
-            const totalWidth = baseW * frames;
-            spriteDiv.style.backgroundSize = `${totalWidth}px ${baseH}px`;
-
-            // Transform for visibility - use smaller scale for larger base sprites
-            const baseMaxDim = Math.max(baseW, baseH);
-            // Target ~100px display, but cap scale for very large sprites
-            const scale = baseMaxDim >= 64 ? 2 : 3;
-            // Move larger sprites up to center them visually
-            const translateY = baseMaxDim >= 64 ? '-20px' : '0';
-            spriteDiv.style.transform = `scale(${scale}) translateY(${translateY})`;
-            spriteDiv.style.transformOrigin = 'center center';
-            spriteDiv.style.imageRendering = 'pixelated';
-
-            skinPreviewContainer.appendChild(spriteDiv);
-
-            // Play Animation if multiple frames
-            if (frames > 1) {
-                spriteDiv.animate([
-                    { backgroundPosition: '0px 0px' },
-                    { backgroundPosition: `-${totalWidth}px 0px` }
-                ], {
-                    duration: speed,
-                    easing: `steps(${frames}, end)`,
-                    iterations: Infinity
-                });
-            } else {
-                spriteDiv.style.backgroundPosition = '0px 0px';
-            }
-        } else if (skin.preview) {
-            // Fallback to static preview image if available
-            skinPreviewContainer.innerHTML = `<img src="${skin.preview}" alt="${skin.name} preview">`;
-        } else {
-            skinPreviewContainer.innerHTML = '<div class="no-preview">No Preview</div>';
-        }
-    }
-
-    // Check lock status
-    const isLocked = !isVip && skinId !== 'mochi-v1';
-    if (vipLockMsg) {
-        vipLockMsg.classList.toggle('hidden', !isLocked);
-    }
-}
 
 /**
  * Update VIP Status UI
@@ -1179,9 +1098,6 @@ function updateVipStatusUI(status) {
         vipRedeemBtn.textContent = t('redeem');
         isVip = false;
     }
-
-    // Refresh skin list to update locks
-    populateSkins(availableSkins, skinSelect ? skinSelect.value : null);
 
     // Refresh Timer Locks
     updateTimerLocks();
@@ -1265,13 +1181,8 @@ async function saveSettings() {
         const soundToggle = document.getElementById('soundEnabled');
         const volumeSlider = document.getElementById('soundVolume');
 
-        // Check if selected skin is locked
-        let selectedSkin = skinSelect ? skinSelect.value : 'mochi-v1';
-        if (!isVip && selectedSkin !== 'mochi-v1') {
-            alert(t('vipRequired'));
-            selectedSkin = 'mochi-v1';
-        }
-
+        // Note: Skin switching is managed in Pet Hub (copet.html) & context menu,
+        // so we intentionally omit `skin` here to avoid overwriting the user's active skin.
         const settings = {
             region: regionSelect.value,
             provider: providerSelect.value,
@@ -1279,7 +1190,6 @@ async function saveSettings() {
             model: modelInput.value,
             soundEnabled: soundToggle ? soundToggle.checked : true,
             soundVolume: volumeSlider ? parseInt(volumeSlider.value, 10) : 30,
-            skin: selectedSkin,
             pomodoro: {
                 // Phase 4: Enforce 25m limit for non-VIP
                 defaultDuration: isVip ? (parseInt(pomodoroInput.value) || 25) : 25
@@ -1307,10 +1217,10 @@ async function saveSettings() {
         if (result.success) {
             closeWindow();
         } else {
-            alert(t('saveFailed').replace('${msg}', result.message));
+            showSettingsToast(t('saveFailed').replace('${msg}', result.message), 'error');
         }
     } catch (error) {
-        alert('Save failed: ' + error.message);
+        showSettingsToast(`Save failed: ${error.message}`, 'error');
     } finally {
         if (saveBtnTarget) {
             saveBtnTarget.disabled = false;
@@ -1595,21 +1505,46 @@ async function handleVerifyOtp() {
 }
 
 /**
- * Handle Sign Out
+ * Handle Sign Out (2-step inline confirmation without blocking confirm())
  */
+let signOutConfirming = false;
+let signOutConfirmTimer = null;
 async function handleSignOut() {
-    if (!confirm('Are you sure you want to sign out?')) return;
+    if (!signOutConfirming) {
+        signOutConfirming = true;
+        if (signOutBtn) {
+            signOutBtn.textContent = '确认退出?';
+            signOutBtn.title = '再次点击以退出登录';
+        }
+        signOutConfirmTimer = setTimeout(() => {
+            signOutConfirming = false;
+            if (signOutBtn) {
+                signOutBtn.textContent = '↪';
+                signOutBtn.title = 'Sign Out';
+            }
+        }, 3000);
+        return;
+    }
+
+    clearTimeout(signOutConfirmTimer);
+    signOutConfirming = false;
+    if (signOutBtn) {
+        signOutBtn.textContent = '↪';
+        signOutBtn.title = 'Sign Out';
+    }
 
     try {
         await window.settingsAPI.signOut();
         await checkAuthStatus();
-        accountUnlinked.querySelector('.input-with-button').classList.remove('hidden');
-        linkEmailInput.value = '';
-        otpCodeInput.value = '';
-        sendOtpBtn.disabled = false;
-        verifyOtpBtn.disabled = false;
+        accountUnlinked?.querySelector('.email-input-group')?.classList.remove('hidden');
+        if (linkEmailInput) linkEmailInput.value = '';
+        if (otpCodeInput) otpCodeInput.value = '';
+        if (sendOtpBtn) sendOtpBtn.disabled = false;
+        if (verifyOtpBtn) verifyOtpBtn.disabled = false;
+        showSettingsToast('已安全退出云端账号', 'info');
     } catch (e) {
         console.error('Sign out error:', e);
+        showSettingsToast('退出登录失败，请稍后重试', 'error');
     }
 }
 

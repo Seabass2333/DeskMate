@@ -1181,3 +1181,59 @@ textarea::placeholder {
     line-height: 1.5;
     color: #cbd5e1;
 }
+
+/* Non-blocking Settings Toast */
+.settings-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translate(-50%, 16px);
+    padding: 9px 16px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #f8fafc;
+    background: rgba(15, 23, 42, 0.94);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.38);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    z-index: 9999;
+    max-width: 88%;
+    text-align: center;
+}
+
+.settings-toast.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.settings-toast.error {
+    border-color: rgba(239, 68, 68, 0.6);
+    background: rgba(69, 10, 10, 0.94);
+    color: #fecaca;
+}
+
+.settings-toast.success {
+    border-color: rgba(16, 185, 129, 0.6);
+    background: rgba(6, 78, 59, 0.94);
+    color: #a7f3d0;
+}
+
+/* Unified Minimalist SVG Icons */
+.ui-icon {
+    display: inline-block;
+    vertical-align: -2px;
+    flex-shrink: 0;
+    opacity: 0.9;
+}
+
+.settings-main-title,
+.btn-pet-hub-jump,
+.settings-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}

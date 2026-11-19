@@ -72,9 +72,11 @@ contextBridge.exposeInMainWorld('settingsAPI', {
 
     // App Info
     getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
+    isDev: () => ipcRenderer.invoke('app:isDev'),
     checkUpdate: () => ipcRenderer.invoke('app:checkUpdate'),
     getLatestUpdateInfo: () => ipcRenderer.invoke('app:getLatestUpdateInfo'),
     onUpdateStatus: (callback) => ipcRenderer.on('app:updateStatus', (_, data) => callback(data)),
+    onSkinChange: (callback) => ipcRenderer.on('skin-change', (_, skinId) => callback(skinId)),
 
     // 1v1 Co-Pet & Pet Hub (小宠档案与双人共养)
     getPetState: () => ipcRenderer.invoke('pet:getState'),

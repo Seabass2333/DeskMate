@@ -14,22 +14,29 @@
     <div class="settings-container">
         <!-- Top Header with Quick Jump to Pet Hub -->
         <header class="settings-topbar">
-            <h1 class="settings-main-title">⚙️ <span data-i18n="settingsTitle">设置</span></h1>
+            <h1 class="settings-main-title">
+                <svg class="ui-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                <span data-i18n="settingsTitle">设置</span>
+            </h1>
             <button type="button" id="open-copet-hub-btn" class="btn-pet-hub-jump" title="打开小宠档案与双人共养小屋">
-                🐾 <span>小宠档案 & 双人共养</span>
+                <svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                <span>小宠档案 & 双人共养</span>
             </button>
         </header>
 
         <!-- Segmented Tab Navigation -->
         <nav class="settings-tabs" role="tablist">
             <button type="button" class="settings-tab-btn active" data-tab="tab-general">
-                🎛️ <span data-i18n="tabGeneral">常规与专注</span>
+                <svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <span data-i18n="tabGeneral">常规与专注</span>
             </button>
             <button type="button" class="settings-tab-btn" data-tab="tab-ai">
-                🧠 <span data-i18n="tabAi">AI 陪伴</span>
+                <svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span data-i18n="tabAi">AI 陪伴</span>
             </button>
             <button type="button" class="settings-tab-btn" data-tab="tab-account">
-                👤 <span data-i18n="tabAccount">会员与关于</span>
+                <svg class="ui-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span data-i18n="tabAccount">会员与关于</span>
             </button>
         </nav>
 
@@ -197,7 +204,7 @@
                         <span class="lock-icon">🔒</span> <span data-i18n="vipRequired">VIP Required</span>
                     </div>
 
-                    <div style="margin-top: 8px; text-align: right;">
+                    <div id="dev-vip-tools" class="hidden" style="margin-top: 8px; text-align: right;">
                         <button id="reset-vip-btn"
                             style="background: none; border: none; color: #64748b; font-size: 11px; cursor: pointer; text-decoration: underline;">
                             [Dev] Reset VIP

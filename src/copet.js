@@ -169,6 +169,15 @@
                         }
                     }
                 });
+
+                // Keep Pet Hub in sync if skin is switched from the pet's right-click menu
+                window.settingsAPI.onSkinChange?.((newSkinId) => {
+                    if (!newSkinId) return;
+                    skinSelectEl.value = newSkinId;
+                    const matched = availableSkins.find(s => s.id === newSkinId);
+                    if (matched) renderSkinPreview(matched);
+                    if (vipBadgeEl) vipBadgeEl.classList.toggle('hidden', newSkinId === 'mochi-v1');
+                });
             }
         } catch (err) {
             console.warn('[CoPetHub] Failed to init wardrobe:', err);
