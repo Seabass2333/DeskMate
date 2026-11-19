@@ -95,24 +95,40 @@ function formatUpdatePayload(currentVersion, remoteVersion, options = {}) {
 }
 
 /**
- * Fetch latest version from GitHub Releases API + Static Landing Page Manifest
+ * Fetch helper with timeout so a blocked endpoint never stalls the fallback
+ */
+async function fetchWithTimeout(fetchFn, url, fetchOptions = {}, timeoutMs = 8000) {
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    return await fetchFn(url, {
+      ...fetchOptions,
+      ...(controller ? { signal: controller.signal } : {})
+    });
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/**
+ * Fetch latest version from GitHub Releases API + Static Landing Page Manifest in parallel
  */
 async function checkRemoteRelease(currentVersion, options = {}) {
   const fetchFn = options.fetchFn || global.fetch;
   const platform = options.platform || process.platform;
+  const timeoutMs = options.timeoutMs || 8000;
 
   if (typeof fetchFn !== 'function') {
     return formatUpdatePayload(currentVersion, currentVersion, { platform, source: 'none' });
   }
 
-  let manifestCandidate = null;
-  let githubCandidate = null;
-
-  // 1. Static manifest on GitHub Pages (fast, zero rate limit, works even when api.github.com is throttled)
-  try {
-    const res = await fetchFn(`${LANDING_MANIFEST_URL}?t=${Date.now()}`, {
-      headers: { Accept: 'application/json' }
-    });
+  const checkManifest = async () => {
+    const res = await fetchWithTimeout(
+      fetchFn,
+      `${LANDING_MANIFEST_URL}?t=${Date.now()}`,
+      { headers: { Accept: 'application/json' } },
+      timeoutMs
+    );
     if (res && res.ok) {
       const data = await res.json();
       if (data && (data.version || data.tag)) {
@@ -123,7 +139,7 @@ async function checkRemoteRelease(currentVersion, options = {}) {
             : platform === 'win32'
             ? data.winUrl
             : undefined;
-        manifestCandidate = formatUpdatePayload(currentVersion, ver, {
+        return formatUpdatePayload(currentVersion, ver, {
           platform,
           downloadUrl: directUrl,
           releaseNotes: data.releaseNotes || '',
@@ -131,29 +147,37 @@ async function checkRemoteRelease(currentVersion, options = {}) {
         });
       }
     }
-  } catch (_) {
-    // Ignore manifest network error and continue to GitHub API
-  }
+    return null;
+  };
 
-  // 2. GitHub Releases API (/releases/latest with fallback to /releases?per_page=5)
-  try {
-    let res = await fetchFn(GITHUB_API_LATEST, {
-      headers: {
-        Accept: 'application/vnd.github.v3+json',
-        'User-Agent': 'DeskMate-AutoUpdater'
-      }
-    });
+  const checkGitHubApi = async () => {
+    let res = await fetchWithTimeout(
+      fetchFn,
+      GITHUB_API_LATEST,
+      {
+        headers: {
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'DeskMate-AutoUpdater'
+        }
+      },
+      timeoutMs
+    );
 
     let releaseObj = null;
     if (res && res.ok) {
       releaseObj = await res.json();
     } else {
-      const listRes = await fetchFn(GITHUB_API_LIST, {
-        headers: {
-          Accept: 'application/vnd.github.v3+json',
-          'User-Agent': 'DeskMate-AutoUpdater'
-        }
-      });
+      const listRes = await fetchWithTimeout(
+        fetchFn,
+        GITHUB_API_LIST,
+        {
+          headers: {
+            Accept: 'application/vnd.github.v3+json',
+            'User-Agent': 'DeskMate-AutoUpdater'
+          }
+        },
+        timeoutMs
+      );
       if (listRes && listRes.ok) {
         const list = await listRes.json();
         if (Array.isArray(list)) {
@@ -163,16 +187,23 @@ async function checkRemoteRelease(currentVersion, options = {}) {
     }
 
     if (releaseObj && releaseObj.tag_name) {
-      githubCandidate = formatUpdatePayload(currentVersion, releaseObj.tag_name, {
+      return formatUpdatePayload(currentVersion, releaseObj.tag_name, {
         platform,
         assets: releaseObj.assets || [],
         releaseNotes: releaseObj.body || '',
         source: 'github-api'
       });
     }
-  } catch (_) {
-    // Ignore GitHub API error if manifest succeeded
-  }
+    return null;
+  };
+
+  const [manifestRes, githubRes] = await Promise.allSettled([
+    checkManifest(),
+    checkGitHubApi()
+  ]);
+
+  const manifestCandidate = manifestRes.status === 'fulfilled' ? manifestRes.value : null;
+  const githubCandidate = githubRes.status === 'fulfilled' ? githubRes.value : null;
 
   if (githubCandidate && manifestCandidate) {
     return compareSemver(githubCandidate.version, manifestCandidate.version) >= 0

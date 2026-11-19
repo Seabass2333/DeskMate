@@ -205,10 +205,8 @@ async function initApp(): Promise<void> {
 
     window.deskmate.onUpdateAvailable?.((info: any) => {
         if (!info || !info.version) return;
-        if (!behaviorEngine.isQuietMode()) {
-            behaviorEngine.transition('touch');
-            showBubble(`🎉 发现新版本 v${info.version}！右键我可一键下载更新哦~`, 6500);
-        }
+        behaviorEngine.transition('interact');
+        showBubble(`🎉 发现新版本 v${info.version}！右键我或顶部图标可一键下载更新~`, 8000);
     });
 
     window.deskmate.onSettingsUpdated?.((settings: any) => {

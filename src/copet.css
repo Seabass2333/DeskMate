@@ -17,15 +17,23 @@
 }
 
 .copet-page-title .title-icon {
-    font-size: 28px;
-    background: rgba(236, 72, 153, 0.14);
-    border: 1px solid rgba(236, 72, 153, 0.3);
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(99, 102, 241, 0.2));
+    border: 1px solid rgba(236, 72, 153, 0.4);
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+}
+
+.title-pixel-icon {
+    width: 30px;
+    height: 30px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
 
 .copet-page-title h1 {
@@ -53,15 +61,18 @@
     display: flex;
     align-items: center;
     gap: 16px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.055), rgba(30, 41, 59, 0.45));
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .pet-avatar-box {
     position: relative;
-    width: 76px;
-    height: 76px;
-    border-radius: 14px;
-    background: rgba(15, 23, 42, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    width: 82px;
+    height: 82px;
+    border-radius: 16px;
+    background: radial-gradient(circle at 50% 42%, rgba(99, 102, 241, 0.25) 0%, rgba(15, 23, 42, 0.85) 75%);
+    border: 1px solid rgba(165, 180, 252, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 6px 16px rgba(0, 0, 0, 0.28);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -69,23 +80,50 @@
     overflow: hidden;
 }
 
+.pet-avatar-stage-glow {
+    position: absolute;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(236, 72, 153, 0.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.pet-avatar-pedestal {
+    position: absolute;
+    bottom: 10px;
+    width: 46px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.18) 0%, rgba(15, 23, 42, 0.4) 65%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
 .hub-skin-preview {
-    width: 64px;
-    height: 64px;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     image-rendering: pixelated;
-    background-repeat: no-repeat;
 }
 
 .hub-vip-tag {
     position: absolute;
-    bottom: 4px;
-    right: 4px;
+    top: 5px;
+    right: 5px;
+    z-index: 3;
     font-size: 9px;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: 0.5px;
     padding: 1px 5px;
-    border-radius: 4px;
+    border-radius: 5px;
     background: linear-gradient(135deg, #f59e0b, #d97706);
     color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 .pet-meta-box {
@@ -96,18 +134,29 @@
 .pet-name-row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 11px;
+}
+
+.pet-title-group {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
 }
 
 .pet-name-label {
-    font-size: 12px;
+    font-size: 11px;
     color: #94a3b8;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px 7px;
+    border-radius: 6px;
 }
 
 .pet-name-row strong {
-    font-size: 15px;
+    font-size: 16px;
     color: #f8fafc;
+    letter-spacing: 0.2px;
 }
 
 .energy-pill {
@@ -307,6 +356,10 @@
 }
 
 .monument-names {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
     font-size: 14px;
     color: #fff;
 }
@@ -314,6 +367,24 @@
 .monument-names .amp {
     color: #f472b6;
     margin: 0 4px;
+}
+
+.quick-edit-names-btn {
+    margin-left: 6px;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(15, 23, 42, 0.45);
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-edit-names-btn:hover {
+    background: rgba(236, 72, 153, 0.22);
+    border-color: rgba(236, 72, 153, 0.45);
+    color: #fff;
 }
 
 .monument-sub {
@@ -508,7 +579,22 @@
 
 .timeline-actor {
     font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.timeline-actor.self {
+    background: rgba(99, 102, 241, 0.22);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.35);
+}
+
+.timeline-actor.partner {
+    background: rgba(236, 72, 153, 0.2);
     color: #f9a8d4;
+    border: 1px solid rgba(236, 72, 153, 0.35);
 }
 
 .timeline-right {

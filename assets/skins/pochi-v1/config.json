@@ -4,15 +4,15 @@
     "author": "DeskMate",
     "version": "1.0.0",
     "description": "A cat with energy-based moods",
-    "preview": "preview.png",
+    "preview": "Idle.png",
     "features": [
         "energy-moods"
     ],
     "baseSize": [
-        32,
-        32
+        64,
+        64
     ],
-    "scale": 4,
+    "scale": 3,
     "animations": {
         "idle": [
             {

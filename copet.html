@@ -16,7 +16,9 @@
         <!-- Header -->
         <header class="copet-page-header">
             <div class="copet-page-title">
-                <span class="title-icon">🐾</span>
+                <div class="title-icon">
+                    <img src="assets/images/tray-icon-optimized@2x.png" class="title-pixel-icon" alt="Pet Icon">
+                </div>
                 <div>
                     <h1>小宠档案 & 双人共养</h1>
                     <p>专属养成衣橱与 1v1 跨桌面陪伴契约</p>
@@ -26,22 +28,26 @@
 
         <!-- Section 1: Pet Profile & Skin Wardrobe (Moved out of Settings!) -->
         <section class="hub-card profile-wardrobe-card">
-            <div class="pet-avatar-box">
+            <div class="pet-avatar-box" title="当前桌面小宠实时预览">
+                <div class="pet-avatar-stage-glow"></div>
                 <div id="hub-skin-preview" class="hub-skin-preview"></div>
+                <div class="pet-avatar-pedestal"></div>
                 <span id="hub-vip-badge" class="hub-vip-tag hidden">VIP</span>
             </div>
             <div class="pet-meta-box">
                 <div class="pet-name-row">
-                    <span class="pet-name-label">当前伙伴：</span>
-                    <strong id="hub-pet-name">Mochi</strong>
+                    <div class="pet-title-group">
+                        <span class="pet-name-label">当前伙伴</span>
+                        <strong id="hub-pet-name">Mochi</strong>
+                    </div>
                     <span id="hub-energy-badge" class="energy-pill">⚡ 体力 75%</span>
                 </div>
                 <div class="wardrobe-control-row">
-                    <label for="hub-skin-select">🎨 更换外观皮肤</label>
+                    <label for="hub-skin-select">🎨 外观衣橱</label>
                     <select id="hub-skin-select" class="hub-select"></select>
                 </div>
                 <div id="hub-skin-lock-msg" class="hub-lock-hint hidden">
-                    🔒 该外观为 VIP 专属，可在「设置 → 账号与会员」中凭邀请码解锁
+                    🔒 该外观为 VIP 专属，可在「设置 → 会员与关于」中凭邀请码解锁
                 </div>
             </div>
         </section>
@@ -116,6 +122,7 @@
                                 <strong id="bond-my-name">我</strong>
                                 <span class="amp">&</span>
                                 <strong id="bond-partner-name">远方的 TA</strong>
+                                <button type="button" id="quick-edit-names-btn" class="quick-edit-names-btn" title="修改双方署名与小宠昵称">✏️ 署名</button>
                             </div>
                             <div class="monument-sub">
                                 正在共同养育「<span id="bond-pet-name">Mochi</span>」
@@ -184,9 +191,10 @@
                     <div class="contract-guard-body">
                         <!-- Profile Rename -->
                         <div class="guard-rename-row">
-                            <input type="text" id="edit-pet-name" placeholder="修改小宠名字" maxlength="16">
-                            <input type="text" id="edit-partner-name" placeholder="修改伙伴备注" maxlength="16">
-                            <button type="button" id="save-profile-btn" class="btn-secondary btn-sm">更新档案</button>
+                            <input type="text" id="edit-my-name" placeholder="我的署名" maxlength="16" title="我的署名">
+                            <input type="text" id="edit-partner-name" placeholder="TA 的署名" maxlength="16" title="伙伴署名">
+                            <input type="text" id="edit-pet-name" placeholder="小宠名字" maxlength="16" title="共同养育的小宠名字">
+                            <button type="button" id="save-profile-btn" class="btn-secondary btn-sm">保存署名</button>
                         </div>
 
                         <!-- Anti-impulse Unpair Zone -->

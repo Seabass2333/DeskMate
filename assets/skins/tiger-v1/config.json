@@ -24,6 +24,16 @@
             "frames": 3,
             "speed": 1500
         },
+        "sleep_intro": {
+            "src": "Idle2Catt.png",
+            "frames": 14,
+            "speed": 1200
+        },
+        "wake_intro": {
+            "src": "Idle2Catt.png",
+            "frames": 14,
+            "speed": 1000
+        },
         "thinking": {
             "src": "thinking.png",
             "frames": 3,

@@ -382,6 +382,12 @@ function getAvailableSkins() {
                         features: config.features || [],
                         // New fields for dynamic preview
                         baseSize: config.baseSize || [32, 32],
+                        previewSpriteRel: (() => {
+                            const idle = config.animations?.idle;
+                            if (!idle) return `assets/skins/${d.name}/idle.png`;
+                            const src = Array.isArray(idle) ? idle[0].src : idle.src;
+                            return src ? `assets/skins/${d.name}/${src}` : `assets/skins/${d.name}/idle.png`;
+                        })(),
                         previewSprite: (() => {
                             const idle = config.animations?.idle;
                             if (!idle) return null;

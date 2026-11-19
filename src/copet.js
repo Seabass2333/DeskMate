@@ -37,6 +37,8 @@
     const timelineListEl = document.getElementById('care-timeline-list');
 
     const guardDetailsEl = document.getElementById('contract-guard-details');
+    const quickEditNamesBtn = document.getElementById('quick-edit-names-btn');
+    const editMyNameInput = document.getElementById('edit-my-name');
     const editPetNameInput = document.getElementById('edit-pet-name');
     const editPartnerNameInput = document.getElementById('edit-partner-name');
     const saveProfileBtn = document.getElementById('save-profile-btn');
@@ -75,23 +77,42 @@
             previewAnim = null;
         }
 
-        const previewFile = skin.preview || 'idle.png';
-        const imgUrl = `assets/skins/${skin.id}/${previewFile}`;
-        const frames = skin.previewFrames || 4;
-        const size = 64;
-        const totalWidth = size * frames;
+        skinPreviewEl.innerHTML = '';
 
-        skinPreviewEl.style.backgroundImage = `url('${imgUrl}')`;
-        skinPreviewEl.style.backgroundSize = `${totalWidth}px ${size}px`;
+        // Use relative path (previewSpriteRel) to avoid any issues with spaces in directory names
+        const spriteUrl = (skin.previewSpriteRel || `assets/skins/${skin.id}/idle.png`).replace(/\\/g, '/');
+        const [baseW, baseH] = Array.isArray(skin.baseSize) && skin.baseSize.length === 2
+            ? skin.baseSize
+            : [32, 32];
+        const frames = skin.idleAnimation?.frames || 6;
+        const speed = skin.idleAnimation?.speed || 1000;
+        const totalWidth = baseW * frames;
+
+        const spriteDiv = document.createElement('div');
+        spriteDiv.style.width = `${baseW}px`;
+        spriteDiv.style.height = `${baseH}px`;
+        spriteDiv.style.backgroundImage = `url("${spriteUrl}")`;
+        spriteDiv.style.backgroundRepeat = 'no-repeat';
+        spriteDiv.style.backgroundSize = `${totalWidth}px ${baseH}px`;
+        spriteDiv.style.imageRendering = 'pixelated';
+
+        // Scale 32x32 sprites by 2x (64px) and 64x64 sprites by 1.25x (80px) with slight vertical centering
+        const maxDim = Math.max(baseW, baseH);
+        const scale = maxDim >= 64 ? 1.25 : 2;
+        const offsetY = maxDim >= 64 ? '-10px' : '-2px';
+        spriteDiv.style.transform = `scale(${scale}) translateY(${offsetY})`;
+        spriteDiv.style.transformOrigin = 'center center';
+
+        skinPreviewEl.appendChild(spriteDiv);
 
         if (frames > 1) {
-            previewAnim = skinPreviewEl.animate(
+            previewAnim = spriteDiv.animate(
                 [
-                    { backgroundPosition: '0 0' },
-                    { backgroundPosition: `-${totalWidth}px 0` }
+                    { backgroundPosition: '0px 0px' },
+                    { backgroundPosition: `-${totalWidth}px 0px` }
                 ],
                 {
-                    duration: 800,
+                    duration: speed,
                     easing: `steps(${frames}, end)`,
                     iterations: Infinity
                 }
@@ -104,7 +125,7 @@
         try {
             const settings = await window.settingsAPI.getSettings();
             const petState = await window.settingsAPI.getPetState?.() || { energy: 75 };
-            isVipUser = Boolean(settings?.vip?.enabled);
+            isVipUser = Boolean(settings?.vipStatus?.enabled || settings?.vip?.enabled);
 
             if (energyBadgeEl && typeof petState.energy === 'number') {
                 energyBadgeEl.textContent = `⚡ 体力 ${Math.round(petState.energy)}%`;
@@ -182,8 +203,9 @@
         if (bondPetNameEl) bondPetNameEl.textContent = status.petName || 'Mochi';
         if (bondDaysCountEl) bondDaysCountEl.textContent = String(status.togetherDays || 1);
 
-        if (editPetNameInput && !editPetNameInput.value) editPetNameInput.value = status.petName || 'Mochi';
-        if (editPartnerNameInput && !editPartnerNameInput.value) editPartnerNameInput.value = status.partnerNickname || '';
+        if (editMyNameInput) editMyNameInput.value = status.myNickname || '我';
+        if (editPetNameInput) editPetNameInput.value = status.petName || 'Mochi';
+        if (editPartnerNameInput) editPartnerNameInput.value = status.partnerNickname || '';
 
         // Render Bond Level & Progress
         const bond = status.bond || { level: 1, title: '初识之约', exp: 0, nextExp: 50, progressPercent: 0 };
@@ -201,14 +223,19 @@
         // Render Care Timeline
         if (timelineListEl) {
             const logs = status.logs || [];
+            const myName = status.myNickname || '我';
             if (logs.length === 0) {
                 timelineListEl.innerHTML = `<div class="timeline-item"><span class="timeline-item-left">✨ 快向对方发送第一次隔空摸摸吧~</span></div>`;
             } else {
-                timelineListEl.innerHTML = logs.map(item => `
+                timelineListEl.innerHTML = logs.map(item => {
+                    const actor = item.actor || '伙伴';
+                    const isSelf = actor === myName || actor === '我';
+                    const actorClass = isSelf ? 'self' : 'partner';
+                    return `
                     <div class="timeline-item">
                         <div class="timeline-item-left">
                             <span>${item.icon || '💞'}</span>
-                            <span class="timeline-actor">${item.actor || '伙伴'}</span>
+                            <span class="timeline-actor ${actorClass}">${actor}</span>
                             <span>${item.text || ''}</span>
                         </div>
                         <div class="timeline-right">
@@ -216,7 +243,8 @@
                             <span class="timeline-time">${formatTime(item.timestamp)}</span>
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             }
         }
     }
@@ -297,11 +325,21 @@
         bindCareAction(careBtnFeed, 'feed');
         bindCareAction(careBtnWater, 'water_nudge');
 
+        // Quick Edit Names Shortcut in Monument Header
+        quickEditNamesBtn?.addEventListener('click', () => {
+            if (guardDetailsEl) {
+                guardDetailsEl.open = true;
+                guardDetailsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                setTimeout(() => editMyNameInput?.focus(), 120);
+            }
+        });
+
         // Profile Update
         saveProfileBtn?.addEventListener('click', async () => {
+            const myNickname = editMyNameInput?.value.trim();
             const petName = editPetNameInput?.value.trim();
             const partnerNickname = editPartnerNameInput?.value.trim();
-            const res = await window.settingsAPI.coPetUpdateProfile({ petName, partnerNickname });
+            const res = await window.settingsAPI.coPetUpdateProfile({ myNickname, petName, partnerNickname });
             if (res?.success) {
                 showFeedback(res.message, 'success');
                 renderCoPetStatus(res.status);

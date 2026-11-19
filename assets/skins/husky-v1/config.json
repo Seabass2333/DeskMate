@@ -27,6 +27,16 @@
             "frames": 8,
             "speed": 1600
         },
+        "sleep_intro": {
+            "src": "HuskyLieDown.png",
+            "frames": 12,
+            "speed": 1200
+        },
+        "wake_intro": {
+            "src": "HuskyLieDown.png",
+            "frames": 12,
+            "speed": 1000
+        },
         "thinking": {
             "src": "thinking.png",
             "frames": 8,

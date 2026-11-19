@@ -1084,10 +1084,11 @@ function updateSkinPreview(skinId) {
         // Clear previous content
         skinPreviewContainer.innerHTML = '';
 
-        if (skin.previewSprite) {
+        if (skin.previewSpriteRel || skin.previewSprite) {
             // Create sprite preview div
             const spriteDiv = document.createElement('div');
-            spriteDiv.style.backgroundImage = `url('${skin.previewSprite.replace(/\\/g, '/')}')`;
+            const spriteUrl = (skin.previewSpriteRel || skin.previewSprite).replace(/\\/g, '/');
+            spriteDiv.style.backgroundImage = `url("${spriteUrl}")`;
             spriteDiv.style.backgroundRepeat = 'no-repeat';
 
             // Dimensions setup

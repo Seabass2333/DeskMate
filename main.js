@@ -1,7 +1,7 @@
 // Load environment variables from .env.local
 require('dotenv').config({ path: require('path').join(__dirname, '.env.local') });
 
-const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeImage, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, Notification, dialog, Tray, nativeImage, shell, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const LLMHandler = require('./src/services/llmHandler');
@@ -363,12 +363,10 @@ function showContextMenu() {
 }
 
 /**
- * Create a simple fallback tray icon (16x16 cat silhouette)
+ * Create a crisp pixel-art cat fallback tray icon (18x18 transparent PNG)
  */
 function createFallbackTrayIcon() {
-  // Create a simple 16x16 black cat silhouette as base64 PNG
-  // This is a minimal cat head shape
-  const base64Icon = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAjklEQVQ4T2NkoBAwUqifYdQAhtEwGPYBMH78+P8MDAwMjIyM/+GAIAOQBvMJqQFJg/UjS+LTAzEAZgiyBnyuJdYFyAaguw5fGBDrAqQ0suNxuQBZL7IBqJrwGYCsF90AZENgGrEFArpedAOQNYI1UBILuAxA149sALohlLkAWxggB8NoGCAHJHlxyBgPAwDfaz0RTcqI4gAAAABJRU5ErkJggg==';
+  const base64Icon = 'iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAqklEQVR42mNgoDZQkND5D8IUqQcJ/J5kA8bEGAZS8//XJzBGUQ8z6EvRNoKGwQwBqcVrELJN2DBMHq9BIAxTCGK/iuCB80FsZHmYGrhB2AwhFYMNQ3YuDEuIqIAxseK0MwgUgMgBDsJvPGaCMbIYujqiDMKGcRr08clVsgMapBcl5sgxDMUQ9Lzz3sWFKIwzb2KLPRD+dUYUjHGmH6IzIjnqiC1KSC1ySAIAcWGTv9NlkpcAAAAASUVORK5CYII=';
 
   return nativeImage.createFromDataURL(`data:image/png;base64,${base64Icon}`);
 }
@@ -386,13 +384,15 @@ function createTray() {
   // Create tray with a fallback icon first
   let trayIcon = createFallbackTrayIcon();
 
-  // Try to load custom icon
+  // Load pixel-art tray icon (automatically pairs tray-icon-optimized.png @1x 18x18 and @2x 36x36)
   const iconPath = path.join(__dirname, 'assets/images/tray-icon-optimized.png');
   try {
     const customIcon = nativeImage.createFromPath(iconPath);
     if (!customIcon.isEmpty()) {
-      trayIcon = customIcon.resize({ width: 18, height: 18 });
-      // Don't set as template image to preserve colors
+      const size = customIcon.getSize();
+      trayIcon = (size.width === 18 && size.height === 18)
+        ? customIcon
+        : customIcon.resize({ width: 18, height: 18, quality: 'good' });
     }
   } catch (e) {
     console.log('[Tray] Using fallback icon');
@@ -403,8 +403,23 @@ function createTray() {
   // Remove emoji title - it causes duplicate icons
   tray.setToolTip('DeskMate');
 
-  // Build tray context menu
-  const trayMenu = Menu.buildFromTemplate([
+  // Build tray context menu dynamically so update entries appear immediately
+  const buildTrayMenu = () => Menu.buildFromTemplate([
+    ...(latestAvailableUpdate && latestAvailableUpdate.hasUpdate
+      ? [
+          {
+            label: `🎉 发现新版本 v${latestAvailableUpdate.version} (点击一键下载)`,
+            click: () => {
+              const targetUrl =
+                latestAvailableUpdate.downloadUrl ||
+                latestAvailableUpdate.landingUrl ||
+                'https://github.com/Seabass2333/DeskMate/releases/latest';
+              shell.openExternal(targetUrl);
+            }
+          },
+          { type: 'separator' }
+        ]
+      : []),
     {
       label: t('showHide'),
       click: () => {
@@ -461,9 +476,6 @@ function createTray() {
     }
   ]);
 
-  // Don't use setContextMenu - we'll show it on right-click only
-  // tray.setContextMenu(trayMenu);
-
   // Left click: Show/hide window
   tray.on('click', () => {
     if (mainWindow) {
@@ -475,9 +487,9 @@ function createTray() {
     }
   });
 
-  // Right click: Show context menu
+  // Right click: Show dynamic context menu
   tray.on('right-click', () => {
-    tray.popUpContextMenu(trayMenu);
+    tray.popUpContextMenu(buildTrayMenu());
   });
 
   console.log('[Main] Tray created');
@@ -528,7 +540,7 @@ function openCoPetWindow() {
 
   coPetWindow = new BrowserWindow({
     width: 500,
-    height: 650,
+    height: 710,
     modal: false,
     frame: true,
     resizable: false,
@@ -1200,6 +1212,34 @@ function setupAutoUpdater() {
     const lang = store.get('language', 'zh-CN');
     const isZh = String(lang).startsWith('zh');
 
+    // Update tray tooltip so hovering the menu bar cat also shows the new version
+    if (tray && !tray.isDestroyed()) {
+      tray.setToolTip(`DeskMate (发现新版本 v${updateInfo.version})`);
+    }
+
+    // Send a native OS notification (always visible even when app.dock.hide() is active on macOS)
+    try {
+      if (Notification.isSupported()) {
+        const updateNotif = new Notification({
+          title: isZh ? `🎉 DeskMate 发现新版本 v${updateInfo.version}` : `🎉 DeskMate v${updateInfo.version} Available`,
+          body: isZh
+            ? '点击即可直接下载最新安装包，覆盖安装保留全部数据~'
+            : 'Click to download the latest installer directly.'
+        });
+        updateNotif.on('click', () => {
+          shell.openExternal(updateInfo.downloadUrl || updateInfo.githubUrl);
+        });
+        updateNotif.show();
+      }
+    } catch (e) {
+      console.warn('[AutoUpdater] System notification skipped:', e.message);
+    }
+
+    // Bring app to front on macOS tray-only mode so dialog isn't hidden behind other windows
+    if (process.platform === 'darwin') {
+      app.focus({ steal: true });
+    }
+
     dialog
       .showMessageBox({
         type: isCriticalUpdate ? 'warning' : 'info',
@@ -1218,7 +1258,6 @@ function setupAutoUpdater() {
       })
       .then(({ response }) => {
         isUpdateDialogShown = false;
-        const { shell } = require('electron');
         if (response === 0) {
           shell.openExternal(updateInfo.downloadUrl || updateInfo.githubUrl);
           if (isCriticalUpdate) app.quit();
@@ -1238,9 +1277,13 @@ function setupAutoUpdater() {
   async function performUpdateCheck({ isManual = false } = {}) {
     sendStatusToSettings('checking');
     const currentVersion = app.getVersion();
+    // Use Electron's net.fetch so macOS/Windows system proxies (Clash/Surge/VPN) are respected!
+    const electronFetch = (net && typeof net.fetch === 'function')
+      ? (...args) => net.fetch(...args)
+      : global.fetch;
 
     try {
-      const remoteInfo = await checkRemoteRelease(currentVersion);
+      const remoteInfo = await checkRemoteRelease(currentVersion, { fetchFn: electronFetch });
       if (remoteInfo.hasUpdate) {
         notifyPetAndUser(remoteInfo, { isManual });
         if (!isUnsignedMac && app.isPackaged) {
